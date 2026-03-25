@@ -29,10 +29,11 @@ cp agents-files/Zesh-custom-AGENTS.md /ruta/a/tu-proyecto/AGENTS.md
 
 ## Paso 2: Revisá qué skills están disponibles
 
-Los skills de `skills-files/` están organizados por dominio:
+Los skills están organizados por dominio:
 
-- `net8-apirest/` — Arquitectura, data access, endpoints REST para .NET 8
-- `github-pr/` — Convenciones de Pull Request y branch workflow
+- `backend/skills/net8-apirest/` — Arquitectura, data access, endpoints REST para .NET 8
+- `shared/skills/github-pr/` — Convenciones de Pull Request y branch workflow
+- `vendor/gentleman/` — Skills del ecosistema Gentleman (nextjs-15, react-19, tailwind-4, etc.)
 
 Los skills en `.github/skills/` (vendor Gentleman) son herramientas del agente disponibles bajo demanda — no se auto-invocan, se usan explícitamente.
 

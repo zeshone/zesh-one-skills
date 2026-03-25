@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // tools/spec-fixtures-logging.js — Semantic fixture runner for net8-apirest-logging
-// Validates 5 spec scenarios against the REAL content of skills-files/net8-apirest/logging/SKILL.md
+// Validates 5 spec scenarios against the REAL content of backend/skills/net8-apirest/logging/SKILL.md
 // Exit: 0 if all pass, 1 if any fail
 // No external dependencies — uses only Node.js builtins
 

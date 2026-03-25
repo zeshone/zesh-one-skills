@@ -22,10 +22,16 @@ Los skills están diseñados para **OpenCode** con el stack de herramientas de G
 ```
 zesh-one-skills/
 ├── agents-files/          # Plantillas de AGENTS.md por tipo de proyecto
-├── skills-files/          # Skills propias del proyecto Zesh (por dominio)
-│   ├── github-pr/         # Reglas y convenciones para PR workflow
-│   ├── net8-apirest/      # Skills backend .NET 8 REST API
-│   └── ...                # (nextjs-15, react-19, tailwind-4, etc. — referencia)
+├── backend/               # Assets específicos del dominio backend
+│   ├── skills/            # Skills backend (net8-apirest, etc.)
+│   └── AGENTS.md          # Instrucciones de agente para proyectos backend
+├── frontend/              # Assets específicos del dominio frontend
+│   └── AGENTS.md          # Instrucciones de agente para proyectos frontend
+├── vendor/                # Skills de fuentes externas
+│   └── gentleman/         # Skills de gentleman-programming (nextjs-15, react-19, etc.)
+├── shared/                # Utilities cross-domain
+│   └── skills/            # Skills compartidos (github-pr, etc.)
+├── rules-to-skills/       # Documento auxiliar de reglas .NET (referencia)
 ├── .github/skills/        # Skills de agente (vendor: gentleman-programming)
 │   └── skill-creator/     # Skill para crear nuevas skills
 ├── tools/                 # Scripts de validación (lint, test, verify)
