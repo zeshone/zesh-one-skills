@@ -69,8 +69,8 @@ console.log('\n── REQ-02: Project documentation covers repo identity and ado
       content.toLowerCase().includes('zesh-one-skills') || content.toLowerCase().includes('zesh-one skills')
     );
     assert(
-      'README.md references agents-files/ (structure coverage)',
-      content.includes('agents-files')
+      'README.md references AGENTS distribution files or skills/ (structure coverage)',
+      content.includes('AGENTS.backend.md') || content.includes('skills/')
     );
   }
 
@@ -123,8 +123,8 @@ console.log('\n── REQ-04: ADOPTING.md explicitly guides copying AGENTS.md �
       content.includes('AGENTS.md')
     );
     assert(
-      'ADOPTING.md references the cp command or copy action for AGENTS.md',
-      content.includes('cp agents-files') || content.includes('copy agents-files') || content.includes('Copiá el archivo')
+      'ADOPTING.md references the cp/copy action for AGENTS distribution file',
+      content.includes('cp AGENTS.') || content.includes('copy AGENTS.') || content.includes('Copiá')
     );
   } else {
     assert('ADOPTING.md exists (required for REQ-04)', false);
@@ -132,20 +132,17 @@ console.log('\n── REQ-04: ADOPTING.md explicitly guides copying AGENTS.md �
   }
 }
 
-// ─── REQ-05: agents-files/ exists (positive) and agnets-files/ does NOT (typo) ─
+// ─── REQ-05: Root distribution files AGENTS.backend.md and AGENTS.frontend.md exist ─
 
-console.log('\n── REQ-05: Correct directory name agents-files/ (no agnets-files/ typo) ──');
+console.log('\n── REQ-05: Root distribution files AGENTS.backend.md and AGENTS.frontend.md exist ──');
 {
-  const correctDir = path.join(ROOT, 'agents-files');
-  const typoDir    = path.join(ROOT, 'agnets-files');
-
   assert(
-    'agents-files/ directory exists (correct name)',
-    fs.existsSync(correctDir)
+    'AGENTS.backend.md exists at repo root',
+    fs.existsSync(path.join(ROOT, 'AGENTS.backend.md'))
   );
   assert(
-    'agnets-files/ does NOT exist (typo directory absent)',
-    !fs.existsSync(typoDir)
+    'AGENTS.frontend.md exists at repo root',
+    fs.existsSync(path.join(ROOT, 'AGENTS.frontend.md'))
   );
 }
 

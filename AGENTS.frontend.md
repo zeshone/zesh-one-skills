@@ -15,17 +15,17 @@ Use these skills for detailed patterns on-demand:
 ### Frontend Skills (Gentleman Stack)
 | Skill | Description | URL |
 |-------|-------------|-----|
-| `typescript` | Const types, flat interfaces, utility types | [SKILL.md](../vendor/gentleman/typescript/SKILL.md) |
-| `react-19` | No useMemo/useCallback, React Compiler patterns | [SKILL.md](../vendor/gentleman/react-19/SKILL.md) |
-| `nextjs-15` | App Router, Server Actions, streaming | [SKILL.md](../vendor/gentleman/nextjs-15/SKILL.md) |
-| `tailwind-4` | cn() utility, no var() in className | [SKILL.md](../vendor/gentleman/tailwind-4/SKILL.md) |
-| `zod-4` | New API (z.email(), z.uuid()) | [SKILL.md](../vendor/gentleman/zod-4/SKILL.md) |
-| `zustand-5` | Persist, selectors, slices | [SKILL.md](../vendor/gentleman/zustand-5/SKILL.md) |
+| `typescript` | Const types, flat interfaces, utility types | [SKILL.md](skills/frontend/typescript/SKILL.md) |
+| `react-19` | No useMemo/useCallback, React Compiler patterns | [SKILL.md](skills/frontend/react-19/SKILL.md) |
+| `nextjs-15` | App Router, Server Actions, streaming | [SKILL.md](skills/frontend/nextjs-15/SKILL.md) |
+| `tailwind-4` | cn() utility, no var() in className | [SKILL.md](skills/frontend/tailwind-4/SKILL.md) |
+| `zod-4` | New API (z.email(), z.uuid()) | [SKILL.md](skills/frontend/zod-4/SKILL.md) |
+| `zustand-5` | Persist, selectors, slices | [SKILL.md](skills/frontend/zustand-5/SKILL.md) |
 
 ### Shared Skills
 | Skill | Description | URL |
 |-------|-------------|-----|
-| `github-pr` | Pull Request conventions, branch workflow, PR checklist | [SKILL.md](../shared/skills/github-pr/SKILL.md) |
+| `github-pr` | Pull Request conventions, branch workflow, PR checklist | [SKILL.md](skills/shared/github-pr/SKILL.md) |
 
 ---
 

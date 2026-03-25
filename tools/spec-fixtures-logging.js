@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// tools/spec-fixtures-logging.js — Semantic fixture runner for net8-apirest-logging
-// Validates 5 spec scenarios against the REAL content of backend/skills/net8-apirest/logging/SKILL.md
+// tools/spec-fixtures-logging.js — Semantic fixture runner for backend-logging
+// Validates 5 spec scenarios against the REAL content of skills/backend/logging/SKILL.md
 // Exit: 0 if all pass, 1 if any fail
 // No external dependencies — uses only Node.js builtins
 
@@ -29,7 +29,7 @@ function assert(name, condition) {
 
 // ─── Read real skill file ─────────────────────────────────────────────────────
 
-const skillPath = path.join(__dirname, '..', 'backend', 'skills', 'net8-apirest', 'logging', 'SKILL.md');
+const skillPath = path.join(__dirname, '..', 'skills', 'backend', 'logging', 'SKILL.md');
 const content = fs.readFileSync(skillPath, 'utf8');
 
 // ─── Scenarios ────────────────────────────────────────────────────────────────

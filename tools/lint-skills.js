@@ -18,11 +18,16 @@ try {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const SKILLS_ROOTS = [
-  path.resolve(__dirname, '..', 'backend', 'skills'),
-  path.resolve(__dirname, '..', 'vendor', 'gentleman'),
-  path.resolve(__dirname, '..', 'shared', 'skills'),
+// Allow test injection via LINT_SKILLS_ROOTS env var (path.delimiter-separated absolute paths).
+// When unset the default three skill roots are used unchanged.
+let SKILLS_ROOTS = [
+  path.resolve(__dirname, '..', 'skills', 'backend'),
+  path.resolve(__dirname, '..', 'skills', 'frontend'),
+  path.resolve(__dirname, '..', 'skills', 'shared'),
 ];
+if (process.env.LINT_SKILLS_ROOTS) {
+  SKILLS_ROOTS = process.env.LINT_SKILLS_ROOTS.split(path.delimiter);
+}
 const ZESH_ONE_AUTHOR = 'Zesh-One';
 
 // Rules table — level depends on profile at runtime
@@ -275,8 +280,8 @@ function main() {
   const files = SKILLS_ROOTS.flatMap((root) => discoverSkillFiles(root));
 
   if (files.length === 0) {
-    console.log('No SKILL.md files found. Nothing to lint.');
-    process.exit(0);
+    console.error('ERROR: No SKILL.md files found. Check SKILLS_ROOTS paths.');
+    process.exit(1);
   }
 
   console.log(`Linting ${files.length} SKILL.md file(s)...\n`);

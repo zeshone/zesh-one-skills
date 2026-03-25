@@ -4,9 +4,9 @@
   "scripts": {
     "lint:skills": "node tools/lint-skills.js",
     "test:fixtures": "node tools/test-fixtures.js",
-    "test": "node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/lint-skills.js && node tools/test-release-readiness.js",
+    "test": "node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/lint-skills.js && node tools/test-release-readiness.js && node tools/test-lint-zero-skills.js",
     "build": "node tools/lint-skills.js",
-    "verify": "node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/lint-skills.js && node tools/test-release-readiness.js"
+    "verify": "node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/lint-skills.js && node tools/test-release-readiness.js && node tools/test-lint-zero-skills.js"
   },
   "devDependencies": {
     "js-yaml": "^4.1.0"

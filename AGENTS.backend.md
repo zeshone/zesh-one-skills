@@ -15,20 +15,20 @@ Use these skills for detailed patterns on-demand:
 ### .NET 8 REST API Skills
 | Skill | Description | URL |
 |-------|-------------|-----|
-| `net8-apirest-general` | Clean Architecture, Vertical Slices, project structure, naming conventions | [SKILL.md](skills/net8-apirest/general/SKILL.md) |
-| `net8-apirest-dataaccess` | Entity Framework Core, DbContext pooling, repositories, migrations, audit patterns | [SKILL.md](skills/net8-apirest/dataaccess/SKILL.md) |
-| `net8-apirest-security` | OWASP API Top 10, JWT, authorization, BOLA prevention, secure credential handling | [SKILL.md](skills/net8-apirest/security/SKILL.md) |
-| `net8-apirest-validations` | FluentValidation, input validation, decision trees, error handling | [SKILL.md](skills/net8-apirest/validations/SKILL.md) |
-| `net8-apirest-requests` | Request DTOs, model binding, query parameters, file uploads | [SKILL.md](skills/net8-apirest/requests/SKILL.md) |
-| `net8-apirest-responses` | ResponseDTO<T>, HTTP status codes, error formatting, inter-layer communication | [SKILL.md](skills/net8-apirest/responses/SKILL.md) |
-| `net8-apirest-mapping` | AutoMapper vs manual mapping, mapping profiles, extension patterns | [SKILL.md](skills/net8-apirest/mapping/SKILL.md) |
-| `net8-apirest-logging` | Serilog, structured logging, Correlation IDs, exception handling | [SKILL.md](skills/net8-apirest/logging/SKILL.md) |
-| `net8-apirest-performance` | EF Core optimization, async patterns, Polly resilience, DbContextPool | [SKILL.md](skills/net8-apirest/performance/SKILL.md) |
+| `net8-apirest-general` | Clean Architecture, Vertical Slices, project structure, naming conventions | [SKILL.md](skills/backend/general/SKILL.md) |
+| `net8-apirest-dataaccess` | Entity Framework Core, DbContext pooling, repositories, migrations, audit patterns | [SKILL.md](skills/backend/dataaccess/SKILL.md) |
+| `net8-apirest-security` | OWASP API Top 10, JWT, authorization, BOLA prevention, secure credential handling | [SKILL.md](skills/backend/security/SKILL.md) |
+| `net8-apirest-validations` | FluentValidation, input validation, decision trees, error handling | [SKILL.md](skills/backend/validations/SKILL.md) |
+| `net8-apirest-requests` | Request DTOs, model binding, query parameters, file uploads | [SKILL.md](skills/backend/requests/SKILL.md) |
+| `net8-apirest-responses` | ResponseDTO<T>, HTTP status codes, error formatting, inter-layer communication | [SKILL.md](skills/backend/responses/SKILL.md) |
+| `net8-apirest-mapping` | AutoMapper vs manual mapping, mapping profiles, extension patterns | [SKILL.md](skills/backend/mapping/SKILL.md) |
+| `net8-apirest-logging` | Serilog, structured logging, Correlation IDs, exception handling | [SKILL.md](skills/backend/logging/SKILL.md) |
+| `net8-apirest-performance` | EF Core optimization, async patterns, Polly resilience, DbContextPool | [SKILL.md](skills/backend/performance/SKILL.md) |
 
 ### Shared Skills
 | Skill | Description | URL |
 |-------|-------------|-----|
-| `github-pr` | Pull Request conventions, branch workflow, PR checklist | [SKILL.md](../shared/skills/github-pr/SKILL.md) |
+| `github-pr` | Pull Request conventions, branch workflow, PR checklist | [SKILL.md](skills/shared/github-pr/SKILL.md) |
 
 ---
 

@@ -1,10 +1,10 @@
 # Zesh-One-Skills
 
-> Suite de skills para agentes AI — Backend .NET 8 REST API, con soporte a herramientas [OpenCode](https://opencode.ai) + [Engram](https://github.com/gentleman-programming/engram) + [Agents Team Lite](https://github.com/gentleman-programming).
+> Suite de skills para agentes AI — Backend .NET 8 REST API y Frontend, con soporte a herramientas [OpenCode](https://opencode.ai) + [Engram](https://github.com/gentleman-programming/engram) + [Agents Team Lite](https://github.com/gentleman-programming).
 
 ## Qué es esto
 
-Repositorio privado de skills e instrucciones de contexto para agentes AI utilizados en proyectos backend .NET 8. Centraliza las convenciones, reglas de arquitectura y guías de desarrollo que el agente debe conocer para trabajar correctamente en proyectos Zesh.
+Repositorio privado de skills e instrucciones de contexto para agentes AI utilizados en proyectos backend .NET 8 y frontend. Centraliza las convenciones, reglas de arquitectura y guías de desarrollo que el agente debe conocer para trabajar correctamente en proyectos Zesh.
 
 Los skills están diseñados para **OpenCode** con el stack de herramientas de Gentleman Programming: engram (memoria persistente) y agents-team-lite (orquestación de sub-agentes).
 
@@ -21,19 +21,29 @@ Los skills están diseñados para **OpenCode** con el stack de herramientas de G
 
 ```
 zesh-one-skills/
-├── agents-files/          # Plantillas de AGENTS.md por tipo de proyecto
-├── backend/               # Assets específicos del dominio backend
-│   ├── skills/            # Skills backend (net8-apirest, etc.)
-│   └── AGENTS.md          # Instrucciones de agente para proyectos backend
-├── frontend/              # Assets específicos del dominio frontend
-│   └── AGENTS.md          # Instrucciones de agente para proyectos frontend
-├── vendor/                # Skills de fuentes externas
-│   └── gentleman/         # Skills de gentleman-programming (nextjs-15, react-19, etc.)
-├── shared/                # Utilities cross-domain
-│   └── skills/            # Skills compartidos (github-pr, etc.)
-├── rules-to-skills/       # Documento auxiliar de reglas .NET (referencia)
-├── .github/skills/        # Skills de agente (vendor: gentleman-programming)
-│   └── skill-creator/     # Skill para crear nuevas skills
+├── AGENTS.backend.md      # Instrucciones de agente para proyectos backend (distribuir como AGENTS.md)
+├── AGENTS.frontend.md     # Instrucciones de agente para proyectos frontend (distribuir como AGENTS.md)
+├── skills/
+│   ├── backend/           # Skills de dominio backend (.NET 8 REST API)
+│   │   ├── dataaccess/
+│   │   ├── general/
+│   │   ├── logging/
+│   │   ├── mapping/
+│   │   ├── performance/
+│   │   ├── requests/
+│   │   ├── responses/
+│   │   ├── security/
+│   │   ├── testing-unit/
+│   │   └── validations/
+│   ├── frontend/          # Skills de dominio frontend (Next.js 15, React 19, etc.)
+│   │   ├── nextjs-15/
+│   │   ├── react-19/
+│   │   ├── tailwind-4/
+│   │   ├── typescript/
+│   │   ├── zod-4/
+│   │   └── zustand-5/
+│   └── shared/            # Skills cross-domain
+│       └── github-pr/
 ├── tools/                 # Scripts de validación (lint, test, verify)
 ├── ADOPTING.md            # Guía para adoptar esta suite en un proyecto nuevo
 ├── CREDITS.md             # Atribución de assets vendor

@@ -12,30 +12,34 @@ Antes de adoptar, verificá que tenés:
 
 ## Paso 1: Copiá el AGENTS.md correspondiente
 
-En `agents-files/` encontrás plantillas de `AGENTS.md` para distintos tipos de proyecto:
+En la raíz del repositorio encontrás los archivos de instrucciones de agente por dominio:
 
 | Archivo | Cuándo usarlo |
 |---------|---------------|
-| `Zesh-custom-AGENTS.md` | Proyectos nuevos bajo el stack Zesh (recomendado como punto de partida) |
-| `Prowler-template-AGENTS.md` | Proyectos con estructura tipo Prowler |
+| `AGENTS.backend.md` | Proyectos backend .NET 8 REST API (recomendado como punto de partida) |
+| `AGENTS.frontend.md` | Proyectos frontend (Next.js 15, React 19, etc.) |
 
-**Acción:** Copiá el archivo que aplique a la raíz de tu proyecto como `AGENTS.md`.
+**Acción:** Copiá el archivo que aplique a la raíz de tu proyecto y renombralo a `AGENTS.md`.
 
 ```bash
-cp agents-files/Zesh-custom-AGENTS.md /ruta/a/tu-proyecto/AGENTS.md
+# Para proyectos backend:
+cp AGENTS.backend.md /ruta/a/tu-proyecto/AGENTS.md
+
+# Para proyectos frontend:
+cp AGENTS.frontend.md /ruta/a/tu-proyecto/AGENTS.md
 ```
 
 > El `AGENTS.md` es el punto de entrada que OpenCode lee al iniciar sesión. Sin él, el agente opera sin contexto del proyecto.
 
-## Paso 2: Revisá qué skills están disponibles
+## Paso 2: Copiá los skills relevantes
 
-Los skills están organizados por dominio:
+Los skills están organizados en tres dominios bajo `skills/`:
 
-- `backend/skills/net8-apirest/` — Arquitectura, data access, endpoints REST para .NET 8
-- `shared/skills/github-pr/` — Convenciones de Pull Request y branch workflow
-- `vendor/gentleman/` — Skills del ecosistema Gentleman (nextjs-15, react-19, tailwind-4, etc.)
+- `skills/backend/` — Arquitectura, data access, logging, responses, security, testing y más para .NET 8 REST API
+- `skills/frontend/` — Next.js 15, React 19, Tailwind 4, TypeScript, Zod 4, Zustand 5
+- `skills/shared/` — Skills cross-domain (github-pr, convenciones de Pull Request)
 
-Los skills en `.github/skills/` (vendor Gentleman) son herramientas del agente disponibles bajo demanda — no se auto-invocan, se usan explícitamente.
+**Acción:** Copiá el directorio del dominio que necesitás (más `skills/shared/`) a tu proyecto o referenciá este repositorio directamente desde tu `AGENTS.md`.
 
 ## Paso 3: Validá que la suite esté funcional
 
@@ -62,5 +66,5 @@ Si todo pasa sin errores, la suite está lista. Si hay fallos, revisá los mensa
 ## Notas
 
 - Esta suite está diseñada para un solo agente (OpenCode). No es multi-agente por defecto.
-- Los skills vendor (`vendor/gentleman`) no participan en auto-invoke; se referencian explícitamente.
-- El alcance principal es backend .NET 8. Los skills de frontend (nextjs-15, react-19, etc.) son referencias del ecosistema Gentleman y se adoptan bajo criterio propio.
+- El alcance principal es backend .NET 8 y frontend (Next.js 15, React 19). Los skills están separados por dominio en `skills/backend/` y `skills/frontend/`.
+- `skills/shared/` contiene skills cross-domain — incluilos siempre junto con el dominio principal.
