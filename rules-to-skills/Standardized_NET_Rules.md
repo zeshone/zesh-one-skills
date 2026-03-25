@@ -14,4 +14,4 @@ Reglas de codificación y convenciones compartidas por todas las skills de la fa
 
 ## References
 
-- [net8-apirest/general](../skills-files/net8-apirest/general/SKILL.md) — Skill principal de la familia.
+- [net8-apirest/general](../backend/skills/net8-apirest/general/SKILL.md) — Skill principal de la familia.

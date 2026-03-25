@@ -292,7 +292,7 @@ dotnet add package FluentValidation.DependencyInjectionExtensions
 ## Resources
 
 - **FluentValidation docs**: https://docs.fluentvalidation.net/en/latest/aspnet.html
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **Requests**: See [../requests/SKILL.md](../requests/SKILL.md)
 - **Responses (HTTP contract + InvalidModelStateResponseFactory)**: See [../responses/SKILL.md](../responses/SKILL.md)
 - **Testing validators**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md)

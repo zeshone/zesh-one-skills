@@ -435,7 +435,7 @@ public class UsersController : ControllerBase
 
 ## Resources
 
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General / NotFoundException**: See [../general/SKILL.md](../general/SKILL.md)
 - **Requests**: See [../requests/SKILL.md](../requests/SKILL.md)
 - **Mapping**: See [../mapping/SKILL.md](../mapping/SKILL.md)

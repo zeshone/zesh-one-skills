@@ -577,4 +577,4 @@ dotnet ef migrations script --output migration.sql --idempotent --project src/Yo
 - **Performance**: See [../performance/SKILL.md](../performance/SKILL.md)
 - **Responses (layer contract)**: See [../responses/SKILL.md](../responses/SKILL.md)
 - **Security**: See [../security/SKILL.md](../security/SKILL.md)
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)

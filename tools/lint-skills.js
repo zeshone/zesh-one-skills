@@ -18,7 +18,11 @@ try {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const SKILLS_ROOT  = path.resolve(__dirname, '..', 'skills-files');
+const SKILLS_ROOTS = [
+  path.resolve(__dirname, '..', 'backend', 'skills'),
+  path.resolve(__dirname, '..', 'vendor', 'gentleman'),
+  path.resolve(__dirname, '..', 'shared', 'skills'),
+];
 const ZESH_ONE_AUTHOR = 'Zesh-One';
 
 // Rules table — level depends on profile at runtime
@@ -268,7 +272,7 @@ function lintSkillFile(filePath, content) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 function main() {
-  const files = discoverSkillFiles(SKILLS_ROOT);
+  const files = SKILLS_ROOTS.flatMap((root) => discoverSkillFiles(root));
 
   if (files.length === 0) {
     console.log('No SKILL.md files found. Nothing to lint.');

@@ -280,7 +280,7 @@ dotnet add package Microsoft.AspNetCore.OutputCaching
 
 ## Resources
 
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General conventions**: See [../general/SKILL.md](../general/SKILL.md)
 - **Security**: See [../security/SKILL.md](../security/SKILL.md)
 - **Data access**: See [`../dataaccess/SKILL.md`](../dataaccess/SKILL.md)

@@ -270,7 +270,7 @@ public async Task<IActionResult> GetAll(
 
 ## Resources
 
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General structure**: See [../general/SKILL.md](../general/SKILL.md) — `Features/{Feature}/DTOs/` is where Request DTOs live
 - **Mapping**: See [../mapping/SKILL.md](../mapping/SKILL.md) — request-to-entity mapping patterns
 - **Validations**: See [../validations/SKILL.md](../validations/SKILL.md)

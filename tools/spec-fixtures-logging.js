@@ -29,7 +29,7 @@ function assert(name, condition) {
 
 // ─── Read real skill file ─────────────────────────────────────────────────────
 
-const skillPath = path.join(__dirname, '..', 'skills-files', 'net8-apirest', 'logging', 'SKILL.md');
+const skillPath = path.join(__dirname, '..', 'backend', 'skills', 'net8-apirest', 'logging', 'SKILL.md');
 const content = fs.readFileSync(skillPath, 'utf8');
 
 // ─── Scenarios ────────────────────────────────────────────────────────────────

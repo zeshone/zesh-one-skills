@@ -466,7 +466,7 @@ dotnet add package Serilog.Enrichers.Environment
 
 ## Resources
 
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General conventions**: See [../general/SKILL.md](../general/SKILL.md)
 - **Responses**: See [../responses/SKILL.md](../responses/SKILL.md)
 - **Security**: See [../security/SKILL.md](../security/SKILL.md)

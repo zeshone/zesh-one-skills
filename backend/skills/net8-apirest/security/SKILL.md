@@ -339,7 +339,7 @@ dotnet user-secrets set "Jwt:Secret" "your-secret-here"
 ## Resources
 
 - **OWASP API Security 2023**: https://owasp.org/API-Security/editions/2023/en/0x00-introduction/
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **HTTP responses & exception mapping**: See [`../responses/SKILL.md`](../responses/SKILL.md)
 - **Input validation (API3/API4)**: See [`../validations/SKILL.md`](../validations/SKILL.md)
 - **Testing ownership checks & policies**: See [`../testing-unit/SKILL.md`](../testing-unit/SKILL.md)

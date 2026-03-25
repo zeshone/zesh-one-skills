@@ -282,7 +282,7 @@ dotnet ef database update --project src/MyApi
 
 ## Resources
 
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **Data Access**: See [../dataaccess/SKILL.md](../dataaccess/SKILL.md)
 - **Testing**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md)
 - **Responses**: See [../responses/SKILL.md](../responses/SKILL.md)

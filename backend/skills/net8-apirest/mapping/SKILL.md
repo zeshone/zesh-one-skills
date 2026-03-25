@@ -434,7 +434,7 @@ dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
 
 ## Resources
 
-- **Standards**: See [../../rules-to-skills/Standardized_NET_Rules.md](../../rules-to-skills/Standardized_NET_Rules.md)
+- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General conventions**: See [../general/SKILL.md](../general/SKILL.md)
 - **Requests**: See [../requests/SKILL.md](../requests/SKILL.md) — Request DTOs that map to Entity via `.ToEntity()`
 - **Responses**: See [../responses/SKILL.md](../responses/SKILL.md) — Service returns DTO (via `.ToDto()`) that the Controller returns as HTTP response
