@@ -15,10 +15,10 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## When to Use
 
-- Definiendo return types de services y repositories
-- Estandarizando responses de éxito y error
-- Implementando exception handling middleware
-- Revisando el flow de datos desde la capa de datos hasta el cliente
+- Defining return types for services and repositories
+- Standardizing success and error responses
+- Implementing exception handling middleware
+- Reviewing the data flow from the data layer to the client
 
 ---
 
@@ -26,14 +26,14 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ### Dual Response Contract (D-25)
 
-| Boundary | Contract | Quién lo usa |
+| Boundary | Contract | Who uses it |
 |---|---|---|
 | **Internal** (Repository → Service) | `ResponseDTO<T>` | Repositories, Services |
-| **External** (Controller → Client) | Raw HTTP: resource JSON (2xx) o `ProblemDetails` (4xx/5xx) | Controllers |
+| **External** (Controller → Client) | Raw HTTP: resource JSON (2xx) or `ProblemDetails` (4xx/5xx) | Controllers |
 
-> **Regla**: `ResponseDTO<T>` es un contrato interno de transporte. **Nunca** se serializa como HTTP response body para clientes externos.
+> **Rule**: `ResponseDTO<T>` is an internal transport contract. It is **never** serialized as an HTTP response body for external clients.
 
-### `ResponseDTO<T>` — Definición
+### `ResponseDTO<T>` — Definition
 
 ```csharp
 // Shared/Models/ResponseDTO.cs
@@ -45,13 +45,13 @@ public class ResponseDTO<T>
 }
 ```
 
-### Layer Contract — Qué retorna cada capa
+### Layer Contract — What each layer returns
 
-| Layer | Retorna | Nunca |
+| Layer | Returns | Never |
 |---|---|---|
-| Repository | Domain entities o `null` | DTOs, `ResponseDTO<T>` |
-| Service | DTOs (después de mapear) o throws domain exception | Raw entities |
-| Controller | `IActionResult` — raw resource JSON (2xx) o `ProblemDetails` (4xx/5xx) | El envelope `ResponseDTO<T>` al cliente |
+| Repository | Domain entities or `null` | DTOs, `ResponseDTO<T>` |
+| Service | DTOs (after mapping) or throws domain exception | Raw entities |
+| Controller | `IActionResult` — raw resource JSON (2xx) or `ProblemDetails` (4xx/5xx) | The `ResponseDTO<T>` envelope to the client |
 
 ```
 Repository  →      Service      →   Controller  →   Client
@@ -59,15 +59,15 @@ Repository  →      Service      →   Controller  →   Client
                                                     HTTP 4xx/5xx (ProblemDetails)
 ```
 
-### `ResponseDTO<T>` — Tres reglas de uso (interno)
+### `ResponseDTO<T>` — Three usage rules (internal)
 
-| Escenario | Success | Message | Data |
+| Scenario | Success | Message | Data |
 |---|---|---|---|
-| Operación exitosa con data | `true` | `""` o informativo | El objeto/lista resultado |
-| Exitosa, sin resultados | `true` | Informativo (ej. "No records found.") | Empty value, **nunca null** |
-| Error / fallo | `false` | Descripción clara del error | `null` |
+| Successful operation with data | `true` | `""` or informational | The result object/list |
+| Successful, no results | `true` | Informational (e.g. "No records found.") | Empty value, **never null** |
+| Error / failure | `false` | Clear error description | `null` |
 
-Empty value por tipo cuando success pero sin data: `[]` para listas, `string.Empty` para strings, `0` para numéricos, `new T()` si tiene constructor sin parámetros.
+Empty value by type when success but no data: `[]` for lists, `string.Empty` for strings, `0` for numerics, `new T()` if it has a parameterless constructor.
 
 ### Paged Response
 
@@ -87,26 +87,26 @@ public class PagedResult<T>
 
 ## HTTP Status Code Reference
 
-| Code | Cuando usar |
+| Code | When to use |
 |---|---|
-| `200 OK` | GET, PUT retornando resource |
-| `201 Created` | POST — incluir `Location` header |
-| `204 No Content` | DELETE, PUT sin body |
-| `400 Bad Request` | Errores de validación |
-| `401 Unauthorized` | **Pipeline/auth — NO es domain exception** |
-| `403 Forbidden` | Autenticado pero sin permiso |
-| `404 Not Found` | ID no encontrado |
-| `409 Conflict` | Duplicado, modificación concurrente |
-| `429 Too Many Requests` | Rate limiter activado |
-| `500 Internal Server Error` | Exception no manejada |
+| `200 OK` | GET, PUT returning resource |
+| `201 Created` | POST — include `Location` header |
+| `204 No Content` | DELETE, PUT with no body |
+| `400 Bad Request` | Validation errors |
+| `401 Unauthorized` | **Pipeline/auth — NOT a domain exception** |
+| `403 Forbidden` | Authenticated but lacking permission |
+| `404 Not Found` | ID not found |
+| `409 Conflict` | Duplicate, concurrent modification |
+| `429 Too Many Requests` | Rate limiter triggered |
+| `500 Internal Server Error` | Unhandled exception |
 
 ---
 
 ## Exception Handling — HTTP Mapping (Single Source of Truth)
 
-> **Ownership**: El contrato exception → HTTP vive aquí (`responses`). La implementación del middleware, logging y correlationId viven en [`logging`](../logging/SKILL.md).
+> **Ownership**: The exception → HTTP contract lives here (`responses`). The middleware implementation, logging and correlationId live in [`logging`](../logging/SKILL.md).
 
-### Tabla Canónica
+### Canonical Table
 
 | Exception | HTTP Status | Log Level | Client Message |
 |---|---|---|---|
@@ -114,15 +114,15 @@ public class PagedResult<T>
 | `ForbiddenException` | `403 Forbidden` | Warning | `ex.Message` (safe) |
 | `ConflictException` | `409 Conflict` | Warning | `ex.Message` (safe) |
 | `ValidationException` (manual) | `400 Bad Request` | Information | First error message |
-| `Exception` (unhandled) | `500 Internal Server Error` | Error | Generic — **nunca exponer stack trace** |
+| `Exception` (unhandled) | `500 Internal Server Error` | Error | Generic — **never expose stack trace** |
 
 > **`401 Unauthorized` — Pipeline/Auth ownership (D-27)**  
-> `401` NO es una domain exception. Lo resuelve el pipeline de auth (JWT bearer, `[Authorize]`).  
-> **No crear `UnauthorizedException`.**
+> `401` is NOT a domain exception. It is resolved by the auth pipeline (JWT bearer, `[Authorize]`).  
+> **Do not create `UnauthorizedException`.**
 
 ### Exception Location Reference
 
-| Exception | Definida en |
+| Exception | Defined in |
 |---|---|
 | `NotFoundException` | `general` skill — `Shared/Exceptions/NotFoundException.cs` |
 | `ForbiddenException` | `security` skill — `Shared/Exceptions/ForbiddenException.cs` |
@@ -170,14 +170,14 @@ options.OnRejected = async (context, ct) =>
 
 ## Anti-Patterns
 
-| Anti-pattern | Problema |
+| Anti-pattern | Problem |
 |---|---|
-| `ResponseDTO<T>` en el HTTP response body | Viola D-25 — el cliente recibe un envelope interno |
-| Retornar `null` desde service en "not found" | El controller debe null-check en todos lados; mejor throw |
-| HTTP 200 para errores | Engaña a los clientes — siempre usar status codes correctos |
-| `ResponseDTO<T>` en repositories | Repositories son data layer, no API layer |
-| Crear `UnauthorizedException` como domain exception | `401` es del pipeline — no del dominio |
-| No incluir `Location` header en 201 Created | Viola REST |
+| `ResponseDTO<T>` in the HTTP response body | Violates D-25 — the client receives an internal envelope |
+| Returning `null` from service on "not found" | The controller must null-check everywhere; better to throw |
+| HTTP 200 for errors | Misleads clients — always use correct status codes |
+| `ResponseDTO<T>` in repositories | Repositories are the data layer, not the API layer |
+| Creating `UnauthorizedException` as a domain exception | `401` belongs to the pipeline — not the domain |
+| Not including `Location` header on 201 Created | Violates REST |
 
 ---
 
@@ -195,11 +195,11 @@ options.OnRejected = async (context, ct) =>
 ## Changelog
 
 ### v1.2 — 2026-03-28
-- **Removed**: Full CRUD controller example (ya está en `general/SKILL.md`)
-- **Removed**: Explicación verbosa del "why" del dual contract
-- **Removed**: Snippets completos del middleware (viven en `logging/SKILL.md`)
-- **Removed**: Repository y Service return pattern examples (consolidados en la tabla de layer contract)
-- **Kept**: Dual contract table, ResponseDTO<T> definition, layer contract table, paged result, HTTP status table, exception mapping como single source of truth, uniform 400/429
+- **Removed**: Full CRUD controller example (already in `general/SKILL.md`)
+- **Removed**: Verbose explanation of the "why" behind the dual contract
+- **Removed**: Full middleware snippets (they live in `logging/SKILL.md`)
+- **Removed**: Repository and Service return pattern examples (consolidated in the layer contract table)
+- **Kept**: Dual contract table, ResponseDTO<T> definition, layer contract table, paged result, HTTP status table, exception mapping as single source of truth, uniform 400/429
 
 ### v1.1 — 2026-03-24
-- Dual Response Contract D-25/D-26/D-27; ProblemDetails; exception ownership clarificado
+- Dual Response Contract D-25/D-26/D-27; ProblemDetails; exception ownership clarified

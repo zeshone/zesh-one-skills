@@ -356,12 +356,12 @@ public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request)
 
 - **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General conventions**: See [../general/SKILL.md](../general/SKILL.md)
-- **Requests**: See [../requests/SKILL.md](../requests/SKILL.md) — Request DTOs que mapean a Entity via `.ToEntity()`
-- **Responses**: See [../responses/SKILL.md](../responses/SKILL.md) — Service retorna DTO (via `.ToDto()`) que el Controller retorna como HTTP response
-- **Data Access**: See [../dataaccess/SKILL.md](../dataaccess/SKILL.md) — Repository retorna Entity; NEVER DTOs; mapping en Service
-- **Validations**: See [../validations/SKILL.md](../validations/SKILL.md) — Validation antes del mapping: validated Request → `.ToEntity()`
-- **Unit Testing**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md) — Extension methods son pure functions, testeables sin mocks
-- **Performance**: See [../performance/SKILL.md](../performance/SKILL.md) — Manual mapping > AutoMapper en hot paths
+- **Requests**: See [../requests/SKILL.md](../requests/SKILL.md) — Request DTOs that map to Entity via `.ToEntity()`
+- **Responses**: See [../responses/SKILL.md](../responses/SKILL.md) — Service returns DTO (via `.ToDto()`) which the Controller returns as HTTP response
+- **Data Access**: See [../dataaccess/SKILL.md](../dataaccess/SKILL.md) — Repository returns Entity; NEVER DTOs; mapping in Service
+- **Validations**: See [../validations/SKILL.md](../validations/SKILL.md) — Validation before mapping: validated Request → `.ToEntity()`
+- **Unit Testing**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md) — Extension methods are pure functions, testable without mocks
+- **Performance**: See [../performance/SKILL.md](../performance/SKILL.md) — Manual mapping > AutoMapper in hot paths
 
 ---
 

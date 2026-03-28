@@ -58,7 +58,7 @@ tests/             ← Unit & integration tests (ver testing-unit/SKILL.md)
 | Private fields | `_camelCase` | `_logger`, `_repository` |
 | Local variables, parameters | camelCase | `userId`, `inputString` |
 | Source code | English | All identifiers |
-| Comments & docs | Spanish | Code-level comments |
+| Comments & docs | English | Code-level comments |
 | Resource names in URLs | Plural nouns | `/users`, `/orders` |
 
 ### Dependency Injection Lifetimes
@@ -69,21 +69,21 @@ tests/             ← Unit & integration tests (ver testing-unit/SKILL.md)
 | `Scoped` | DbContext, per-request services |
 | `Transient` | Lightweight, stateless services |
 
-> **Regla**: Los helpers stateless SIEMPRE como `Singleton`. Nunca registrar un helper sin estado como `Scoped`.
+> **Rule**: Stateless helpers ALWAYS as `Singleton`. Never register a stateless helper as `Scoped`.
 
 ### Middleware Pipeline Order
 
 ```csharp
-app.UseMiddleware<CorrelationIdMiddleware>(); // 0. PRIMERO — garantiza correlationId en TODO log
+app.UseMiddleware<CorrelationIdMiddleware>(); // 0. FIRST — ensures correlationId is present in ALL logs
 app.UseAuthentication();    // 1. Verify identity
-app.UseRateLimiter();       // 2. Protect from abuse — requiere builder.Services.AddRateLimiter(...)
+app.UseRateLimiter();       // 2. Protect from abuse — requires builder.Services.AddRateLimiter(...)
 app.UseCors();              // 3. Cross-origin policy
-app.UseMiddleware<ExceptionHandlingMiddleware>(); // 4. Global exception handler — después de auth para tener UserId
+app.UseMiddleware<ExceptionHandlingMiddleware>(); // 4. Global exception handler — after auth so UserId is available
 app.UseAuthorization();     // 5. Check permissions
 app.MapControllers();       // 6. Route to controllers
 ```
 
-> **Contrato canónico de errores**: El mapeo de excepciones, el formato `ProblemDetails` y los 9 campos de trazabilidad viven en [`logging/SKILL.md`](../logging/SKILL.md).
+> **Canonical error contract**: Exception mapping, `ProblemDetails` format, and the 9 traceability fields live in [`logging/SKILL.md`](../logging/SKILL.md).
 
 ### Interface-First — Toda dependencia inyectable tiene interface
 
@@ -114,7 +114,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddDbContextPool<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-// → ver ../dataaccess/SKILL.md para configuración robusta
+// → see ../dataaccess/SKILL.md for robust configuration
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -136,19 +136,19 @@ app.Run();
 
 ---
 
-## Skill Family — Cuándo Cargar Cada Una
+## Skill Family — When to Load Each One
 
-| Dominio | Skill | Cuándo Cargar |
+| Domain | Skill | When to Load |
 |---------|-------|---------------|
-| Acceso a datos, EF Core, DbContext, repositorios, migraciones | [`dataaccess`](../dataaccess/SKILL.md) | Configurando DbContext, escribiendo repositorios |
-| Tests unitarios, mocks, assertions, test data builders | [`testing-unit`](../testing-unit/SKILL.md) | Creando o revisando unit tests |
-| Responses, DTOs de respuesta, manejo de errores HTTP | [`responses`](../responses/SKILL.md) | Diseñando contratos de respuesta, exception handling |
-| Validaciones, FluentValidation | [`validations`](../validations/SKILL.md) | Escribiendo o revisando reglas de validación |
-| Mapping, AutoMapper, extensiones de mapeo | [`mapping`](../mapping/SKILL.md) | Configurando perfiles de AutoMapper o extension methods |
-| Seguridad, autenticación, autorización, rate limiting | [`security`](../security/SKILL.md) | Implementando auth, JWT, policies, rate limiter |
-| Performance, caching, optimización | [`performance`](../performance/SKILL.md) | Optimizando queries, caching, response compression |
-| Requests, DTOs de entrada | [`requests`](../requests/SKILL.md) | Diseñando contratos de request |
-| Logging, observabilidad | [`logging`](../logging/SKILL.md) | Configurando Serilog, structured logging |
+| Data access, EF Core, DbContext, repositories, migrations | [`dataaccess`](../dataaccess/SKILL.md) | Configuring DbContext, writing repositories |
+| Unit tests, mocks, assertions, test data builders | [`testing-unit`](../testing-unit/SKILL.md) | Creating or reviewing unit tests |
+| Responses, response DTOs, HTTP error handling | [`responses`](../responses/SKILL.md) | Designing response contracts, exception handling |
+| Validations, FluentValidation | [`validations`](../validations/SKILL.md) | Writing or reviewing validation rules |
+| Mapping, AutoMapper, mapping extensions | [`mapping`](../mapping/SKILL.md) | Configuring AutoMapper profiles or extension methods |
+| Security, authentication, authorization, rate limiting | [`security`](../security/SKILL.md) | Implementing auth, JWT, policies, rate limiter |
+| Performance, caching, optimization | [`performance`](../performance/SKILL.md) | Optimizing queries, caching, response compression |
+| Requests, input DTOs | [`requests`](../requests/SKILL.md) | Designing request contracts |
+| Logging, observability | [`logging`](../logging/SKILL.md) | Configuring Serilog, structured logging |
 
 ---
 
@@ -181,13 +181,13 @@ dotnet ef database update --project src/MyApi
 ## Changelog
 
 ### v1.3 — 2026-03-28
-- **Removed**: SOLID principles section (agente ya lo conoce)
-- **Removed**: Async/await tutorial, LINQ over loops, HTTP verb semantics table (estándar del lenguaje)
-- **Removed**: Controller design boilerplate (thin controller es conocimiento base)
+- **Removed**: SOLID principles section (agent already knows this)
+- **Removed**: Async/await tutorial, LINQ over loops, HTTP verb semantics table (language standard)
+- **Removed**: Controller design boilerplate (thin controller is baseline knowledge)
 - **Kept**: Project structure, naming conventions, DI lifetimes rule, pipeline order, skill family table
 
 ### v1.2 — 2026-03-25
-- Pipeline order — CorrelationIdMiddleware movido a posición 0
+- Pipeline order — CorrelationIdMiddleware moved to position 0
 
 ### v1.1 — 2026-03-24
-- Skill Family table agregada; DI lifetimes, naming conventions
+- Skill Family table added; DI lifetimes, naming conventions

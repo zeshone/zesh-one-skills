@@ -23,17 +23,17 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## Critical Patterns
 
-### GUID IDs — Obligatorio en todos los recursos públicos
+### GUID IDs — Required on all public resources
 
-Nunca usar `int` secuenciales en endpoints públicos — habilitan enumeración y BOLA.
+Never use sequential `int` IDs on public endpoints — they enable enumeration and BOLA.
 
 ```csharp
 public Guid Id { get; set; } = Guid.NewGuid();
 ```
 
-### BOLA Prevention — Ownership check en service layer
+### BOLA Prevention — Ownership check in service layer
 
-Todo método que accede a un recurso por ID **debe** verificar ownership. Nunca en el controller, siempre en el service:
+Every method that accesses a resource by ID **must** verify ownership. Never in the controller, always in the service:
 
 ```csharp
 public async Task<OrderDto> GetByIdAsync(Guid orderId, Guid requestingUserId)
@@ -46,7 +46,7 @@ public async Task<OrderDto> GetByIdAsync(Guid orderId, Guid requestingUserId)
 }
 ```
 
-El `requestingUserId` viene del JWT claim en el controller:
+The `requestingUserId` comes from the JWT claim in the controller:
 
 ```csharp
 // Guid.Parse with ! throws NullReferenceException if the claim is absent — use TryParse instead.
@@ -56,7 +56,7 @@ var data = await _orderService.GetByIdAsync(id, userId);
 return Ok(data);
 ```
 
-### `ForbiddenException` — Domain exception para 403
+### `ForbiddenException` — Domain exception for 403
 
 ```csharp
 // Shared/Exceptions/ForbiddenException.cs
@@ -66,10 +66,10 @@ public class ForbiddenException : Exception
 }
 ```
 
-> Cross-ref: `ExceptionHandlingMiddleware` mapea `ForbiddenException` → HTTP 403. Ver [`../responses/SKILL.md`](../responses/SKILL.md).
-> **`401` NO es una domain exception** — es propiedad del pipeline de auth. No crear `UnauthorizedException`.
+> Cross-ref: `ExceptionHandlingMiddleware` maps `ForbiddenException` → HTTP 403. See [`../responses/SKILL.md`](../responses/SKILL.md).
+> **`401` is NOT a domain exception** — it belongs to the auth pipeline. Do not create `UnauthorizedException`.
 
-### Authentication Error Messages — Nunca revelar existencia de usuario
+### Authentication Error Messages — Never reveal user existence
 
 ```csharp
 // CORRECT — plain message, no envelope
@@ -81,7 +81,7 @@ return Unauthorized(new { message = "User not found." });
 
 > **Note**: Never wrap controller responses in `ResponseDTO<T>`. See [`../responses/SKILL.md`](../responses/SKILL.md) for the dual-contract pattern.
 
-### Rate Limiting — Algoritmo por escenario
+### Rate Limiting — Algorithm per scenario
 
 > **Middleware order (W-16)**: `app.UseRateLimiter()` MUST come BEFORE `app.UseCors()` in `Program.cs`. Inverting the order means CORS preflight requests (`OPTIONS`) consume rate limit slots and may be blocked, causing legitimate cross-origin requests to fail with 429 before CORS headers are evaluated.
 >
@@ -97,11 +97,11 @@ return Unauthorized(new { message = "User not found." });
 > app.UseRateLimiter();
 > ```
 
-| Escenario | Algoritmo | Razón |
+| Scenario | Algorithm | Reason |
 |---|---|---|
-| Auth endpoints (login, register, forgot-password) | `SlidingWindowLimiter` | Previene burst en el límite de ventana — más preciso contra brute-force |
-| API general (CRUD, queries) | `FixedWindowLimiter` | Simple, predecible, suficiente para tráfico regular |
-| APIs con tráfico irregular / spikes | `TokenBucketLimiter` | Permite bursts controlados sin rechazar tráfico legítimo |
+| Auth endpoints (login, register, forgot-password) | `SlidingWindowLimiter` | Prevents burst at the window boundary — more precise against brute-force |
+| General API (CRUD, queries) | `FixedWindowLimiter` | Simple, predictable, sufficient for regular traffic |
+| APIs with irregular traffic / spikes | `TokenBucketLimiter` | Allows controlled bursts without rejecting legitimate traffic |
 
 ```csharp
 builder.Services.AddRateLimiter(options =>
@@ -126,11 +126,11 @@ builder.Services.AddRateLimiter(options =>
 public async Task<IActionResult> Login([FromBody] LoginRequest request) { ... }
 ```
 
-> Para configuración `OnRejected` con `ProblemDetails` → ver [`../responses/SKILL.md`](../responses/SKILL.md)
+> For `OnRejected` configuration with `ProblemDetails` → see [`../responses/SKILL.md`](../responses/SKILL.md)
 
-### CORS — Nunca `AllowAnyOrigin` en producción
+### CORS — Never `AllowAnyOrigin` in production
 
-`AllowAnyOrigin()` + `AllowCredentials()` → `InvalidOperationException` en runtime. ASP.NET Core lo prohíbe explícitamente.
+`AllowAnyOrigin()` + `AllowCredentials()` → `InvalidOperationException` at runtime. ASP.NET Core explicitly forbids this.
 
 ```csharp
 policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()!)
@@ -139,7 +139,7 @@ policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<s
       .AllowCredentials();
 ```
 
-### Secrets — Nunca en `appsettings.json`
+### Secrets — Never in `appsettings.json`
 
 | Item | Storage |
 |---|---|
@@ -156,15 +156,15 @@ var jwtSecret = builder.Configuration["Jwt:Secret"]
 
 ## Anti-Patterns
 
-| Anti-pattern | Por qué es peligroso |
+| Anti-pattern | Why it is dangerous |
 |---|---|
-| `int` ID en endpoints públicos | Enumeración de recursos — BOLA trivial |
-| Ownership check en controller en vez de service | Se puede bypassear; el service es el boundary real |
-| `AllowAnyOrigin()` en producción | CSRF y exfiltración desde cualquier dominio |
-| `AllowAnyOrigin()` + `AllowCredentials()` combinados | `InvalidOperationException` en runtime |
-| Error messages que revelan existencia de usuario | Habilita user enumeration |
-| Secret en `appsettings.json` committeado | Credenciales expuestas en git history |
-| Crear `UnauthorizedException` como domain exception | `401` es del pipeline/auth, no del dominio |
+| `int` ID on public endpoints | Resource enumeration — trivial BOLA |
+| Ownership check in controller instead of service | Can be bypassed; the service is the real boundary |
+| `AllowAnyOrigin()` in production | CSRF and data exfiltration from any domain |
+| `AllowAnyOrigin()` + `AllowCredentials()` combined | `InvalidOperationException` at runtime |
+| Error messages that reveal user existence | Enables user enumeration |
+| Secret in committed `appsettings.json` | Credentials exposed in git history |
+| Creating `UnauthorizedException` as a domain exception | `401` belongs to the pipeline/auth, not the domain |
 
 ---
 
@@ -207,12 +207,12 @@ dotnet user-secrets set "Jwt:Secret" "your-secret-here"
 - **Fixed (C-04)**: Replaced `Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)` with `Guid.TryParse(...)` + guard returning `Forbid()`. The null-forgiving operator on a potentially-null claim caused `NullReferenceException` (raw 500) for requests with absent or malformed identity claims. (Note: `Forbid()` / 403 was subsequently identified as semantically wrong for a missing claim — corrected to `Unauthorized()` / 401 in v1.4)
 
 ### v1.2 — 2026-03-28
-- **Removed**: OWASP coverage map table y descripciones (doc oficial — el agente la conoce)
-- **Removed**: JWT setup boilerplate completo (`AddAuthentication`, `TokenValidationParameters`) — estándar del framework
-- **Removed**: Password hashing con `PasswordHasher<T>` — estándar de ASP.NET Core Identity
-- **Removed**: Policy-based authorization examples — estándar del framework
-- **Kept**: GUIDs obligatorios, ownership check en service, ForbiddenException, algoritmos rate limiter, auth error messages, CORS gotcha, secrets rule
+- **Removed**: OWASP coverage map table and descriptions (official docs — the agent already knows them)
+- **Removed**: Full JWT setup boilerplate (`AddAuthentication`, `TokenValidationParameters`) — framework standard
+- **Removed**: Password hashing with `PasswordHasher<T>` — ASP.NET Core Identity standard
+- **Removed**: Policy-based authorization examples — framework standard
+- **Kept**: Required GUIDs, ownership check in service, ForbiddenException, rate limiter algorithms, auth error messages, CORS gotcha, secrets rule
 
 ### v1.1 — 2026-03-28
-- Fixed: controller example usaba `ResponseDTO<object>` en auth error → corregido a `new { message = "..." }`
-- Added: ForbiddenException cross-ref a responses/SKILL.md
+- Fixed: controller example used `ResponseDTO<object>` in auth error → corrected to `new { message = "..." }`
+- Added: ForbiddenException cross-ref to responses/SKILL.md

@@ -12,10 +12,10 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## When to Use
 
-- Configurando EF Core para escenarios de alta concurrencia
-- Implementando resilience pipelines con Polly (retry, circuit breaker, timeout)
-- Paralerizando operaciones async independientes
-- Optimizando queries de base de datos
+- Configuring EF Core for high-concurrency scenarios
+- Implementing resilience pipelines with Polly (retry, circuit breaker, timeout)
+- Parallelizing independent async operations
+- Optimizing database queries
 
 ---
 
@@ -23,7 +23,7 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ### Circuit Breaker — Per-Request, No Global
 
-El circuit breaker debe ser **per-request scoped**, no global. Un circuit breaker global genera false positives bajo concurrencia — un request lento abre el circuito para todos los demás.
+The circuit breaker must be **per-request scoped**, not global. A global circuit breaker generates false positives under concurrency — a slow request opens the circuit for all others.
 
 ```csharp
 builder.Services.AddResiliencePipeline("external-api", pipeline =>
@@ -40,7 +40,7 @@ builder.Services.AddResiliencePipeline("external-api", pipeline =>
         {
             ShouldHandle = new PredicateBuilder().Handle<HttpRequestException>(),
             FailureRatio = 0.5,
-            MinimumThroughput = 10,          // previene false positives
+            MinimumThroughput = 10,          // prevents false positives
             SamplingDuration = TimeSpan.FromSeconds(30),
             BreakDuration = TimeSpan.FromSeconds(15)
         })
@@ -48,7 +48,7 @@ builder.Services.AddResiliencePipeline("external-api", pipeline =>
 });
 ```
 
-Uso en service via inyección:
+Usage in service via injection:
 ```csharp
 public class ExternalPaymentService
 {
@@ -82,10 +82,10 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 ```
 
-### Response Caching — Para datos estables
+### Response Caching — For stable data
 
 ```csharp
-// Output caching (ASP.NET Core 7+) — preferido sobre ResponseCache
+// Output caching (ASP.NET Core 7+) — preferred over ResponseCache
 builder.Services.AddOutputCache(options =>
 {
     options.AddPolicy("products", b => b.Expire(TimeSpan.FromMinutes(5)));
@@ -97,15 +97,15 @@ app.UseOutputCache();
 public async Task<IActionResult> GetProducts() { ... }
 ```
 
-### `Task.WhenAll` — Operaciones independientes en paralelo
+### `Task.WhenAll` — Independent operations in parallel
 
 ```csharp
-// CORRECT — paralelo
+// CORRECT — parallel
 var userTask = _userRepository.GetByIdAsync(userId);
 var ordersTask = _orderRepository.GetRecentByUserAsync(userId, limit: 10);
 await Task.WhenAll(userTask, ordersTask);
 
-// WRONG — secuencial sin necesidad
+// WRONG — sequential unnecessarily
 var user = await _userRepository.GetByIdAsync(userId);
 var orders = await _orderRepository.GetRecentByUserAsync(userId, limit: 10);
 ```
@@ -114,11 +114,11 @@ var orders = await _orderRepository.GetRecentByUserAsync(userId, limit: 10);
 
 ## Anti-Patterns
 
-| Anti-pattern | Problema |
+| Anti-pattern | Problem |
 |---|---|
-| Circuit Breaker global | False positives bajo concurrencia — un request lento afecta a todos |
-| `AspNetCoreRateLimit` | Conflictos de concurrencia con MemoryCache — usar built-in rate limiter |
-| `MemoryCache` para estado compartido | Interferencia de concurrencia — usar distributed cache o scoping correcto |
+| Global Circuit Breaker | False positives under concurrency — a slow request affects everyone |
+| `AspNetCoreRateLimit` | Concurrency conflicts with MemoryCache — use built-in rate limiter |
+| `MemoryCache` for shared state | Concurrency interference — use distributed cache or correct scoping |
 
 ---
 
@@ -143,13 +143,13 @@ dotnet add package Microsoft.AspNetCore.OutputCaching
 ## Changelog
 
 ### v1.2 — 2026-03-28
-- **Removed**: `AddDbContextPool` y `AsNoTracking` (ya cubiertos en `dataaccess/SKILL.md`)
-- **Removed**: Rate limiting (ya cubierto en `security/SKILL.md`)
-- **Removed**: GUIDs para IDs (ya en `security/SKILL.md`)
-- **Removed**: Compiled Queries example (ya en `dataaccess/SKILL.md`)
-- **Kept**: Circuit breaker per-request (decisión de diseño, no doc estándar), Kestrel config, response caching, `Task.WhenAll` reminder
-- **Added**: Énfasis en la razón del circuit breaker per-request (false positives bajo concurrencia)
+- **Removed**: `AddDbContextPool` and `AsNoTracking` (already covered in `dataaccess/SKILL.md`)
+- **Removed**: Rate limiting (already covered in `security/SKILL.md`)
+- **Removed**: GUIDs for IDs (already in `security/SKILL.md`)
+- **Removed**: Compiled Queries example (already in `dataaccess/SKILL.md`)
+- **Kept**: Circuit breaker per-request (design decision, not standard doc), Kestrel config, response caching, `Task.WhenAll` reminder
+- **Added**: Emphasis on the reason for per-request circuit breaker (false positives under concurrency)
 
 ### v1.1 — 2026-03-24
 - Fixed: `GetConnectionString("Default")` → `"DefaultConnection"`
-- Added: Cross-refs a `security`, `dataaccess`, `requests`
+- Added: Cross-refs to `security`, `dataaccess`, `requests`

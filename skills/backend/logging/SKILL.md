@@ -12,21 +12,21 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## When to Use
 
-- Configurando Serilog en una API nueva o existente
-- Implementando el global exception handling middleware
-- Agregando Correlation ID tracking
-- Decidiendo log levels para distintos escenarios
-- Diagnosticando incidentes con correlationId
+- Configuring Serilog in a new or existing API
+- Implementing the global exception handling middleware
+- Adding Correlation ID tracking
+- Deciding log levels for different scenarios
+- Diagnosing incidents with correlationId
 
 ---
 
 ## Critical Patterns
 
-### Serilog — Librería canónica
+### Serilog — Canonical Library
 
-Siempre usar **Serilog** para structured logging. Nunca `Console.WriteLine` en código de producción.
+Always use **Serilog** for structured logging. Never `Console.WriteLine` in production code.
 
-Packages requeridos:
+Required packages:
 ```bash
 dotnet add package Serilog.AspNetCore
 dotnet add package Serilog.Sinks.Console
@@ -34,27 +34,27 @@ dotnet add package Serilog.Sinks.File
 dotnet add package Serilog.Enrichers.Environment
 ```
 
-### Structured Logging — Named placeholders, nunca string interpolation
+### Structured Logging — Named placeholders, never string interpolation
 
 ```csharp
-// CORRECT — estructurado, queryable
+// CORRECT — structured, queryable
 _logger.LogInformation("User {UserId} retrieved {Count} records", userId, count);
 
-// WRONG — no estructurado, no queryable
+// WRONG — not structured, not queryable
 _logger.LogInformation($"User {userId} retrieved {count} records");
 ```
 
 ### Log Levels
 
-| Level | Cuándo usar |
+| Level | When to use |
 |---|---|
-| `LogDebug` | Estado interno detallado, solo en desarrollo |
-| `LogInformation` | Eventos de operación normal + errores de validación (400) — flujo esperado |
-| `LogWarning` | Situaciones recuperables + 403, 404, 409 — errores de dominio |
-| `LogError` | Excepciones no manejadas que afectan la operación (500) |
-| `LogCritical` | Fallos irrecuperables que requieren atención inmediata |
+| `LogDebug` | Detailed internal state, development only |
+| `LogInformation` | Normal operation events + validation errors (400) — expected flow |
+| `LogWarning` | Recoverable situations + 403, 404, 409 — domain errors |
+| `LogError` | Unhandled exceptions that affect the operation (500) |
+| `LogCritical` | Unrecoverable failures that require immediate attention |
 
-### Correlation ID Middleware — PRIMERO en el pipeline
+### Correlation ID Middleware — FIRST in the pipeline
 
 ```csharp
 public class CorrelationIdMiddleware
@@ -97,9 +97,9 @@ public class CorrelationIdMiddleware
 }
 ```
 
-> `UserId` NO se enriquece aquí — `Authentication` aún no ejecutó. El enriquecimiento de `UserId` se hace en `ExceptionHandlingMiddleware`.
+> `UserId` is NOT enriched here — `Authentication` has not run yet. `UserId` enrichment is done in `ExceptionHandlingMiddleware`.
 
-### Exception Handling Middleware — Canónico
+### Exception Handling Middleware — Canonical
 
 ```csharp
 public class ExceptionHandlingMiddleware
@@ -164,25 +164,25 @@ public class ExceptionHandlingMiddleware
 }
 ```
 
-> **Content-Type canónico**: siempre `application/problem+json` (no `application/json`) para respuestas de error.
+> **Canonical Content-Type**: always `application/problem+json` (not `application/json`) for error responses.
 
-Para el contrato de mapeo exception → HTTP status → ver [`responses/SKILL.md`](../responses/SKILL.md).
+For the exception → HTTP status mapping contract, see [`responses/SKILL.md`](../responses/SKILL.md).
 
-### 9 Campos Mínimos Obligatorios de Trazabilidad
+### 9 Mandatory Minimum Traceability Fields
 
-Todo log `Warning` o superior DEBE contener estos campos:
+Every `Warning` log or above MUST contain these fields:
 
-| Campo | Fuente | Cuándo se enriquece |
+| Field | Source | When enriched |
 |---|---|---|
-| `CorrelationId` | `HttpContext.Items["CorrelationId"]` | `CorrelationIdMiddleware` (inicio del pipeline) |
+| `CorrelationId` | `HttpContext.Items["CorrelationId"]` | `CorrelationIdMiddleware` (start of pipeline) |
 | `Application` | `IConfiguration["ApplicationName"]` | `CorrelationIdMiddleware` |
 | `Environment` | `IWebHostEnvironment.EnvironmentName` | `CorrelationIdMiddleware` |
-| `UserId` | `HttpContext.User` claims | `ExceptionHandlingMiddleware` (después de auth) |
+| `UserId` | `HttpContext.User` claims | `ExceptionHandlingMiddleware` (after auth) |
 | `RequestPath` | `HttpContext.Request.Path` | `UseSerilogRequestLogging` |
 | `RequestMethod` | `HttpContext.Request.Method` | `UseSerilogRequestLogging` |
-| `StatusCode` | `HttpContext.Response.StatusCode` | `UseSerilogRequestLogging` (al finalizar request) |
-| `ExceptionType` | `exception.GetType().Name` | `ExceptionHandlingMiddleware` (en catch) |
-| `Duration` | Calculado por Serilog | `UseSerilogRequestLogging` (al finalizar request) |
+| `StatusCode` | `HttpContext.Response.StatusCode` | `UseSerilogRequestLogging` (at request completion) |
+| `ExceptionType` | `exception.GetType().Name` | `ExceptionHandlingMiddleware` (in catch) |
+| `Duration` | Calculated by Serilog | `UseSerilogRequestLogging` (at request completion) |
 
 ### Serilog Bootstrap
 
@@ -202,7 +202,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 ```
 
-### Request Logging con Serilog
+### Request Logging with Serilog
 
 ```csharp
 app.UseSerilogRequestLogging(options =>
@@ -217,40 +217,40 @@ app.UseSerilogRequestLogging(options =>
 });
 ```
 
-> `StatusCode` y `Duration` los captura Serilog automáticamente. No duplicarlos.
+> `StatusCode` and `Duration` are captured automatically by Serilog. Do not duplicate them.
 
-### Datos Sensibles — Campos Prohibidos en Logs
+### Sensitive Data — Fields Forbidden in Logs
 
-Sanitizar ANTES de loguear, nunca después:
+Sanitize BEFORE logging, never after:
 
-| Categoría | Campos prohibidos |
+| Category | Forbidden fields |
 |---|---|
-| Credenciales | `password`, `passwordHash`, `pin`, `secret` |
+| Credentials | `password`, `passwordHash`, `pin`, `secret` |
 | Tokens | `jwtToken`, `accessToken`, `refreshToken`, `apiKey`, `bearerToken` |
-| Datos financieros | `cardNumber`, `cvv`, `bankAccount`, `iban` |
-| PII | `email` (completo), `phone`, `nationalId`, `ssn`, `dateOfBirth` |
-| Infraestructura | `connectionString`, `databasePassword`, `smtpPassword` |
+| Financial data | `cardNumber`, `cvv`, `bankAccount`, `iban` |
+| PII | `email` (full), `phone`, `nationalId`, `ssn`, `dateOfBirth` |
+| Infrastructure | `connectionString`, `databasePassword`, `smtpPassword` |
 
-### Troubleshooting — Cadena de Evidencia
+### Troubleshooting — Evidence Chain
 
 ```
-1. Usuario recibe error → obtiene correlationId de ProblemDetails.Extensions["correlationId"]
-2. Soporte busca: WHERE CorrelationId = '{valor}'
-3. Reconstrucción:
-   - Log de request (Serilog): Method, Path, StatusCode, Duration, UserId
-   - Log de excepción (ExceptionHandlingMiddleware): ExceptionType, Message, StackTrace (interno)
-   - Logs de service: Operación, parámetros (sin PII)
+1. User receives error → obtains correlationId from ProblemDetails.Extensions["correlationId"]
+2. Support searches: WHERE CorrelationId = '{value}'
+3. Reconstruction:
+   - Request log (Serilog): Method, Path, StatusCode, Duration, UserId
+   - Exception log (ExceptionHandlingMiddleware): ExceptionType, Message, StackTrace (internal)
+   - Service logs: Operation, parameters (without PII)
 ```
 
 ---
 
 ## Cross-References
 
-| Skill | Relación |
+| Skill | Relationship |
 |---|---|
-| [`responses`](../responses/SKILL.md) | Define el contrato exception → HTTP. La implementación del middleware vive aquí. |
-| [`general`](../general/SKILL.md) | Define el pipeline order. `CorrelationIdMiddleware` va en posición 0. |
-| [`security`](../security/SKILL.md) | `ForbiddenException` y prohibición de loguear tokens. |
+| [`responses`](../responses/SKILL.md) | Defines the exception → HTTP contract. The middleware implementation lives here. |
+| [`general`](../general/SKILL.md) | Defines the pipeline order. `CorrelationIdMiddleware` goes at position 0. |
+| [`security`](../security/SKILL.md) | `ForbiddenException` and the prohibition on logging tokens. |
 
 ---
 
@@ -266,11 +266,11 @@ Sanitizar ANTES de loguear, nunca después:
 - **Fixed (C-03)**: `CorrelationIdMiddleware` now sanitizes the caller-supplied `X-Correlation-ID` header before storing it. Non-printable/control characters are stripped and the value is capped at 64 characters to prevent log-injection attacks. A fallback to a fresh GUID is applied if the sanitized value is empty.
 
 ### v2.1 — 2026-03-28
-- **Removed**: Sección `IExceptionHandler` como alternativa no canónica (ruido — si alguien lo elige, sabe cómo usarlo)
-- **Removed**: `appsettings.json` Serilog config example (config estándar, no decisión)
-- **Removed**: NuGet commands duplicados al final
-- **Removed**: Frontera de scope Fase 2 (out of scope section)
-- **Kept**: Todo el middleware canónico, 9 campos, sensitive data list, Serilog bootstrap, request logging, troubleshooting chain
+- **Removed**: `IExceptionHandler` section as a non-canonical alternative (noise — if someone chooses it, they know how to use it)
+- **Removed**: `appsettings.json` Serilog config example (standard config, not a decision)
+- **Removed**: Duplicate NuGet commands at the end
+- **Removed**: Phase 2 scope boundary (out of scope section)
+- **Kept**: All canonical middleware, 9 fields, sensitive data list, Serilog bootstrap, request logging, troubleshooting chain
 
 ### v2.0 — 2026-03-25
-- BREAKING: Error responses migradas a ProblemDetails; correlationId en Extensions; 9 campos de trazabilidad
+- BREAKING: Error responses migrated to ProblemDetails; correlationId in Extensions; 9 traceability fields

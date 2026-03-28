@@ -12,9 +12,9 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## When to Use
 
-- Diseñando request DTOs para endpoints
-- Manejando file uploads o requests multipart
-- Revisando action signatures de controllers
+- Designing request DTOs for endpoints
+- Handling file uploads or multipart requests
+- Reviewing controller action signatures
 
 ---
 
@@ -22,7 +22,7 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ### Request DTO Naming
 
-Siempre sufijo `Request`. Nunca reusar domain entities como request bodies:
+Always suffix `Request`. Never reuse domain entities as request bodies:
 
 ```
 CreateUserRequest
@@ -30,7 +30,7 @@ UpdateUserRequest
 SearchUsersRequest
 ```
 
-### Pagination — Cap obligatorio en `PageSize`
+### Pagination — Mandatory cap on `PageSize`
 
 ```csharp
 public class PaginationRequest
@@ -38,7 +38,7 @@ public class PaginationRequest
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
 
-    // Cap obligatorio — previene pageSize=9999
+    // Mandatory cap — prevents pageSize=9999
     public int ValidatedPageSize => Math.Min(PageSize, 100);
 }
 
@@ -49,18 +49,18 @@ public class SearchUsersRequest : PaginationRequest
 }
 ```
 
-### Route Constraints — GUID en recursos públicos
+### Route Constraints — GUID on public resources
 
 ```csharp
-// Rechaza IDs inválidos antes del service — previene BOLA enumeration
+// Rejects invalid IDs before the service — prevents BOLA enumeration
 [HttpGet("{id:guid}")]
 ```
 
-Nunca `{id:int}` en endpoints públicos — ver [`../security/SKILL.md`](../security/SKILL.md).
+Never `{id:int}` on public endpoints — see [`../security/SKILL.md`](../security/SKILL.md).
 
-### Binding Sources — Siempre explícito
+### Binding Sources — Always explicit
 
-No depender del inference implícito de ASP.NET Core. Anotar siempre:
+Do not rely on ASP.NET Core's implicit inference. Always annotate:
 
 ```csharp
 [HttpGet("{id:guid}")]
@@ -75,9 +75,9 @@ public async Task<IActionResult> Search([FromQuery] SearchUsersRequest request) 
 public async Task<IActionResult> Create([FromBody] CreateUserRequest request) { ... }
 ```
 
-### Null Safety en Request DTOs
+### Null Safety in Request DTOs
 
-Required fields non-nullable con default. Optional fields nullable:
+Required fields non-nullable with default. Optional fields nullable:
 
 ```csharp
 public class CreateUserRequest
@@ -90,22 +90,22 @@ public class CreateUserRequest
 
 ### File Uploads
 
-El pattern de validación de file uploads (D-30) vive en [`../validations/SKILL.md`](../validations/SKILL.md).
+The file upload validation pattern (D-30) lives in [`../validations/SKILL.md`](../validations/SKILL.md).
 
-> **Nota crítica**: `[Consumes("multipart/form-data")]` a nivel de action **overrides** el `[Consumes("application/json")]` del controller. Siempre anotarlo en actions de file upload — sin él ASP.NET Core rechaza el request con 415.
+> **Critical note**: `[Consumes("multipart/form-data")]` at the action level **overrides** the `[Consumes("application/json")]` on the controller. Always annotate it on file upload actions — without it ASP.NET Core rejects the request with 415.
 
 ---
 
 ## Anti-Patterns
 
-| Anti-pattern | Problema |
+| Anti-pattern | Problem |
 |---|---|
-| Domain entity como request body | Acopla API al data model; riesgo de seguridad |
-| Binding source sin anotar | El inference implícito puede fallar de formas no obvias |
-| Pagination sin cap de `PageSize` | `pageSize=9999` es un vector de DoS |
-| `int` IDs en endpoints públicos | BOLA enumeration trivial |
-| `ResponseDTO<T>` como HTTP response body | Viola D-25/D-26 — retornar raw resource o `ProblemDetails` |
-| Leer `IFormFile` stream en validator | Bloquea el stream — ver D-30 en `validations` |
+| Domain entity as request body | Couples the API to the data model; security risk |
+| Binding source without annotation | Implicit inference can fail in non-obvious ways |
+| Pagination without `PageSize` cap | `pageSize=9999` is a DoS vector |
+| `int` IDs on public endpoints | Trivial BOLA enumeration |
+| `ResponseDTO<T>` as HTTP response body | Violates D-25/D-26 — return raw resource or `ProblemDetails` |
+| Reading `IFormFile` stream in validator | Blocks the stream — see D-30 in `validations` |
 
 ---
 
@@ -122,10 +122,10 @@ El pattern de validación de file uploads (D-30) vive en [`../validations/SKILL.
 ## Changelog
 
 ### v1.2 — 2026-03-28
-- **Removed**: Tutorial completo de binding sources con tabla y ejemplos (el agente conoce `[FromBody]`, `[FromQuery]`, etc.)
-- **Removed**: Content negotiation `[Produces]`/`[Consumes]` boilerplate — estándar del framework
-- **Removed**: File upload section extensa — consolidada en `validations/SKILL.md` (D-30), solo referencia aquí
-- **Kept**: Naming convention, pagination con ValidatedPageSize cap, GUID route constraint, binding explícito, null safety, anti-patterns
+- **Removed**: Full binding sources tutorial with table and examples (the agent already knows `[FromBody]`, `[FromQuery]`, etc.)
+- **Removed**: Content negotiation `[Produces]`/`[Consumes]` boilerplate — framework standard
+- **Removed**: Extended file upload section — consolidated in `validations/SKILL.md` (D-30), only referenced here
+- **Kept**: Naming convention, pagination with ValidatedPageSize cap, GUID route constraint, explicit binding, null safety, anti-patterns
 
 ### v1.1 — 2026-03-24
-- File uploads rewritten con D-30 pattern; anti-patterns expandidos
+- File uploads rewritten with D-30 pattern; anti-patterns expanded

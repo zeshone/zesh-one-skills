@@ -12,41 +12,41 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## When to Use
 
-- Creando un nuevo test project o agregando tests a uno existente
-- Escribiendo tests para Services, Validators, Mappings, o Domain Exceptions
-- Decidiendo cómo mockear dependencias
-- Revisando calidad, naming o estructura de tests
+- Creating a new test project or adding tests to an existing one
+- Writing tests for Services, Validators, Mappings, or Domain Exceptions
+- Deciding how to mock dependencies
+- Reviewing test quality, naming, or structure
 
 ---
 
 ## Scope Boundaries
 
-### ✅ IN — Testear con esta skill
+### ✅ IN — Test with this skill
 
-| Layer | Razón |
+| Layer | Reason |
 |---|---|
-| **Services** | Core business logic, exception paths, interacción con repositories |
-| **Validators** (FluentValidation) | Cobertura de reglas sin infraestructura |
-| **Mappings** (extension methods / AutoMapper profiles) | Pure input → output, sin side effects |
-| **Domain Exceptions** | Verificar message y type propagation |
+| **Services** | Core business logic, exception paths, interaction with repositories |
+| **Validators** (FluentValidation) | Rule coverage without infrastructure |
+| **Mappings** (extension methods / AutoMapper profiles) | Pure input → output, no side effects |
+| **Domain Exceptions** | Verify message and type propagation |
 
-### ❌ OUT — No unit test con esta skill
+### ❌ OUT — Do not unit test with this skill
 
-| Layer | Razón |
+| Layer | Reason |
 |---|---|
-| **Repositories** | Dependen de EF Core DbContext → territorio de integration tests |
-| **External HTTP clients** | Requieren network o `HttpMessageHandler` stubs |
-| **Background jobs / Hosted services** | Dependen del lifecycle de `IHostedService` |
+| **Repositories** | Depend on EF Core DbContext → territory of integration tests |
+| **External HTTP clients** | Require network or `HttpMessageHandler` stubs |
+| **Background jobs / Hosted services** | Depend on `IHostedService` lifecycle |
 
-### ⚠️ Controller Unit Tests — Anti-Pattern por default
+### ⚠️ Controller Unit Tests — Anti-Pattern by default
 
-Unit testing controllers acopla los tests a internals de ASP.NET Core (`ModelState`, `ActionResult` casting, route resolution). Los controllers son thin por diseño — su comportamiento se valida en integration tests.
+Unit testing controllers couples tests to ASP.NET Core internals (`ModelState`, `ActionResult` casting, route resolution). Controllers are thin by design — their behavior is validated in integration tests.
 
-**Solo justificar si:**
-1. El equipo tiene cero cobertura de integration tests, Y
-2. El controller tiene lógica condicional no trivial que no puede moverse al service
+**Only justified if:**
+1. The team has zero integration test coverage, AND
+2. The controller has non-trivial conditional logic that cannot be moved to the service
 
-Incluso entonces: marcar con `// TODO: replace with integration test`.
+Even then: mark with `// TODO: replace with integration test`.
 
 ---
 
@@ -54,16 +54,16 @@ Incluso entonces: marcar con `// TODO: replace with integration test`.
 
 ### Naming Convention
 
-| Elemento | Patrón | Ejemplo |
+| Element | Pattern | Example |
 |---|---|---|
 | Test class | `{ClassUnderTest}Tests` | `UserServiceTests` |
 | Test method | `{Method}_When{Condition}_Should{Expected}` | `GetByIdAsync_WhenUserNotFound_ShouldThrowNotFoundException` |
 
-Nombres deben ser legibles sin abrir el body del test.
+Names must be readable without opening the test body.
 
 ### AAA — Arrange / Act / Assert
 
-Comentarios obligatorios cuando el body supera 5 líneas. **Un solo Act por test.**
+Comments are mandatory when the body exceeds 5 lines. **One single Act per test.**
 
 ```csharp
 [Fact]
@@ -83,7 +83,7 @@ public async Task GetByIdAsync_WhenUserExists_ShouldReturnUserDto()
 }
 ```
 
-### Test Data Builders — Siempre, nunca inline
+### Test Data Builders — Always, never inline
 
 ```csharp
 // tests/Shared/Builders/UserBuilder.cs
@@ -103,26 +103,26 @@ public class UserBuilder
 }
 ```
 
-Reglas:
-- El `Build()` sin args debe producir una entidad válida
-- Nunca crear entidades inline en los tests — siempre Builder
-- Un Builder por tipo de entidad o DTO
+Rules:
+- `Build()` with no args must produce a valid entity
+- Never create entities inline in tests — always use Builder
+- One Builder per entity or DTO type
 
-### Mocking — NSubstitute (canónico) vs Moq
+### Mocking — NSubstitute (canonical) vs Moq
 
-NSubstitute es el canonical. Moq es alternativa para equipos que ya lo usan — elegir uno y ser consistente en el proyecto.
+NSubstitute is the canonical choice. Moq is an alternative for teams already using it — pick one and stay consistent throughout the project.
 
-| Operación | NSubstitute (canónico) | Moq (alternativa) |
+| Operation | NSubstitute (canonical) | Moq (alternative) |
 |---|---|---|
-| Crear substitute | `Substitute.For<IRepo>()` | `new Mock<IRepo>()` |
-| Acceder al objeto | *(el substitute ya es el objeto)* | `mock.Object` |
+| Create substitute | `Substitute.For<IRepo>()` | `new Mock<IRepo>()` |
+| Access the object | *(the substitute is already the object)* | `mock.Object` |
 | Stub return | `repo.Method(Arg.Any<Guid>()).Returns(user)` | `mock.Setup(r => r.Method(It.IsAny<Guid>())).ReturnsAsync(user)` |
-| Verificar llamada | `await repo.Received(1).Method(id)` | `mock.Verify(r => r.Method(id), Times.Once)` |
+| Verify call | `await repo.Received(1).Method(id)` | `mock.Verify(r => r.Method(id), Times.Once)` |
 | Stub exception | `.ThrowsAsync(new Ex())` — async methods; `.Throws(new Ex())` — sync methods | `.ThrowsAsync(new Ex())` |
 
-> **Moq SponsorLink**: Moq v4.20+ tiene telemetría SponsorLink. Pinear a `4.18.x` o usar NSubstitute.
+> **Moq SponsorLink**: Moq v4.20+ has SponsorLink telemetry. Pin to `4.18.x` or use NSubstitute.
 
-Setup en constructor — substitute compartido entre todos los tests de la clase:
+Setup in constructor — substitute shared across all tests in the class:
 
 ```csharp
 public class UserServiceTests
@@ -142,15 +142,15 @@ public class UserServiceTests
 
 ## Anti-Patterns
 
-| Anti-pattern | Problema |
+| Anti-pattern | Problem |
 |---|---|
-| Testear implementation details en vez de behavior | Los tests rompen en cada refactor aunque el comportamiento no cambie |
-| Over-mocking — mockear value objects y DTOs | El test no ejercita lógica real; falsa confianza |
-| Múltiples Acts en un test | Imposible saber qué Act causó el fallo |
-| Nombre sin contexto (`Test1`, `ShouldWork`) | Los failure reports son inútiles |
-| Unit tests de repositories con EF Core | DbContext requiere base de datos — territorio de integration |
-| Controller unit tests como default | Acopla tests a internals de ASP.NET; preferir integration tests |
-| `Assert.Equal` en vez de FluentAssertions | Menor legibilidad y diagnóstico en fallos |
+| Testing implementation details instead of behavior | Tests break on every refactor even when behavior does not change |
+| Over-mocking — mocking value objects and DTOs | The test does not exercise real logic; false confidence |
+| Multiple Acts in one test | Impossible to tell which Act caused the failure |
+| Name without context (`Test1`, `ShouldWork`) | Failure reports are useless |
+| Repository unit tests with EF Core | DbContext requires a database — territory of integration |
+| Controller unit tests as default | Couples tests to ASP.NET internals; prefer integration tests |
+| `Assert.Equal` instead of FluentAssertions | Lower readability and diagnostics on failures |
 
 ---
 
@@ -182,7 +182,7 @@ dotnet test --filter "FullyQualifiedName~UserServiceTests"
 - **Fixed (W-12)**: NSubstitute stub exception column now distinguishes `.ThrowsAsync(new Ex())` for async methods and `.Throws(new Ex())` for sync methods. The previous entry only showed `.Throws()`, which silently passes for sync but does NOT stub async Task-returning methods correctly.
 
 ### v1.1 — 2026-03-28
-- **Removed**: Ejemplos completos de tests por layer (Service, Validator, Mapping, Exception) — el agente sabe escribir tests una vez conoce las convenciones
-- **Removed**: Full CRUD service test class example de 60 líneas
-- **Removed**: Sección de project setup con folder structure detallada
-- **Kept**: Scope boundaries (decisión de qué testear), naming convention, AAA, Test Data Builders, NSubstitute vs Moq comparison, anti-patterns
+- **Removed**: Full test examples by layer (Service, Validator, Mapping, Exception) — the agent knows how to write tests once it knows the conventions
+- **Removed**: Full CRUD service test class example of 60 lines
+- **Removed**: Project setup section with detailed folder structure
+- **Kept**: Scope boundaries (decision on what to test), naming convention, AAA, Test Data Builders, NSubstitute vs Moq comparison, anti-patterns

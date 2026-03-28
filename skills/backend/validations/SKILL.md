@@ -12,31 +12,31 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## When to Use
 
-- Agregando reglas de validación a cualquier request DTO
-- Decidiendo entre FluentValidation vs validación manual
-- Configurando validación automática vía filters
+- Adding validation rules to any request DTO
+- Deciding between FluentValidation vs manual validation
+- Configuring automatic validation via filters
 
 ---
 
 ## Critical Patterns
 
-### Dónde va cada tipo de validación
+### Where each type of validation belongs
 
 ```
-¿La regla es format/estructural? (length, required, email, regex)
+Is the rule format/structural? (length, required, email, regex)
   → FluentValidation
 
-¿La regla requiere un DB lookup? (email único, usuario existente)
-  → FluentValidation con .MustAsync
+Does the rule require a DB lookup? (unique email, existing user)
+  → FluentValidation with .MustAsync
 
-¿Es lógica de negocio interna al service?
-  → throw domain exception en el service, no en el validator
+Is it business logic internal to the service?
+  → throw domain exception in the service, not in the validator
 
-¿Validación de sistema externo?
-  → validar en service, throw specific exception
+External system validation?
+  → validate in service, throw specific exception
 ```
 
-> **Regla base**: Toda validación de boundary (input HTTP) usa FluentValidation. Toda violación de regla de negocio usa domain exceptions en el service layer.
+> **Base rule**: All boundary validation (HTTP input) uses FluentValidation. All business rule violations use domain exceptions in the service layer.
 
 ### Setup — Auto-registration + Auto-validation
 
@@ -48,16 +48,16 @@ dotnet add package FluentValidation.DependencyInjectionExtensions  # contains Ad
 ```
 
 ```csharp
-// Program.cs — una sola línea registra todos los validators del assembly
+// Program.cs — a single line registers all validators in the assembly
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 ```
 
-Con auto-validation activo, la action solo se ejecuta si el modelo es válido. El framework retorna `400 Bad Request` con `ProblemDetails` automáticamente (configurado via `InvalidModelStateResponseFactory` — ver [`responses/SKILL.md`](../responses/SKILL.md)).
+With auto-validation active, the action only executes if the model is valid. The framework returns `400 Bad Request` with `ProblemDetails` automatically (configured via `InvalidModelStateResponseFactory` — see [`responses/SKILL.md`](../responses/SKILL.md)).
 
-### Manual Validation — Solo cuando necesitás el resultado programáticamente
+### Manual Validation — Only when you need the result programmatically
 
-Usar `IValidator<T>` inyectado cuando el controller o service necesita inspeccionar, loguear o reaccionar condicionalmente a errores específicos — no solo para controlar el shape de la respuesta:
+Use injected `IValidator<T>` when the controller or service needs to inspect, log, or conditionally react to specific errors — not just to control the shape of the response:
 
 ```csharp
 var validation = await _validator.ValidateAsync(request);
@@ -72,10 +72,10 @@ if (!validation.IsValid)
 
 ### File Upload — Hybrid Validation Pattern (D-30)
 
-FluentValidation maneja metadata (presencia, tamaño, MIME type). El controller aplica solo un guard de integridad de stream. **El validator nunca lee el stream.**
+FluentValidation handles metadata (presence, size, MIME type). The controller applies only a stream integrity guard. **The validator never reads the stream.**
 
 ```csharp
-// Request DTO — default! + .NotNull() en validator (no usar `required` con [FromForm])
+// Request DTO — default! + .NotNull() in validator (do not use `required` with [FromForm])
 public class UploadAvatarRequest
 {
     public IFormFile File { get; set; } = default!;
@@ -100,7 +100,7 @@ public class UploadAvatarRequestValidator : AbstractValidator<UploadAvatarReques
     }
 }
 
-// Controller — solo stream integrity guard
+// Controller — stream integrity guard only
 [HttpPost("avatar")]
 [Consumes("multipart/form-data")]
 public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
@@ -122,14 +122,14 @@ public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest req
 
 ## Anti-Patterns
 
-| Anti-pattern | Problema |
+| Anti-pattern | Problem |
 |---|---|
-| `DataAnnotations` en DTOs | Menos expresivo, sin async support — siempre FluentValidation |
-| Business logic en validators | Mezcla concerns; usar domain exceptions en service |
-| Validación de formato en el service | Demasiado tarde en el pipeline |
-| Un validator global para múltiples DTOs | Viola SRP — un validator por DTO |
-| Leer `IFormFile` stream en FluentValidation | Bloquea el stream antes de que el controller lo lea |
-| Exponer `ResponseDTO<T>` como body de HTTP 400 | Viola D-25/D-26 — siempre `ProblemDetails` en errores HTTP |
+| `DataAnnotations` on DTOs | Less expressive, no async support — always use FluentValidation |
+| Business logic in validators | Mixes concerns; use domain exceptions in the service |
+| Format validation in the service | Too late in the pipeline |
+| A single global validator for multiple DTOs | Violates SRP — one validator per DTO |
+| Reading `IFormFile` stream in FluentValidation | Blocks the stream before the controller reads it |
+| Exposing `ResponseDTO<T>` as the body of HTTP 400 | Violates D-25/D-26 — always use `ProblemDetails` for HTTP errors |
 
 ---
 
@@ -159,11 +159,11 @@ dotnet add package FluentValidation.DependencyInjectionExtensions    # AddValida
 - **Fixed (W-03)**: Added FluentValidation v11 breaking change note — `AddFluentValidationAutoValidation()` was removed from the core `FluentValidation` package and moved to `FluentValidation.AspNetCore`. Updated Commands section to list all three packages with explicit comments.
 
 ### v1.2 — 2026-03-28
-- **Removed**: Tutorial de FluentValidation (reglas, sintaxis, ejemplos de validators) — el agente ya lo conoce
-- **Removed**: Sección extensa de validator structure con ejemplo completo de CreateUserRequestValidator
+- **Removed**: FluentValidation tutorial (rules, syntax, validator examples) — the agent already knows it
+- **Removed**: Extensive validator structure section with full CreateUserRequestValidator example
 - **Removed**: Common validation rules reference (`NotEmpty`, `EmailAddress`, `Matches`, etc.)
-- **Removed**: Full validator example con múltiples rule sets
-- **Kept**: Decision tree (dónde va cada validación), D-30 hybrid file upload, setup de auto-registration, manual validation con criterio, anti-patterns
+- **Removed**: Full validator example with multiple rule sets
+- **Kept**: Decision tree (where each validation belongs), D-30 hybrid file upload, auto-registration setup, manual validation with criteria, anti-patterns
 
 ### v1.1 — 2026-03-24
-- Contrato externo 400 migrado a ProblemDetails; D-30 file upload pattern; anti-patterns expandidos
+- External 400 contract migrated to ProblemDetails; D-30 file upload pattern; expanded anti-patterns
