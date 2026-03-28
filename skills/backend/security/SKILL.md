@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.2"
+  version: "1.5"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -49,7 +49,9 @@ public async Task<OrderDto> GetByIdAsync(Guid orderId, Guid requestingUserId)
 El `requestingUserId` viene del JWT claim en el controller:
 
 ```csharp
-var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+// Guid.Parse with ! throws NullReferenceException if the claim is absent — use TryParse instead.
+if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+    return Unauthorized(); // missing or malformed identity claim — the request is unauthenticated
 var data = await _orderService.GetByIdAsync(id, userId);
 return Ok(data);
 ```
@@ -177,6 +179,15 @@ dotnet user-secrets set "Jwt:Secret" "your-secret-here"
 ---
 
 ## Changelog
+
+### v1.5 — 2026-03-28
+- **Fixed (FIX-B)**: Annotated the v1.3 changelog entry for C-04 to record that `Forbid()` / 403 was subsequently identified as semantically wrong for a missing claim, and was corrected to `Unauthorized()` / 401 in v1.4. Prevents an agent reading v1.3 as baseline from reinstating the incorrect pattern.
+
+### v1.4 — 2026-03-28
+- **Fixed (FIX-2)**: Replaced `return Forbid()` (HTTP 403) with `return Unauthorized()` (HTTP 401) in the ownership guard when the identity claim is absent or malformed. A missing/malformed claim means the request is unauthenticated — 401 is semantically correct; 403 ("known identity, insufficient permission") is wrong here. Also removed the alternative `throw new ForbiddenException(...)` from the inline comment, which compounded the semantic error.
+
+### v1.3 — 2026-03-28
+- **Fixed (C-04)**: Replaced `Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)` with `Guid.TryParse(...)` + guard returning `Forbid()`. The null-forgiving operator on a potentially-null claim caused `NullReferenceException` (raw 500) for requests with absent or malformed identity claims. (Note: `Forbid()` / 403 was subsequently identified as semantically wrong for a missing claim — corrected to `Unauthorized()` / 401 in v1.4)
 
 ### v1.2 — 2026-03-28
 - **Removed**: OWASP coverage map table y descripciones (doc oficial — el agente la conoce)

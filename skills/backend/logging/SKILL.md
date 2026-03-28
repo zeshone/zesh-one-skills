@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.4"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -73,13 +73,21 @@ public class CorrelationIdMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (!context.Request.Headers.TryGetValue(CorrelationIdHeader, out var correlationId))
-            correlationId = Guid.NewGuid().ToString();
+        // Security: sanitize the caller-supplied header value to prevent log injection.
+        // Unsanitized values can contain newlines or structured payloads that forge log entries.
+        string rawId = context.Request.Headers.TryGetValue(CorrelationIdHeader, out var headerVal)
+            ? headerVal.ToString()
+            : Guid.NewGuid().ToString();
 
-        context.Items["CorrelationId"] = correlationId.ToString();
-        context.Response.Headers[CorrelationIdHeader] = correlationId.ToString();
+        // Strip non-printable/control characters and enforce a max length of 64 chars.
+        var sanitized = new string(rawId.Where(c => !char.IsControl(c)).ToArray());
+        if (sanitized.Length > 64) sanitized = sanitized[..64];
+        var correlationId = string.IsNullOrWhiteSpace(sanitized) ? Guid.NewGuid().ToString() : sanitized;
 
-        using (LogContext.PushProperty("CorrelationId", correlationId.ToString()))
+        context.Items["CorrelationId"] = correlationId;
+        context.Response.Headers[CorrelationIdHeader] = correlationId;
+
+        using (LogContext.PushProperty("CorrelationId", correlationId))
         using (LogContext.PushProperty("Application", _applicationName))
         using (LogContext.PushProperty("Environment", _environment))
         {
@@ -150,7 +158,7 @@ public class ExceptionHandlingMiddleware
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/problem+json";
         var problem = new ProblemDetails { Status = statusCode, Title = title, Detail = detail };
-        problem.Extensions["correlationId"] = context.Items["CorrelationId"]?.ToString();
+        problem.Extensions["correlationId"] = context.Items["CorrelationId"] as string;
         await context.Response.WriteAsJsonAsync(problem);
     }
 }
@@ -203,7 +211,7 @@ app.UseSerilogRequestLogging(options =>
     {
         diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
         diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
-        diagnosticContext.Set("CorrelationId", httpContext.Items["CorrelationId"]?.ToString());
+        diagnosticContext.Set("CorrelationId", httpContext.Items["CorrelationId"] as string);
         diagnosticContext.Set("UserId", httpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous");
     };
 });
@@ -247,6 +255,15 @@ Sanitizar ANTES de loguear, nunca después:
 ---
 
 ## Changelog
+
+### v2.4 — 2026-03-28
+- **Fixed (FIX-C)**: Changed `context.Items["CorrelationId"]?.ToString()` to `context.Items["CorrelationId"] as string` in two locations: `WriteErrorResponse` (`problem.Extensions["correlationId"]`) and `UseSerilogRequestLogging` enricher (`diagnosticContext.Set("CorrelationId", ...)`). `Items["CorrelationId"]` is typed `object?` but is always stored as `string` by `CorrelationIdMiddleware`; `as string` is explicit about the type and consistent with FIX-6's philosophy of removing redundant `.ToString()` calls.
+
+### v2.3 — 2026-03-28
+- **Fixed (FIX-6)**: Removed redundant `.ToString()` on `correlationId` in `LogContext.PushProperty(...)`. The variable is already typed as `string`; calling `.ToString()` implies type uncertainty and adds noise.
+
+### v2.2 — 2026-03-28
+- **Fixed (C-03)**: `CorrelationIdMiddleware` now sanitizes the caller-supplied `X-Correlation-ID` header before storing it. Non-printable/control characters are stripped and the value is capped at 64 characters to prevent log-injection attacks. A fallback to a fresh GUID is applied if the sanitized value is empty.
 
 ### v2.1 — 2026-03-28
 - **Removed**: Sección `IExceptionHandler` como alternativa no canónica (ruido — si alguien lo elige, sabe cómo usarlo)

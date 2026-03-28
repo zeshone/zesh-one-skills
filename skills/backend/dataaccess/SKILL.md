@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.2"
+  version: "2.5"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -162,7 +162,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Email).HasMaxLength(200).IsRequired();
         builder.HasIndex(u => u.Email).IsUnique();
         builder.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-        builder.Property(u => u.UpdatedAt).ValueGeneratedOnUpdate();
+        // UpdatedAt managed by AuditInterceptor — do NOT add ValueGeneratedOnUpdate()
 
         // Relationship config — explicit cascade behavior
         builder.HasMany(u => u.Orders)
@@ -208,7 +208,7 @@ public class AuditInterceptor : SaveChangesInterceptor
         {
             if (entry.State == EntityState.Added)
                 entry.Entity.CreatedAt = now;
-            if (entry.State is EntityState.Added or EntityState.Modified)
+            if (entry.State == EntityState.Modified)
                 entry.Entity.UpdatedAt = now;
         }
         return base.SavingChangesAsync(eventData, result, ct);
@@ -293,6 +293,13 @@ public interface IUserRepository
     Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default);
     Task AddAsync(User user, CancellationToken ct = default);
     Task UpdateAsync(User user, CancellationToken ct = default);
+    /// <summary>
+    /// Deletes the entity with the given <paramref name="id"/>.
+    /// CONTRACT: The caller (service layer) MUST call <see cref="GetByIdAsync"/> first
+    /// and throw <see cref="NotFoundException"/> if the entity is not found.
+    /// Passing a stub entity to <c>Remove</c> without first verifying existence may silently delete the wrong row or cause FK violations.
+    /// The service contract (calling <see cref="GetByIdAsync"/> first and throwing <see cref="NotFoundException"/> if absent) is the only safety guard.
+    /// </summary>
     Task DeleteAsync(Guid id, CancellationToken ct = default);
 }
 ```
@@ -386,24 +393,16 @@ _context.OrderItems.AddRange(items);
 await _context.SaveChangesAsync(); // if this fails, order is orphaned
 ```
 
-**Multi-context transaction — generic pattern** (maintain when needed):
-```csharp
-await using var primaryTx = await _primaryContext.Database.BeginTransactionAsync(ct);
-await using var secondaryTx = await _secondaryContext.Database.BeginTransactionAsync(ct);
-try
-{
-    await _primaryContext.SaveChangesAsync(ct);
-    await _secondaryContext.SaveChangesAsync(ct);
-    await primaryTx.CommitAsync(ct);
-    await secondaryTx.CommitAsync(ct);
-}
-catch
-{
-    await primaryTx.RollbackAsync(ct);
-    await secondaryTx.RollbackAsync(ct);
-    throw;
-}
-```
+> ⚠️ **WARNING — Multi-context transactions cannot be made atomic without a distributed coordinator.**
+>
+> Two independent `IDbContextTransaction` instances (one per `DbContext`) are two separate SQL transactions on the database. Committing `primaryTx` then `secondaryTx` sequentially means:
+ > - If `secondaryTx.CommitAsync` throws, `primaryTx` is **already committed** — there is no way to undo it — calling `RollbackAsync` on an already-committed transaction throws `InvalidOperationException`.
+> - You cannot guarantee both commits succeed or both fail without MS DTC (Distributed Transaction Coordinator) or a saga/outbox pattern.
+>
+> **Do NOT write code that calls `CommitAsync` on two independent transactions and claims it is atomic — it is not.**
+>
+> **Recommended approach for cross-context consistency: Outbox Pattern.**
+> Instead of committing to two databases atomically, write the cross-context event into an `OutboxMessages` table in the **same** transaction as the primary write. A background worker (e.g., Hangfire, a hosted service) reads the outbox and delivers to the secondary context with at-least-once semantics. This provides eventual consistency without distributed locks.
 
 ---
 
@@ -457,12 +456,29 @@ Migration folder: `src/YourProject.Infrastructure/Migrations/`
 | Large `OnModelCreating` | Legacy DbContext classes | Keep existing; `IEntityTypeConfiguration<T>` on new |
 | `FromSqlRaw` with string concat potential | Raw SQL / SP execution code | Always use `SqlParameter` or `FromSqlInterpolated` |
 | Virtual nav props without lazy loading enabled | Multiple models | Always use explicit `.Include()` — never rely on nav props auto-loading |
+| Calling `DeleteAsync` without prior existence check | Service layer delete flows | Service MUST call `GetByIdAsync` first; throw `NotFoundException` if missing; repository assumes entity exists |
 
 *Anti-patterns confirmed in production legacy codebases.*
 
 ---
 
 ## Changelog
+
+### v2.5 — 2026-03-28
+- **Fixed (FIX-A)**: Corrected false statement in `DeleteAsync` XML doc comment. Replaced "EF Core will throw when `Remove` is called on an untracked entry. The service contract (calling `GetByIdAsync` first) prevents this case." with accurate description: passing a stub entity to `Remove` without first verifying existence may silently delete the wrong row or cause FK violations; the service contract is the only safety guard.
+- **Fixed (FIX-D)**: Amended v2.3 changelog entry for C-02 to record that the change (using `FirstOrDefaultAsync` inside `EF.CompileAsyncQuery`) was incorrect and was reverted in v2.4. Added correct rationale: `FirstOrDefault` is required inside the lambda; async dispatch is handled by the compiled-query infrastructure.
+
+### v2.4 — 2026-03-28
+- **Fixed (FIX-1)**: Reverted `FirstOrDefaultAsync` back to `FirstOrDefault` inside `EF.CompileAsyncQuery` lambda. `EF.CompileAsyncQuery` requires a synchronous terminal LINQ operator in the expression tree; the `Task<T?>` wrapping is provided automatically by the compiled-query infrastructure — using `FirstOrDefaultAsync` returns `Task<T?>` which is not a valid `IQueryable` terminal operator and does not compile.
+- **Fixed (FIX-3)**: Replaced "its rollback is a no-op" with accurate wording: calling `RollbackAsync` on an already-committed transaction throws `InvalidOperationException` — it is not silently ignored.
+- **Fixed (FIX-4)**: Removed `builder.Property(u => u.UpdatedAt).ValueGeneratedOnUpdate()` from `UserConfiguration`. This flag marks the property as database-generated, which causes EF Core to ignore the in-memory assignment made by `AuditInterceptor`. Added inline comment to make the exclusion explicit.
+- **Fixed (FIX-5)**: Replaced vague "behavior is undefined if it does not" in `DeleteAsync` XML doc comment with concrete language: `EF Core will throw when Remove is called on an untracked entry`. The service-contract prevention note is retained. (Note: "EF Core will throw" was subsequently identified as inaccurate — corrected to the stub-entity / silent-delete warning in v2.5 via FIX-A.)
+
+### v2.3 — 2026-03-28
+- **Fixed (C-01)**: Replaced broken multi-context transaction code block with an explicit warning that two independent `IDbContextTransaction` instances cannot be atomically committed. Added recommendation to use the Outbox Pattern for cross-context consistency.
+- **Fixed (C-02)**: Changed `FirstOrDefault` to `FirstOrDefaultAsync` inside `EF.CompileAsyncQuery` lambda. (Note: this was incorrect — reverted in v2.4. `FirstOrDefault` is required inside the lambda; async dispatch is handled by the compiled-query infrastructure, not the terminal operator.)
+- **Fixed (C-05)**: Removed `EntityState.Added` from `UpdatedAt` assignment in `AuditInterceptor`. `UpdatedAt` must remain `null` on new inserts to distinguish created-only records; it is now set only on `EntityState.Modified`.
+- **Fixed (C-06)**: Added explicit XML doc comment to `DeleteAsync` in `IUserRepository` defining the contract (service must verify existence first and throw `NotFoundException`). Added corresponding anti-pattern row in the anti-patterns table.
 
 ### v2.2 — 2026-03-28
 - Removed: "Complete Repository" full code example (patterns already explicit in each section)
