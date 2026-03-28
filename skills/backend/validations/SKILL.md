@@ -6,271 +6,129 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.1"
+  version: "1.2"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
 ## When to Use
 
-- Adding validation rules to any request DTO
-- Creating a new FluentValidation validator class
-- Deciding between FluentValidation and manual validation
-- Handling validation errors in controllers
-- Configuring automatic validation via filters
+- Agregando reglas de validación a cualquier request DTO
+- Decidiendo entre FluentValidation vs validación manual
+- Configurando validación automática vía filters
 
 ---
 
 ## Critical Patterns
 
-### Decision Tree — FluentValidation vs Manual
+### Dónde va cada tipo de validación
 
 ```
-Is the rule purely format/structural? (length, required, email, regex)
-  YES → FluentValidation
+¿La regla es format/estructural? (length, required, email, regex)
+  → FluentValidation
 
-Does the rule require a database lookup? (unique email, existing user)
-  YES → FluentValidation with async custom rule (.MustAsync)
+¿La regla requiere un DB lookup? (email único, usuario existente)
+  → FluentValidation con .MustAsync
 
-Is the rule complex business logic internal to the service?
-  YES → throw domain exception inside the service, not a validator
+¿Es lógica de negocio interna al service?
+  → throw domain exception en el service, no en el validator
 
-Is validation part of an external system call?
-  YES → validate in service, throw specific exception
+¿Validación de sistema externo?
+  → validar en service, throw specific exception
 ```
 
-> **Default rule**: All boundary validation (HTTP input) uses FluentValidation. All business-rule violations use domain exceptions in the service layer.
+> **Regla base**: Toda validación de boundary (input HTTP) usa FluentValidation. Toda violación de regla de negocio usa domain exceptions en el service layer.
 
-### Validator File Location
-
-```
-Features/{Feature}/
-  Validators/
-    CreateUserRequestValidator.cs
-    UpdateUserRequestValidator.cs
-```
-
-One validator class per DTO. Never share validators across DTOs.
-
-### FluentValidation — Validator Structure
+### Setup — Auto-registration + Auto-validation
 
 ```csharp
-// Features/Users/Validators/CreateUserRequestValidator.cs
-public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
-{
-    public CreateUserRequestValidator()
-    {
-        RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("First name is required.")
-            .MaximumLength(100).WithMessage("First name must not exceed 100 characters.");
-
-        RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("Last name is required.")
-            .MaximumLength(100).WithMessage("Last name must not exceed 100 characters.");
-
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("Email format is invalid.")
-            .MaximumLength(200).WithMessage("Email must not exceed 200 characters.");
-
-        RuleFor(x => x.PhoneNumber)
-            .Matches(@"^\+?[1-9]\d{7,14}$").WithMessage("Phone number format is invalid.")
-            .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
-
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters.")
-            .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
-            .Matches("[0-9]").WithMessage("Password must contain at least one number.");
-    }
-}
-```
-
-### Auto-Registration — All Validators from Assembly
-
-Register all validators at once in `Program.cs`. Never register them individually:
-
-```csharp
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-```
-
-### Integration Mode — Automatic Validation Filter (Recommended)
-
-Use the FluentValidation ASP.NET Core integration package to validate automatically via the model binding pipeline:
-
-```csharp
-// Program.cs
+// Program.cs — una sola línea registra todos los validators del assembly
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 ```
 
-With auto-validation enabled, the action is only reached if the model is valid. The framework returns `400 Bad Request` automatically with a **`ProblemDetails`** body (configured via `InvalidModelStateResponseFactory` — see [`responses/SKILL.md`](../responses/SKILL.md) for the canonical setup).
+Con auto-validation activo, la action solo se ejecuta si el modelo es válido. El framework retorna `400 Bad Request` con `ProblemDetails` automáticamente (configurado via `InvalidModelStateResponseFactory` — ver [`responses/SKILL.md`](../responses/SKILL.md)).
 
-> **Rule**: Prefer **manual validation** (inject `IValidator<T>`) when you need programmatic access to the validation result: logging errors before returning, multi-step flows that conditionally branch on specific failures, or service-layer logic that evaluates errors before deciding the response.
+### Manual Validation — Solo cuando necesitás el resultado programáticamente
 
-### Manual Validation — Programmatic Access to Result
-
-Use manual validation when the controller or service needs to inspect, log, or conditionally react to specific validation errors — not merely to control the response shape:
+Usar `IValidator<T>` inyectado cuando el controller o service necesita inspeccionar, loguear o reaccionar condicionalmente a errores específicos — no solo para controlar el shape de la respuesta:
 
 ```csharp
-[HttpPost]
-public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
-{
-    var validation = await _validator.ValidateAsync(request);
-    if (!validation.IsValid)
+var validation = await _validator.ValidateAsync(request);
+if (!validation.IsValid)
+    return BadRequest(new ProblemDetails
     {
-        // Log specific errors, evaluate conditions, or build a structured detail
+        Status = StatusCodes.Status400BadRequest,
+        Title = "Bad Request",
+        Detail = validation.Errors.First().ErrorMessage
+    });
+```
+
+### File Upload — Hybrid Validation Pattern (D-30)
+
+FluentValidation maneja metadata (presencia, tamaño, MIME type). El controller aplica solo un guard de integridad de stream. **El validator nunca lee el stream.**
+
+```csharp
+// Request DTO — default! + .NotNull() en validator (no usar `required` con [FromForm])
+public class UploadAvatarRequest
+{
+    public IFormFile File { get; set; } = default!;
+}
+
+// Validator — metadata only, never .OpenReadStream()
+public class UploadAvatarRequestValidator : AbstractValidator<UploadAvatarRequest>
+{
+    private static readonly string[] AllowedMimeTypes = ["image/jpeg", "image/png"];
+    private const long MaxFileSize = 5 * 1024 * 1024;
+
+    public UploadAvatarRequestValidator()
+    {
+        RuleFor(x => x.File).NotNull().WithMessage("File is required.");
+        RuleFor(x => x.File.Length)
+            .LessThanOrEqualTo(MaxFileSize).WithMessage("File exceeds 5 MB limit.")
+            .When(x => x.File is not null);
+        RuleFor(x => x.File.ContentType)
+            .Must(ct => AllowedMimeTypes.Contains(ct))
+            .WithMessage("Invalid file type. Allowed: JPEG, PNG.")
+            .When(x => x.File is not null);
+    }
+}
+
+// Controller — solo stream integrity guard
+[HttpPost("avatar")]
+[Consumes("multipart/form-data")]
+public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
+{
+    if (request.File.Length == 0)
         return BadRequest(new ProblemDetails
         {
             Status = StatusCodes.Status400BadRequest,
             Title = "Bad Request",
-            Detail = validation.Errors.First().ErrorMessage
+            Detail = "File stream is empty or corrupted."
         });
-    }
-    var data = await _userService.CreateAsync(request);
-    return CreatedAtAction(nameof(GetById), new { id = data.Id },
-        new ResponseDTO<UserDto> { Success = true, Data = data });
+
+    await _avatarService.UploadAsync(request.File);
+    return NoContent();
 }
 ```
-
-Inject the validator via constructor:
-```csharp
-public class UsersController : ControllerBase
-{
-    private readonly IUserService _userService;
-    private readonly IValidator<CreateUserRequest> _validator;
-
-    public UsersController(IUserService userService, IValidator<CreateUserRequest> validator)
-    {
-        _userService = userService;
-        _validator = validator;
-    }
-}
-```
-
-> **Note**: MediatR Pipeline Behaviors are an **optional extension** for cross-cutting validation in command/query pipelines. They are not the canonical approach for this skill — FluentValidation with auto-validation filter or direct `IValidator<T>` injection covers the boundary contract without coupling to a mediator.
-
-### Async Validation — Database Rules
-
-Use `.MustAsync` for rules requiring async calls (uniqueness checks, existence checks):
-
-```csharp
-public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
-{
-    private readonly IUserRepository _repository;
-
-    public CreateUserRequestValidator(IUserRepository repository)
-    {
-        _repository = repository;
-
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress()
-            .MustAsync(BeUniqueEmailAsync)
-            .WithMessage("Email is already registered.");
-    }
-
-    private async Task<bool> BeUniqueEmailAsync(string email, CancellationToken ct) =>
-        !await _repository.ExistsByEmailAsync(email, ct);
-}
-```
-
-### Validation Error Response Format
-
-All HTTP 400 responses triggered by validation failures **must use `ProblemDetails`** (RFC 7807). There is a single canonical format for external consumers:
-
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7807",
-  "title": "Bad Request",
-  "status": 400,
-  "detail": "Email format is invalid."
-}
-```
-
-This applies to both **automatic** (via `InvalidModelStateResponseFactory`) and **manual** validation paths. Refer to [`responses/SKILL.md`](../responses/SKILL.md) for the `InvalidModelStateResponseFactory` configuration that produces this format automatically from the model state.
-
-> `ResponseDTO<T>` is an **internal contract** (service/application layer → controller). Controllers **always** map a failed `ResponseDTO<T>` to a `ProblemDetails` HTTP 400 before returning to the client — it is never exposed directly as an HTTP response body.
-
-### Common Validation Rules Reference
-
-```csharp
-// Required
-RuleFor(x => x.Name).NotEmpty();
-
-// Length
-RuleFor(x => x.Name).Length(2, 100);
-
-// Email
-RuleFor(x => x.Email).EmailAddress();
-
-// Regex
-RuleFor(x => x.Code).Matches(@"^[A-Z]{3}\d{3}$");
-
-// Numeric range
-RuleFor(x => x.Age).InclusiveBetween(18, 120);
-
-// Conditional
-RuleFor(x => x.CompanyName)
-    .NotEmpty()
-    .When(x => x.AccountType == AccountType.Business);
-
-// Collection
-RuleForEach(x => x.Tags)
-    .NotEmpty()
-    .MaximumLength(50);
-
-// Custom
-RuleFor(x => x.StartDate)
-    .Must(date => date > DateTime.UtcNow)
-    .WithMessage("Start date must be in the future.");
-```
-
-### Anti-Patterns
-
-| Anti-pattern | Problem |
-|---|---|
-| `DataAnnotations` on DTOs | Less expressive, harder to test, no async support |
-| Business logic in validators | Mixes concerns; use service exceptions instead |
-| Validation inside service for format rules | Too late in the pipeline; validate at boundary |
-| One global validator for multiple DTOs | Breaks SRP; one validator per DTO |
-| Swallowing validation errors | Clients cannot fix requests without error details |
-| `if (model == null) return BadRequest()` alone | Missing field-level error messages |
-| Exposing `ResponseDTO<T>` as HTTP 400 body | Violates dual-contract rule (D-25); external errors always use `ProblemDetails` |
 
 ---
 
-## Code Examples
+## Anti-Patterns
 
-### Full Validator with Multiple Rule Sets
-
-```csharp
-public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
-{
-    public UpdateUserRequestValidator()
-    {
-        RuleFor(x => x.FirstName)
-            .NotEmpty()
-            .MaximumLength(100)
-            .When(x => x.FirstName is not null);
-
-        RuleFor(x => x.LastName)
-            .NotEmpty()
-            .MaximumLength(100)
-            .When(x => x.LastName is not null);
-
-        RuleFor(x => x.PhoneNumber)
-            .Matches(@"^\+?[1-9]\d{7,14}$")
-            .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
-    }
-}
-```
+| Anti-pattern | Problema |
+|---|---|
+| `DataAnnotations` en DTOs | Menos expresivo, sin async support — siempre FluentValidation |
+| Business logic en validators | Mezcla concerns; usar domain exceptions en service |
+| Validación de formato en el service | Demasiado tarde en el pipeline |
+| Un validator global para múltiples DTOs | Viola SRP — un validator por DTO |
+| Leer `IFormFile` stream en FluentValidation | Bloquea el stream antes de que el controller lo lea |
+| Exponer `ResponseDTO<T>` como body de HTTP 400 | Viola D-25/D-26 — siempre `ProblemDetails` en errores HTTP |
 
 ---
 
 ## Commands
 
 ```bash
-# Add FluentValidation packages
 dotnet add package FluentValidation
 dotnet add package FluentValidation.AspNetCore
 dotnet add package FluentValidation.DependencyInjectionExtensions
@@ -278,22 +136,23 @@ dotnet add package FluentValidation.DependencyInjectionExtensions
 
 ---
 
-## Changelog
-
-### v1.1.0
-- **Contrato externo 400**: Todos los ejemplos de respuesta HTTP 400 por validación ahora usan `ProblemDetails` (RFC 7807) en lugar de `ResponseDTO<T>` — alineación con decisiones D-25/D-26 de `responses` v1.1.
-- **Estrategia canónica agnóstica a MediatR**: FluentValidation con auto-validation filter o `IValidator<T>` directo es el enfoque canónico (D-28). MediatR Pipeline Behaviors son extensión opcional documentada explícitamente.
-- **Motivación de validación manual**: Actualizada para reflejar casos de uso reales — acceso programático al resultado, logging, flujos multi-paso y lógica condicional sobre errores específicos (D-30).
-- **Anti-pattern nuevo**: Agregado "Exponer `ResponseDTO<T>` como HTTP 400 body" a la tabla de anti-patterns (D-32).
-- **Cross-references**: Agregadas referencias explícitas a `responses/SKILL.md` (contrato HTTP y `InvalidModelStateResponseFactory`), `testing-unit/SKILL.md` (testing de validators) y `general/SKILL.md` (estructura de carpetas `Exceptions/`).
-
----
-
 ## Resources
 
 - **FluentValidation docs**: https://docs.fluentvalidation.net/en/latest/aspnet.html
-- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
-- **Requests**: See [../requests/SKILL.md](../requests/SKILL.md)
 - **Responses (HTTP contract + InvalidModelStateResponseFactory)**: See [../responses/SKILL.md](../responses/SKILL.md)
+- **Requests (file upload context)**: See [../requests/SKILL.md](../requests/SKILL.md)
 - **Testing validators**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md)
-- **Architecture (Exceptions/ folder structure)**: See [../general/SKILL.md](../general/SKILL.md)
+
+---
+
+## Changelog
+
+### v1.2 — 2026-03-28
+- **Removed**: Tutorial de FluentValidation (reglas, sintaxis, ejemplos de validators) — el agente ya lo conoce
+- **Removed**: Sección extensa de validator structure con ejemplo completo de CreateUserRequestValidator
+- **Removed**: Common validation rules reference (`NotEmpty`, `EmailAddress`, `Matches`, etc.)
+- **Removed**: Full validator example con múltiples rule sets
+- **Kept**: Decision tree (dónde va cada validación), D-30 hybrid file upload, setup de auto-registration, manual validation con criterio, anti-patterns
+
+### v1.1 — 2026-03-24
+- Contrato externo 400 migrado a ProblemDetails; D-30 file upload pattern; anti-patterns expandidos

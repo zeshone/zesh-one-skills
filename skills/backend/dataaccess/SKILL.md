@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -462,103 +462,12 @@ Migration folder: `src/YourProject.Infrastructure/Migrations/`
 
 ---
 
-## Code Examples
-
-### Complete Repository — All Patterns Applied
-
-```csharp
-public class UserRepository : IUserRepository
-{
-    private readonly AppDbContext _context;
-
-    // Compiled query for hot path (auth / session checks)
-    private static readonly Func<AppDbContext, Guid, Task<User?>> _getById =
-        EF.CompileAsyncQuery((AppDbContext ctx, Guid id) =>
-            ctx.Users.AsNoTracking().FirstOrDefault(u => u.Id == id));
-
-    public UserRepository(AppDbContext context)
-    {
-        _context = context;
-    }
-
-    public Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        _getById(_context, id);
-
-    public async Task<List<User>> GetAllActiveAsync(CancellationToken ct = default) =>
-        await _context.Users
-            .Where(u => u.IsActive)
-            .AsNoTracking()
-            .ToListAsync(ct);
-
-    public async Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default) =>
-        await _context.Users.AnyAsync(u => u.Email == email, ct);
-
-    public async Task AddAsync(User user, CancellationToken ct = default)
-    {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync(ct);
-    }
-
-    public async Task UpdateAsync(User user, CancellationToken ct = default)
-    {
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync(ct);
-    }
-
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
-    {
-        var user = await _context.Users.FindAsync([id], ct);
-        if (user is null) return;
-        _context.Users.Remove(user); // soft delete intercepted by SaveChanges override if IsDeleted pattern active
-        await _context.SaveChangesAsync(ct);
-    }
-}
-```
-
-### SP Result — Keyless Entity (Safe Pattern)
-
-```csharp
-// Keyless model
-public class PolicySummaryResult
-{
-    public int PolicyId { get; set; }
-    public string HolderName { get; set; } = string.Empty;
-    public decimal Premium { get; set; }
-}
-
-// Context: modelBuilder.Entity<PolicySummaryResult>().HasNoKey();
-
-public async Task<List<PolicySummaryResult>> GetPolicySummaryAsync(int agentId, CancellationToken ct)
-{
-    var param = new SqlParameter("@AgentId", agentId);
-    return await _context.Set<PolicySummaryResult>()
-        .FromSqlRaw("EXEC sp_GetPolicySummary @AgentId", param)
-        .AsNoTracking()
-        .ToListAsync(ct);
-}
-```
-
----
-
-## Commands
-
-```bash
-# Add migration (descriptive name mandatory)
-dotnet ef migrations add Add_Users_Table --project src/YourProject.Infrastructure --startup-project src/YourProject.Api
-
-# Apply to DB
-dotnet ef database update --project src/YourProject.Infrastructure --startup-project src/YourProject.Api
-
-# Undo last migration (before applying to DB)
-dotnet ef migrations remove --project src/YourProject.Infrastructure
-
-# Generate idempotent SQL script for production deployment
-dotnet ef migrations script --output migration.sql --idempotent --project src/YourProject.Infrastructure
-```
-
----
-
 ## Changelog
+
+### v2.2 — 2026-03-28
+- Removed: "Complete Repository" full code example (patterns already explicit in each section)
+- Removed: "SP Result — Keyless Entity" duplicate example under Code Examples (already in Keyless Entities pattern)
+- Removed: Commands block (standard dotnet ef CLI — no project-specific decisions)
 
 ### v2.1 — 2026-03-23
 - Generalized all DbContext names to `AppDbContext`, `InventoryDbContext`, `ReportingDbContext`; removed `CPostalesContext`

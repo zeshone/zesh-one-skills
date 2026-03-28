@@ -68,3 +68,12 @@ Si todo pasa sin errores, la suite está lista. Si hay fallos, revisá los mensa
 - Esta suite está diseñada para un solo agente (OpenCode). No es multi-agente por defecto.
 - El alcance principal es backend .NET 8 y frontend (Next.js 15, React 19). Los skills están separados por dominio en `skills/backend/` y `skills/frontend/`.
 - `skills/shared/` contiene skills cross-domain — incluilos siempre junto con el dominio principal.
+
+## Uso en monorepos o proyectos multi-dominio
+
+Si tu repositorio tiene múltiples capas (por ejemplo, `/backend` y `/frontend` en el mismo repo), podés:
+
+1. **Tener un único `AGENTS.md` en la raíz** que combine las secciones relevantes de `AGENTS.backend.md` y `AGENTS.frontend.md`.
+2. **O usar un `AGENTS.md` por subdirectorio** — OpenCode respeta el `AGENTS.md` más cercano al directorio de trabajo activo.
+
+En ambos casos, las rutas a los skills en `AGENTS.md` deben ser **relativas al archivo** o **absolutas al repositorio de skills**. Ajustá según cómo montés este repositorio (submódulo, dependencia copiada, o referencia directa).

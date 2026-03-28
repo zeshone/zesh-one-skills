@@ -6,7 +6,7 @@ Atribución de assets, skills y herramientas de terceros presentes en este repos
 
 | Asset | Autor | Licencia | Ubicación |
 |-------|-------|----------|-----------|
-| `github-pr` | [gentleman-programming](https://github.com/gentleman-programming) | — ¹ | `shared/skills/github-pr/` |
+| `github-pr` | [gentleman-programming](https://github.com/gentleman-programming) | — ¹ | `skills/shared/github-pr/` |
 | `skill-creator` | [gentleman-programming](https://github.com/gentleman-programming) | — ¹ | `.github/skills/skill-creator/` |
 | `skills/frontend`|[gentleman-programming](https://github.com/gentleman-programming) | — ¹ | `skills/frontend` |
 

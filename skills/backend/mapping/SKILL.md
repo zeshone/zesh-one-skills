@@ -9,7 +9,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.1"
+  version: "1.2"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -352,100 +352,24 @@ public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request)
 
 ---
 
-## Testing Guidance
-
-Extension methods are pure functions — testable without mocks. This is one of the primary
-advantages over AutoMapper profiles.
-
-| What to Test | Approach | Example |
-|---|---|---|
-| `.ToDto()` | xUnit: input Entity → assert all DTO fields | Verify computed props (`FullName`, `IsActive`), date formatting |
-| `.ToEntity()` | xUnit: input Request → assert Entity fields | Verify `Id != Guid.Empty`, `CreatedAt` close to `UtcNow`, email normalized |
-| `.ToDtoList()` | xUnit: input collection → assert count + field values | Include empty collection edge case |
-| AutoMapper profile (if used) | `configuration.AssertConfigurationIsValid()` in a dedicated test | One test per profile class |
-| Edge cases | Separate tests per scenario | `null` fields, empty strings, enum boundary values, special characters |
-
-```csharp
-// Example — xUnit test for .ToDto()
-public class UserMappingExtensionsTests
-{
-    [Fact]
-    public void ToDto_ShouldMapAllFields_WhenUserIsValid()
-    {
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            FirstName = "John",
-            LastName = "Doe",
-            Email = "john@example.com",
-            Status = UserStatus.Active,
-            CreatedAt = new DateTime(2024, 1, 15)
-        };
-
-        var dto = user.ToDto();
-
-        Assert.Equal(user.Id, dto.Id);
-        Assert.Equal("John Doe", dto.FullName);
-        Assert.Equal("john@example.com", dto.Email);
-        Assert.True(dto.IsActive);
-        Assert.Equal("2024-01-15", dto.RegisteredAt);
-    }
-
-    [Fact]
-    public void ToEntity_ShouldSetServerSideFields_WhenRequestIsValid()
-    {
-        var request = new CreateUserRequest
-        {
-            FirstName = "Jane",
-            LastName = "Smith",
-            Email = "JANE@EXAMPLE.COM"
-        };
-
-        var entity = request.ToEntity();
-
-        Assert.NotEqual(Guid.Empty, entity.Id);
-        Assert.Equal("jane@example.com", entity.Email); // normalized
-        Assert.Equal(UserStatus.Active, entity.Status);
-        Assert.True(entity.CreatedAt <= DateTime.UtcNow);
-    }
-
-    [Fact]
-    public void ToDtoList_ShouldReturnEmpty_WhenCollectionIsEmpty()
-    {
-        var result = Enumerable.Empty<User>().ToDtoList();
-        Assert.Empty(result);
-    }
-}
-```
-
-> For testing conventions and project-wide test patterns, see [`testing-unit`](../testing-unit/SKILL.md).
-
----
-
-## Commands
-
-```bash
-# Add AutoMapper package (only if AutoMapper is used per D-31 precedence)
-dotnet add package AutoMapper
-dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
-```
-
----
-
 ## Resources
 
 - **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General conventions**: See [../general/SKILL.md](../general/SKILL.md)
-- **Requests**: See [../requests/SKILL.md](../requests/SKILL.md) — Request DTOs that map to Entity via `.ToEntity()`
-- **Responses**: See [../responses/SKILL.md](../responses/SKILL.md) — Service returns DTO (via `.ToDto()`) that the Controller returns as HTTP response
-- **Data Access**: See [../dataaccess/SKILL.md](../dataaccess/SKILL.md) — Repository returns Entity; NEVER DTOs; mapping occurs in Service
-- **Validations**: See [../validations/SKILL.md](../validations/SKILL.md) — Validation occurs BEFORE mapping: validated Request → `.ToEntity()`
-- **Unit Testing**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md) — Extension methods are pure functions, highly testable without mocks
-- **Performance**: See [../performance/SKILL.md](../performance/SKILL.md) — Manual mapping > AutoMapper in hot paths
+- **Requests**: See [../requests/SKILL.md](../requests/SKILL.md) — Request DTOs que mapean a Entity via `.ToEntity()`
+- **Responses**: See [../responses/SKILL.md](../responses/SKILL.md) — Service retorna DTO (via `.ToDto()`) que el Controller retorna como HTTP response
+- **Data Access**: See [../dataaccess/SKILL.md](../dataaccess/SKILL.md) — Repository retorna Entity; NEVER DTOs; mapping en Service
+- **Validations**: See [../validations/SKILL.md](../validations/SKILL.md) — Validation antes del mapping: validated Request → `.ToEntity()`
+- **Unit Testing**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md) — Extension methods son pure functions, testeables sin mocks
+- **Performance**: See [../performance/SKILL.md](../performance/SKILL.md) — Manual mapping > AutoMapper en hot paths
 
 ---
 
 ## Changelog
+
+### v1.2 — 2026-03-28
+- Removed: "Testing Guidance" section (already in `testing-unit` skill — not mapping-specific)
+- Removed: Commands block (trivial dotnet add package — no project decision)
 
 ### v1.1 — 2026-03-25
 
