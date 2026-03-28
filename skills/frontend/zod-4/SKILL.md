@@ -6,10 +6,17 @@ description: >
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "1.1"
 ---
 
 ## Breaking Changes from Zod 3
+
+> **Status (W-13)**: Zod 4 is currently in beta (`zod@^4.0.0-beta`). Install explicitly with `npm install zod@beta`. The stable v3 is still the default on `npm install zod`. Do NOT assume Zod 4 is active unless the project's `package.json` explicitly targets the beta tag or v4 has been released as stable.
+>
+> ```bash
+> npm install zod@beta   # Zod 4 (beta as of 2026)
+> npm install zod        # Zod 3 (stable default)
+> ```
 
 ```typescript
 // ❌ Zod 3 (OLD)
@@ -236,3 +243,10 @@ function Form() {
 
 ## Keywords
 zod, validation, schema, typescript, forms, parsing
+
+---
+
+## Changelog
+
+### v1.1 — 2026-03-28
+- **Fixed (W-13)**: Added beta status disclaimer at the top of Breaking Changes — Zod 4 requires explicit `npm install zod@beta`; `npm install zod` still resolves to v3 stable.

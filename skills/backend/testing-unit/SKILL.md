@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.1"
+  version: "1.2"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -118,7 +118,7 @@ NSubstitute es el canonical. Moq es alternativa para equipos que ya lo usan — 
 | Acceder al objeto | *(el substitute ya es el objeto)* | `mock.Object` |
 | Stub return | `repo.Method(Arg.Any<Guid>()).Returns(user)` | `mock.Setup(r => r.Method(It.IsAny<Guid>())).ReturnsAsync(user)` |
 | Verificar llamada | `await repo.Received(1).Method(id)` | `mock.Verify(r => r.Method(id), Times.Once)` |
-| Stub exception | `.Throws(new Ex())` | `.ThrowsAsync(new Ex())` |
+| Stub exception | `.ThrowsAsync(new Ex())` — async methods; `.Throws(new Ex())` — sync methods | `.ThrowsAsync(new Ex())` |
 
 > **Moq SponsorLink**: Moq v4.20+ tiene telemetría SponsorLink. Pinear a `4.18.x` o usar NSubstitute.
 
@@ -177,6 +177,9 @@ dotnet test --filter "FullyQualifiedName~UserServiceTests"
 ---
 
 ## Changelog
+
+### v1.2 — 2026-03-28
+- **Fixed (W-12)**: NSubstitute stub exception column now distinguishes `.ThrowsAsync(new Ex())` for async methods and `.Throws(new Ex())` for sync methods. The previous entry only showed `.Throws()`, which silently passes for sync but does NOT stub async Task-returning methods correctly.
 
 ### v1.1 — 2026-03-28
 - **Removed**: Ejemplos completos de tests por layer (Service, Validator, Mapping, Exception) — el agente sabe escribir tests una vez conoce las convenciones

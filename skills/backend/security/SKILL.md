@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.5"
+  version: "1.6"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -82,6 +82,20 @@ return Unauthorized(new { message = "User not found." });
 > **Note**: Never wrap controller responses in `ResponseDTO<T>`. See [`../responses/SKILL.md`](../responses/SKILL.md) for the dual-contract pattern.
 
 ### Rate Limiting — Algoritmo por escenario
+
+> **Middleware order (W-16)**: `app.UseRateLimiter()` MUST come BEFORE `app.UseCors()` in `Program.cs`. Inverting the order means CORS preflight requests (`OPTIONS`) consume rate limit slots and may be blocked, causing legitimate cross-origin requests to fail with 429 before CORS headers are evaluated.
+>
+> ```csharp
+> // ✅ Correct order
+> app.UseRateLimiter();
+> app.UseCors();
+> app.UseAuthentication();
+> app.UseAuthorization();
+>
+> // ❌ Wrong — CORS OPTIONS requests burn rate limit slots
+> app.UseCors();
+> app.UseRateLimiter();
+> ```
 
 | Escenario | Algoritmo | Razón |
 |---|---|---|
@@ -179,6 +193,9 @@ dotnet user-secrets set "Jwt:Secret" "your-secret-here"
 ---
 
 ## Changelog
+
+### v1.6 — 2026-03-28
+- **Fixed (W-16)**: Added middleware order warning — `UseRateLimiter()` MUST come before `UseCors()`. Inverted order causes CORS `OPTIONS` preflight requests to consume rate limit slots, resulting in legitimate 429 rejections before CORS headers are evaluated.
 
 ### v1.5 — 2026-03-28
 - **Fixed (FIX-B)**: Annotated the v1.3 changelog entry for C-04 to record that `Forbid()` / 403 was subsequently identified as semantically wrong for a missing claim, and was corrected to `Unauthorized()` / 401 in v1.4. Prevents an agent reading v1.3 as baseline from reinstating the incorrect pattern.

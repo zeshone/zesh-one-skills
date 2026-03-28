@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "1.1"
 ---
 
 ## When to Use
@@ -26,6 +26,23 @@ metadata:
 - Use `useActionState` to track form submission state and pending indicators.
 
 ## No Manual Memoization (REQUIRED)
+
+> **Prerequisite (W-14)**: The React Compiler is NOT enabled by default — it requires explicit setup. Without it, removing `useMemo`/`useCallback` will cause unnecessary re-renders.
+>
+> - **Next.js 15**: add `experimental: { reactCompiler: true }` to `next.config.ts` — the compiler is bundled.
+> - **Vite / other bundlers**: install `babel-plugin-react-compiler` and configure Babel explicitly.
+>
+> Verify the compiler is active before removing any manual memoization.
+>
+> ```ts
+> // next.config.ts — enables React Compiler in Next.js 15
+> const nextConfig = {
+>   experimental: {
+>     reactCompiler: true,
+>   },
+> };
+> export default nextConfig;
+> ```
 
 ```typescript
 // ✅ React Compiler handles optimization automatically
@@ -144,3 +161,10 @@ const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);
 
 ## Keywords
 react, react 19, compiler, useMemo, useCallback, server components, use hook
+
+---
+
+## Changelog
+
+### v1.1 — 2026-03-28
+- **Fixed (W-14)**: Added React Compiler prerequisite note — the compiler is NOT active by default. Next.js 15 needs `experimental.reactCompiler: true` in `next.config.ts`; other bundlers need `babel-plugin-react-compiler`. Removing `useMemo`/`useCallback` without the compiler enabled causes re-render regressions.

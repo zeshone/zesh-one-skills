@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.2"
+  version: "1.3"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -39,6 +39,13 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 > **Regla base**: Toda validación de boundary (input HTTP) usa FluentValidation. Toda violación de regla de negocio usa domain exceptions en el service layer.
 
 ### Setup — Auto-registration + Auto-validation
+
+> **FluentValidation v11 breaking change**: `AddFluentValidationAutoValidation()` and `AddFluentValidationClientsideAdapters()` were removed from the core `FluentValidation` package. They now live exclusively in `FluentValidation.AspNetCore`. Install both packages:
+
+```bash
+dotnet add package FluentValidation.AspNetCore   # contains AddFluentValidationAutoValidation
+dotnet add package FluentValidation.DependencyInjectionExtensions  # contains AddValidatorsFromAssemblyContaining
+```
 
 ```csharp
 // Program.cs — una sola línea registra todos los validators del assembly
@@ -129,9 +136,10 @@ public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest req
 ## Commands
 
 ```bash
-dotnet add package FluentValidation
-dotnet add package FluentValidation.AspNetCore
-dotnet add package FluentValidation.DependencyInjectionExtensions
+# FluentValidation v11+ — three separate packages required
+dotnet add package FluentValidation                                  # core validators
+dotnet add package FluentValidation.AspNetCore                       # AddFluentValidationAutoValidation (v11: split from core)
+dotnet add package FluentValidation.DependencyInjectionExtensions    # AddValidatorsFromAssemblyContaining
 ```
 
 ---
@@ -146,6 +154,9 @@ dotnet add package FluentValidation.DependencyInjectionExtensions
 ---
 
 ## Changelog
+
+### v1.3 — 2026-03-28
+- **Fixed (W-03)**: Added FluentValidation v11 breaking change note — `AddFluentValidationAutoValidation()` was removed from the core `FluentValidation` package and moved to `FluentValidation.AspNetCore`. Updated Commands section to list all three packages with explicit comments.
 
 ### v1.2 — 2026-03-28
 - **Removed**: Tutorial de FluentValidation (reglas, sintaxis, ejemplos de validators) — el agente ya lo conoce
