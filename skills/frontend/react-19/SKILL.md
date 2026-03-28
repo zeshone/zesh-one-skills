@@ -9,6 +9,22 @@ metadata:
   version: "1.0"
 ---
 
+## When to Use
+
+- Writing React components with React 19 and the React Compiler active.
+- Replacing legacy `useMemo`/`useCallback` patterns — the compiler handles it.
+- Using `use()` to read promises or context conditionally.
+- Building forms with `useActionState` for pending and error states.
+- Passing refs as plain props — no `forwardRef` needed in React 19.
+
+## Critical Patterns
+
+- NEVER add `useMemo` or `useCallback` — the React Compiler optimizes automatically (see `## No Manual Memoization`).
+- ALWAYS use named imports from `"react"` — no default `React` import (see `## Imports`).
+- Server Components are the default; add `"use client"` only for interactivity (see `## Server Components First`).
+- Use `use()` for promise reading inside Suspense and for conditional context access.
+- Use `useActionState` to track form submission state and pending indicators.
+
 ## No Manual Memoization (REQUIRED)
 
 ```typescript
@@ -119,22 +135,6 @@ function Input({ ref, ...props }) {
 // ❌ Old way (unnecessary now)
 const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);
 ```
-
-## When to Use
-
-- Writing React components with React 19 and the React Compiler active.
-- Replacing legacy `useMemo`/`useCallback` patterns — the compiler handles it.
-- Using `use()` to read promises or context conditionally.
-- Building forms with `useActionState` for pending and error states.
-- Passing refs as plain props — no `forwardRef` needed in React 19.
-
-## Critical Patterns
-
-- NEVER add `useMemo` or `useCallback` — the React Compiler optimizes automatically (see `## No Manual Memoization`).
-- ALWAYS use named imports from `"react"` — no default `React` import (see `## Imports`).
-- Server Components are the default; add `"use client"` only for interactivity (see `## Server Components First`).
-- Use `use()` for promise reading inside Suspense and for conditional context access.
-- Use `useActionState` to track form submission state and pending indicators.
 
 ## Resources
 

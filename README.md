@@ -46,8 +46,7 @@ zesh-one-skills/
 │       └── github-pr/
 ├── tools/                 # Scripts de validación (lint, test, verify)
 ├── ADOPTING.md            # Guía para adoptar esta suite en un proyecto nuevo
-├── CREDITS.md             # Atribución de assets vendor
-└── USER_DECISIONS.md      # Decisiones de arquitectura del proyecto
+└── CREDITS.md             # Atribución de assets vendor
 ```
 
 ## Quick Start
