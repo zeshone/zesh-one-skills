@@ -108,19 +108,19 @@ Rules:
 - Never create entities inline in tests — always use Builder
 - One Builder per entity or DTO type
 
-### Mocking — NSubstitute (canonical) vs Moq
+### Mocking — NSubstitute (canonical)
 
-NSubstitute is the canonical choice. Moq is an alternative for teams already using it — pick one and stay consistent throughout the project.
+NSubstitute is the only choice for new projects. Do NOT introduce Moq.
 
-| Operation | NSubstitute (canonical) | Moq (alternative) |
-|---|---|---|
-| Create substitute | `Substitute.For<IRepo>()` | `new Mock<IRepo>()` |
-| Access the object | *(the substitute is already the object)* | `mock.Object` |
-| Stub return | `repo.Method(Arg.Any<Guid>()).Returns(user)` | `mock.Setup(r => r.Method(It.IsAny<Guid>())).ReturnsAsync(user)` |
-| Verify call | `await repo.Received(1).Method(id)` | `mock.Verify(r => r.Method(id), Times.Once)` |
-| Stub exception | `.ThrowsAsync(new Ex())` — async methods; `.Throws(new Ex())` — sync methods | `.ThrowsAsync(new Ex())` |
+> **Moq SponsorLink**: Moq v4.20+ has telemetry — pin to `4.18.x` only if already in an existing project.
 
-> **Moq SponsorLink**: Moq v4.20+ has SponsorLink telemetry. Pin to `4.18.x` or use NSubstitute.
+| Operation | NSubstitute |
+|---|---|
+| Create substitute | `Substitute.For<IRepo>()` |
+| Stub return | `repo.Method(Arg.Any<Guid>()).Returns(user)` |
+| Verify call | `await repo.Received(1).Method(id)` |
+| Stub exception (async) | `.ThrowsAsync(new Ex())` |
+| Stub exception (sync) | `.Throws(new Ex())` |
 
 Setup in constructor — substitute shared across all tests in the class:
 
@@ -151,19 +151,6 @@ public class UserServiceTests
 | Repository unit tests with EF Core | DbContext requires a database — territory of integration |
 | Controller unit tests as default | Couples tests to ASP.NET internals; prefer integration tests |
 | `Assert.Equal` instead of FluentAssertions | Lower readability and diagnostics on failures |
-
----
-
-## Commands
-
-```bash
-dotnet new xunit -n MyApi.Tests --framework net8.0
-dotnet add MyApi.Tests/MyApi.Tests.csproj reference src/MyApi/MyApi.csproj
-dotnet add MyApi.Tests package NSubstitute
-dotnet add MyApi.Tests package FluentAssertions
-dotnet test --verbosity normal
-dotnet test --filter "FullyQualifiedName~UserServiceTests"
-```
 
 ---
 

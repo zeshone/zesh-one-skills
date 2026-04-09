@@ -24,7 +24,7 @@ Use these skills for detailed patterns on-demand:
 | `net8-apirest-mapping` | AutoMapper vs manual mapping, mapping profiles, extension patterns | [SKILL.md](skills/backend/mapping/SKILL.md) |
 | `net8-apirest-logging` | Serilog, structured logging, Correlation IDs, exception handling | [SKILL.md](skills/backend/logging/SKILL.md) |
 | `net8-apirest-performance` | EF Core optimization, async patterns, Polly resilience, DbContextPool | [SKILL.md](skills/backend/performance/SKILL.md) |
-| `net8-apirest-testing-unit` | Unit testing with xUnit, Moq, FluentAssertions, test data builders | [SKILL.md](skills/backend/testing-unit/SKILL.md) |
+| `net8-apirest-testing-unit` | Unit testing with xUnit, NSubstitute, FluentAssertions, test data builders | [SKILL.md](skills/backend/testing-unit/SKILL.md) |
 
 ### Shared Skills
 | Skill | Description | URL |
@@ -53,7 +53,7 @@ When performing these actions, **ALWAYS** invoke the corresponding skill FIRST:
 | Reviewing or refactoring data access code | `net8-apirest-dataaccess` |
 | Creating or reviewing unit tests for services, validators, or mappings | `net8-apirest-testing-unit` |
 | Deciding between AutoMapper and manual mapping | `net8-apirest-mapping` |
-| Implementing rate limiting or request size limits | `net8-apirest-security` & `net8-apirest-performance` |
+| Implementing rate limiting or request size limits | `net8-apirest-security` |
 | Setting up async patterns or parallelism | `net8-apirest-performance` |
 | Handling file uploads or multipart requests | `net8-apirest-requests` |
 | Reviewing OWASP compliance or security coverage | `net8-apirest-security` |

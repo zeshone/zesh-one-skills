@@ -97,19 +97,6 @@ app.UseOutputCache();
 public async Task<IActionResult> GetProducts() { ... }
 ```
 
-### `Task.WhenAll` — Independent operations in parallel
-
-```csharp
-// CORRECT — parallel
-var userTask = _userRepository.GetByIdAsync(userId);
-var ordersTask = _orderRepository.GetRecentByUserAsync(userId, limit: 10);
-await Task.WhenAll(userTask, ordersTask);
-
-// WRONG — sequential unnecessarily
-var user = await _userRepository.GetByIdAsync(userId);
-var orders = await _orderRepository.GetRecentByUserAsync(userId, limit: 10);
-```
-
 ---
 
 ## Anti-Patterns
@@ -119,16 +106,6 @@ var orders = await _orderRepository.GetRecentByUserAsync(userId, limit: 10);
 | Global Circuit Breaker | False positives under concurrency — a slow request affects everyone |
 | `AspNetCoreRateLimit` | Concurrency conflicts with MemoryCache — use built-in rate limiter |
 | `MemoryCache` for shared state | Concurrency interference — use distributed cache or correct scoping |
-
----
-
-## Commands
-
-```bash
-dotnet add package Polly
-dotnet add package Microsoft.Extensions.Http.Resilience
-dotnet add package Microsoft.AspNetCore.OutputCaching
-```
 
 ---
 
@@ -147,7 +124,7 @@ dotnet add package Microsoft.AspNetCore.OutputCaching
 - **Removed**: Rate limiting (already covered in `security/SKILL.md`)
 - **Removed**: GUIDs for IDs (already in `security/SKILL.md`)
 - **Removed**: Compiled Queries example (already in `dataaccess/SKILL.md`)
-- **Kept**: Circuit breaker per-request (design decision, not standard doc), Kestrel config, response caching, `Task.WhenAll` reminder
+- **Kept**: Circuit breaker per-request (design decision, not standard doc), Kestrel config, response caching
 - **Added**: Emphasis on the reason for per-request circuit breaker (false positives under concurrency)
 
 ### v1.1 — 2026-03-24

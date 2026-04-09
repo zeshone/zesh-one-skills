@@ -1,172 +1,121 @@
 ---
 name: nextjs-15
 description: >
-  Next.js 15 App Router patterns.
-  Trigger: When working with Next.js - routing, Server Actions, data fetching.
+  ZeshOne Next.js 15 conventions.
+  Trigger: When working with Next.js — routing, Server Actions, data fetching, middleware.
 license: Apache-2.0
 metadata:
-  author: gentleman-programming
+  author: zesh-one
   version: "1.0"
+  inspired-by: gentleman-programming/nextjs-15
 ---
 
-## App Router File Conventions
+## Critical Patterns
+
+- Use App Router exclusively — no `pages/` directory.
+- Default to Server Components. Add `"use client"` only when the component needs interactivity.
+- ALL external API calls go through Server Actions — never call an external API directly from the client. This hides endpoints from browser DevTools.
+- Use Vertical Slices: each feature lives under `app/(features)/<feature>/`. Route groups keep URLs clean.
+- `params` and `searchParams` are Promises in Next.js 15 — always `await` them.
+- `cookies()` and `headers()` are async in Next.js 15 — always `await` them.
+- Never call `redirect()` inside a `try/catch` — it throws internally and the catch will swallow it.
+
+## Project Structure — Vertical Slices
 
 ```
 app/
-├── layout.tsx          # Root layout (required)
-├── page.tsx            # Home page (/)
-├── loading.tsx         # Loading UI (Suspense)
-├── error.tsx           # Error boundary
-├── not-found.tsx       # 404 page
-├── (auth)/             # Route group (no URL impact)
-│   ├── login/page.tsx  # /login
-│   └── signup/page.tsx # /signup
-├── api/
-│   └── route.ts        # API handler
-└── _components/        # Private folder (not routed)
+├── layout.tsx
+├── page.tsx
+├── (features)/
+│   ├── users/
+│   │   ├── page.tsx
+│   │   ├── loading.tsx
+│   │   ├── error.tsx
+│   │   ├── actions.ts       # Server Actions for this feature
+│   │   └── _components/     # Private components (not routed)
+│   └── dashboard/
+│       ├── page.tsx
+│       └── actions.ts
+└── api/                     # Route Handlers — webhooks only
 ```
 
-## Server Components (Default)
+## Server Actions — API Proxy Pattern (REQUIRED)
+
+ALL calls to external APIs go through a Server Action. The client never knows the endpoint URL.
 
 ```typescript
-// No directive needed - async by default
-export default async function Page() {
-  const data = await db.query();
-  return <Component data={data} />;
-}
-```
-
-## Server Actions
-
-```typescript
-// app/actions.ts
+// app/(features)/users/actions.ts
 "use server";
-
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function createUser(formData: FormData) {
-  const name = formData.get("name") as string;
+  const payload = {
+    name: formData.get("name") as string,
+    email: formData.get("email") as string,
+  };
 
-  await db.users.create({ data: { name } });
+  await fetch(`${process.env.API_URL}/users`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   revalidatePath("/users");
-  redirect("/users");
+  redirect("/users"); // Outside try/catch — it throws internally
 }
-
-// Usage
-<form action={createUser}>
-  <input name="name" required />
-  <button type="submit">Create</button>
-</form>
 ```
 
-## Data Fetching
+## Next.js 15 Breaking Changes — params and searchParams
+
+`params` and `searchParams` are now Promises. Forgetting `await` produces stale or undefined values with no build error.
 
 ```typescript
-// Parallel
-async function Page() {
-  const [users, posts] = await Promise.all([
-    getUsers(),
-    getPosts(),
-  ]);
-  return <Dashboard users={users} posts={posts} />;
+// ✅ Next.js 15
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { id } = await params;
+  const { page } = await searchParams;
+  // ...
 }
 
-// Streaming with Suspense
-<Suspense fallback={<Loading />}>
-  <SlowComponent />
-</Suspense>
+// ❌ Next.js 14 and earlier — breaks silently in v15
+export default async function Page({ params }: { params: { id: string } }) {
+  const { id } = params; // undefined in v15
+}
 ```
 
-## Route Handlers (API)
+## Next.js 15 Breaking Changes — cookies and headers
 
 ```typescript
-// app/api/users/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { cookies, headers } from "next/headers";
 
-export async function GET(request: NextRequest) {
-  const users = await db.users.findMany();
-  return NextResponse.json(users);
-}
+// ✅ Next.js 15 — async
+const cookieStore = await cookies();
+const token = cookieStore.get("token");
 
-export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const user = await db.users.create({ data: body });
-  return NextResponse.json(user, { status: 201 });
-}
+const headersList = await headers();
+const auth = headersList.get("authorization");
 ```
 
-## Middleware
+## Data Fetching — Parallel by Default
 
 ```typescript
-// middleware.ts (root level)
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get("token");
-
-  if (!token && request.nextUrl.pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  return NextResponse.next();
-}
-
-export const config = {
-  matcher: ["/dashboard/:path*"],
-};
+// ✅ Always fetch independent data in parallel
+const [users, settings] = await Promise.all([
+  fetchUsers(),
+  fetchSettings(),
+]);
 ```
 
-## Metadata
+## Route Handlers — Webhooks Only
 
-```typescript
-// Static
-export const metadata = {
-  title: "My App",
-  description: "Description",
-};
-
-// Dynamic
-export async function generateMetadata({ params }) {
-  const product = await getProduct(params.id);
-  return { title: product.name };
-}
-```
-
-## server-only Package
-
-```typescript
-import "server-only";
-
-// This will error if imported in client component
-export async function getSecretData() {
-  return db.secrets.findMany();
-}
-```
-
-## When to Use
-
-- Building full-stack React applications with file-based routing.
-- Implementing Server Components for data-heavy pages.
-- Using Server Actions for form submissions and mutations.
-- Streaming large pages with Suspense and progressive rendering.
-- Deploying to Vercel or any Node.js environment with SSR needs.
-
-## Critical Patterns
-
-- Default to Server Components — only add `"use client"` when state or browser APIs are needed.
-- Use `Promise.all` for parallel data fetching (see `## Data Fetching`).
-- Define `metadata` or `generateMetadata` in every `page.tsx` for SEO.
-- Place middleware at the root `middleware.ts` — use `matcher` to scope it.
-- Use `server-only` to prevent server code from leaking to the client bundle.
-
-## Resources
-
-- [Next.js 15 Docs](https://nextjs.org/docs) — Official documentation.
-- [App Router Migration Guide](https://nextjs.org/docs/app/building-your-application/upgrading/app-router-migration) — Pages → App Router.
-- [Server Actions RFC](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations) — Mutations reference.
+Route Handlers (`route.ts`) are only for webhooks or third-party callbacks that cannot use Server Actions. All other mutations use Server Actions.
 
 ## Keywords
-nextjs, next.js, app router, server components, server actions, streaming
+nextjs, next.js 15, app router, server actions, vertical slices, params, cookies, async

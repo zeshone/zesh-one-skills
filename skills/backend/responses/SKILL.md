@@ -2,14 +2,14 @@
 name: net8-apirest-responses
 description: >
   Unified response standards for ASP.NET Core 8 REST APIs covering the dual response contract:
-  `ResponseDTO<T>` for internal inter-layer communication (Repository → Service) and standard
+  `ResponseDTO<T>` for internal inter-layer communication (Service → Controller) and standard
   HTTP responses (raw resource JSON or `ProblemDetails`) for external controller → client responses.
   Trigger: When building API responses, defining return types for services and repositories,
   or standardizing how data and errors flow from the data layer to the client in a .NET 8 API.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.2"
+  version: "1.3"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -28,7 +28,7 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 | Boundary | Contract | Who uses it |
 |---|---|---|
-| **Internal** (Repository → Service) | `ResponseDTO<T>` | Repositories, Services |
+| **Internal** (Service → Controller) | `ResponseDTO<T>` | Services |
 | **External** (Controller → Client) | Raw HTTP: resource JSON (2xx) or `ProblemDetails` (4xx/5xx) | Controllers |
 
 > **Rule**: `ResponseDTO<T>` is an internal transport contract. It is **never** serialized as an HTTP response body for external clients.
@@ -59,15 +59,10 @@ Repository  →      Service      →   Controller  →   Client
                                                     HTTP 4xx/5xx (ProblemDetails)
 ```
 
-### `ResponseDTO<T>` — Three usage rules (internal)
+### `ResponseDTO<T>` — Usage Rules (internal)
 
-| Scenario | Success | Message | Data |
-|---|---|---|---|
-| Successful operation with data | `true` | `""` or informational | The result object/list |
-| Successful, no results | `true` | Informational (e.g. "No records found.") | Empty value, **never null** |
-| Error / failure | `false` | Clear error description | `null` |
-
-Empty value by type when success but no data: `[]` for lists, `string.Empty` for strings, `0` for numerics, `new T()` if it has a parameterless constructor.
+- `Success: true` → `Data` is the result; **never `null`** when data exists. Use empty values for empty results: `[]` for lists, `string.Empty` for strings, `0` for numerics, `new T()` if parameterless constructor.
+- `Success: false` → `Message` is a clear error description; `Data` is `null`.
 
 ### Paged Response
 
@@ -82,23 +77,6 @@ public class PagedResult<T>
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 }
 ```
-
----
-
-## HTTP Status Code Reference
-
-| Code | When to use |
-|---|---|
-| `200 OK` | GET, PUT returning resource |
-| `201 Created` | POST — include `Location` header |
-| `204 No Content` | DELETE, PUT with no body |
-| `400 Bad Request` | Validation errors |
-| `401 Unauthorized` | **Pipeline/auth — NOT a domain exception** |
-| `403 Forbidden` | Authenticated but lacking permission |
-| `404 Not Found` | ID not found |
-| `409 Conflict` | Duplicate, concurrent modification |
-| `429 Too Many Requests` | Rate limiter triggered |
-| `500 Internal Server Error` | Unhandled exception |
 
 ---
 
@@ -193,6 +171,10 @@ options.OnRejected = async (context, ct) =>
 ---
 
 ## Changelog
+
+### v1.3 — 2026-04-09
+- **Fixed (CRITICAL)**: Dual Contract table boundary label corrected from "Repository → Service" to "Service → Controller". Repositories return pure entities — they never produce `ResponseDTO<T>`. Updated frontmatter description to match.
+- **Fixed (W-12)**: Collapsed three-row ResponseDTO usage table into two bullet rules — cleaner, same information, removes redundant scenario split.
 
 ### v1.2 — 2026-03-28
 - **Removed**: Full CRUD controller example (already in `general/SKILL.md`)
