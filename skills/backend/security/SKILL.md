@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.6"
+  version: "1.7"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -83,19 +83,7 @@ return Unauthorized(new { message = "User not found." });
 
 ### Rate Limiting — Algorithm per scenario
 
-> **Middleware order (W-16)**: `app.UseRateLimiter()` MUST come BEFORE `app.UseCors()` in `Program.cs`. Inverting the order means CORS preflight requests (`OPTIONS`) consume rate limit slots and may be blocked, causing legitimate cross-origin requests to fail with 429 before CORS headers are evaluated.
->
-> ```csharp
-> // ✅ Correct order
-> app.UseRateLimiter();
-> app.UseCors();
-> app.UseAuthentication();
-> app.UseAuthorization();
->
-> // ❌ Wrong — CORS OPTIONS requests burn rate limit slots
-> app.UseCors();
-> app.UseRateLimiter();
-> ```
+> **Middleware order**: `UseRateLimiter()` must be placed in the correct pipeline position. See [`../general/SKILL.md`](../general/SKILL.md) for the canonical order.
 
 | Scenario | Algorithm | Reason |
 |---|---|---|
@@ -173,10 +161,6 @@ var jwtSecret = builder.Configuration["Jwt:Secret"]
 ```bash
 # Generate a secure JWT secret (256-bit)
 [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-
-dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer
-dotnet user-secrets init
-dotnet user-secrets set "Jwt:Secret" "your-secret-here"
 ```
 
 ---
@@ -193,6 +177,10 @@ dotnet user-secrets set "Jwt:Secret" "your-secret-here"
 ---
 
 ## Changelog
+
+### v1.7 — 2026-04-09
+- **Fixed (CRITICAL — pipeline contradiction)**: Removed inline pipeline order block from Rate Limiting section. It contradicted `general/SKILL.md` on middleware positions. Replaced with a cross-ref to the canonical pipeline order in `general`.
+- **Fixed**: Removed `dotnet add package` and `dotnet user-secrets` commands from Commands section — generic CLI knowledge, not project decisions. Kept only the PowerShell JWT secret generator (not commonly known).
 
 ### v1.6 — 2026-03-28
 - **Fixed (W-16)**: Added middleware order warning — `UseRateLimiter()` MUST come before `UseCors()`. Inverted order causes CORS `OPTIONS` preflight requests to consume rate limit slots, resulting in legitimate 429 rejections before CORS headers are evaluated.

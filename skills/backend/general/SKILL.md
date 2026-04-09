@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.3"
+  version: "1.4"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -54,20 +54,12 @@ tests/             ← Unit & integration tests (ver testing-unit/SKILL.md)
 
 | Element | Convention | Example |
 |---|---|---|
-| Classes, Interfaces, Methods, Properties | PascalCase | `UserService`, `IUserRepository` |
 | Private fields | `_camelCase` | `_logger`, `_repository` |
-| Local variables, parameters | camelCase | `userId`, `inputString` |
 | Source code | English | All identifiers |
 | Comments & docs | English | Code-level comments |
 | Resource names in URLs | Plural nouns | `/users`, `/orders` |
 
 ### Dependency Injection Lifetimes
-
-| Lifetime | Use case |
-|---|---|
-| `Singleton` | Stateless helpers, configuration access |
-| `Scoped` | DbContext, per-request services |
-| `Transient` | Lightweight, stateless services |
 
 > **Rule**: Stateless helpers ALWAYS as `Singleton`. Never register a stateless helper as `Scoped`.
 
@@ -102,39 +94,6 @@ public class NotFoundException : Exception
 }
 ```
 
----
-
-## Code Examples
-
-### Program.cs — Service Registration Pattern
-
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddControllers();
-builder.Services.AddDbContextPool<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-// → see ../dataaccess/SKILL.md for robust configuration
-
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddAutoMapper(typeof(Program));
-
-var app = builder.Build();
-
-app.UseMiddleware<CorrelationIdMiddleware>();
-app.UseAuthentication();
-app.UseRateLimiter();
-app.UseCors();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseAuthorization();
-app.MapControllers();
-app.Run();
-```
-
----
 
 ## Skill Family — When to Load Each One
 
@@ -152,33 +111,10 @@ app.Run();
 
 ---
 
-## Commands
-
-```bash
-dotnet new webapi -n MyApi --framework net8.0
-dotnet build MySolution.sln
-dotnet run --project src/MyApi
-dotnet ef migrations add InitialCreate --project src/MyApi
-dotnet ef database update --project src/MyApi
-```
-
----
-
-## Resources
-
-- **Data Access**: See [../dataaccess/SKILL.md](../dataaccess/SKILL.md)
-- **Testing**: See [../testing-unit/SKILL.md](../testing-unit/SKILL.md)
-- **Responses**: See [../responses/SKILL.md](../responses/SKILL.md)
-- **Validations**: See [../validations/SKILL.md](../validations/SKILL.md)
-- **Mapping**: See [../mapping/SKILL.md](../mapping/SKILL.md)
-- **Security**: See [../security/SKILL.md](../security/SKILL.md)
-- **Performance**: See [../performance/SKILL.md](../performance/SKILL.md)
-- **Requests**: See [../requests/SKILL.md](../requests/SKILL.md)
-- **Logging**: See [../logging/SKILL.md](../logging/SKILL.md)
-
----
-
 ## Changelog
+
+### v1.4 — 2026-04-09
+- **Fixed (W-13)**: Removed PascalCase and camelCase rows from Naming Conventions table — standard C# conventions the agent already knows. Kept only the ZeshOne-specific decisions: `_camelCase` for private fields, English for all code, plural nouns for URLs.
 
 ### v1.3 — 2026-03-28
 - **Removed**: SOLID principles section (agent already knows this)

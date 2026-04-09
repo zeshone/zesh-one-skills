@@ -1,244 +1,105 @@
 ---
 name: zustand-5
 description: >
-  Zustand 5 state management patterns.
-  Trigger: When managing React state with Zustand.
+  ZeshOne Zustand 5 conventions.
+  Trigger: When creating or configuring Zustand stores.
 license: Apache-2.0
 metadata:
-  author: gentleman-programming
-  version: "1.0"
+  author: zesh-one
+  version: "1.1"
+  inspired-by: gentleman-programming/zustand-5
 ---
 
-## Basic Store
+## Critical Patterns
+
+- One store per feature/domain — never one global store with everything.
+- ALWAYS select specific fields with a selector — never consume the entire store object.
+- Use `useShallow` when selecting multiple fields simultaneously.
+- Use local state (`useState`) for data that lives in a single component or small subtree.
+- Zustand → global state shared across features, with persistence or devtools.
+- Use `immer` middleware when mutations would otherwise require manual spreading of deeply nested state.
+
+## Store Organization — Per Feature
 
 ```typescript
+// stores/user.store.ts  ← one file per domain
 import { create } from "zustand";
 
-interface CounterStore {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-  reset: () => void;
-}
-
-const useCounterStore = create<CounterStore>((set) => ({
-  count: 0,
-  increment: () => set((state) => ({ count: state.count + 1 })),
-  decrement: () => set((state) => ({ count: state.count - 1 })),
-  reset: () => set({ count: 0 }),
-}));
-
-// Usage
-function Counter() {
-  const { count, increment, decrement } = useCounterStore();
-  return (
-    <div>
-      <span>{count}</span>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-    </div>
-  );
-}
-```
-
-## Persist Middleware
-
-```typescript
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
-interface SettingsStore {
-  theme: "light" | "dark";
-  language: string;
-  setTheme: (theme: "light" | "dark") => void;
-  setLanguage: (language: string) => void;
-}
-
-const useSettingsStore = create<SettingsStore>()(
-  persist(
-    (set) => ({
-      theme: "light",
-      language: "en",
-      setTheme: (theme) => set({ theme }),
-      setLanguage: (language) => set({ language }),
-    }),
-    {
-      name: "settings-storage",  // localStorage key
-    }
-  )
-);
-```
-
-## Selectors (Zustand 5)
-
-```typescript
-// ✅ Select specific fields to prevent unnecessary re-renders
-function UserName() {
-  const name = useUserStore((state) => state.name);
-  return <span>{name}</span>;
-}
-
-// ✅ For multiple fields, use useShallow
-import { useShallow } from "zustand/react/shallow";
-
-function UserInfo() {
-  const { name, email } = useUserStore(
-    useShallow((state) => ({ name: state.name, email: state.email }))
-  );
-  return <div>{name} - {email}</div>;
-}
-
-// ❌ AVOID: Selecting entire store (causes re-render on any change)
-const store = useUserStore();  // Re-renders on ANY state change
-```
-
-## Async Actions
-
-```typescript
 interface UserStore {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  fetchUser: (id: string) => Promise<void>;
-}
-
-const useUserStore = create<UserStore>((set) => ({
-  user: null,
-  loading: false,
-  error: null,
-
-  fetchUser: async (id) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await fetch(`/api/users/${id}`);
-      const user = await response.json();
-      set({ user, loading: false });
-    } catch (error) {
-      set({ error: "Failed to fetch user", loading: false });
-    }
-  },
-}));
-```
-
-## Slices Pattern
-
-```typescript
-// userSlice.ts
-interface UserSlice {
   user: User | null;
   setUser: (user: User) => void;
   clearUser: () => void;
 }
 
-const createUserSlice = (set): UserSlice => ({
+export const useUserStore = create<UserStore>((set) => ({
   user: null,
   setUser: (user) => set({ user }),
   clearUser: () => set({ user: null }),
-});
-
-// cartSlice.ts
-interface CartSlice {
-  items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
-}
-
-const createCartSlice = (set): CartSlice => ({
-  items: [],
-  addItem: (item) => set((state) => ({ items: [...state.items, item] })),
-  removeItem: (id) => set((state) => ({
-    items: state.items.filter(i => i.id !== id)
-  })),
-});
-
-// store.ts
-type Store = UserSlice & CartSlice;
-
-const useStore = create<Store>()((...args) => ({
-  ...createUserSlice(...args),
-  ...createCartSlice(...args),
 }));
 ```
 
-## Immer Middleware
+## Selectors — Always Specific (REQUIRED)
 
 ```typescript
-import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
+// ✅ Select only what the component needs
+const name = useUserStore((state) => state.name);
 
-interface TodoStore {
-  todos: Todo[];
-  addTodo: (text: string) => void;
-  toggleTodo: (id: string) => void;
-}
+// ✅ Multiple fields — use useShallow to avoid extra re-renders
+import { useShallow } from "zustand/react/shallow"; // v5 import path
 
-const useTodoStore = create<TodoStore>()(
-  immer((set) => ({
-    todos: [],
-
-    addTodo: (text) => set((state) => {
-      // Mutate directly with Immer!
-      state.todos.push({ id: crypto.randomUUID(), text, done: false });
-    }),
-
-    toggleTodo: (id) => set((state) => {
-      const todo = state.todos.find(t => t.id === id);
-      if (todo) todo.done = !todo.done;
-    }),
-  }))
+const { name, email } = useUserStore(
+  useShallow((state) => ({ name: state.name, email: state.email }))
 );
+
+// ❌ NEVER — re-renders on any state change
+const store = useUserStore();
 ```
 
-## DevTools
+> **Zustand v5 breaking change**: `useShallow` import path changed from `zustand/shallow` (v4) to `zustand/react/shallow` (v5). Use the v5 path.
+
+## Async Actions — Standard Shape
 
 ```typescript
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+interface ProductStore {
+  products: Product[];
+  loading: boolean;
+  error: string | null;
+  fetchProducts: () => Promise<void>;
+}
 
-const useStore = create<Store>()(
-  devtools(
+export const useProductStore = create<ProductStore>((set) => ({
+  products: [],
+  loading: false,
+  error: null,
+
+  fetchProducts: async () => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch("/api/products");
+      const products = await res.json();
+      set({ products, loading: false });
+    } catch {
+      set({ error: "Failed to load products", loading: false });
+    }
+  },
+}));
+```
+
+## Persist Middleware
+
+```typescript
+import { persist } from "zustand/middleware";
+
+export const useSettingsStore = create<SettingsStore>()(
+  persist(
     (set) => ({
-      // store definition
+      theme: "light",
+      setTheme: (theme) => set({ theme }),
     }),
-    { name: "MyStore" }  // Name in Redux DevTools
+    { name: "zesh-settings" } // localStorage key — use project prefix
   )
 );
 ```
 
-## Outside React
-
-```typescript
-// Access store outside components
-const { count, increment } = useCounterStore.getState();
-increment();
-
-// Subscribe to changes
-const unsubscribe = useCounterStore.subscribe(
-  (state) => console.log("Count changed:", state.count)
-);
-```
-
-## When to Use
-
-- Managing global or cross-component state in a React application.
-- Replacing Redux for simpler state needs without boilerplate.
-- Persisting user preferences or session state to `localStorage` with `persist` middleware.
-- Organizing complex state into slices for better separation of concerns.
-- Accessing or subscribing to store state outside React components.
-
-## Critical Patterns
-
-- ALWAYS use selectors to select specific fields — never consume the entire store (see `## Selectors`).
-- Use `useShallow` when selecting multiple fields to avoid unnecessary re-renders.
-- Use the `persist` middleware for state that must survive page reloads (see `## Persist Middleware`).
-- Use the Slices Pattern for large stores — compose slices in a single `create` call (see `## Slices Pattern`).
-- Use `immer` middleware when state mutations would otherwise require manual spreading.
-
-## Resources
-
-- [Zustand Docs](https://docs.pmnd.rs/zustand/getting-started/introduction) — Official documentation.
-- [Zustand GitHub](https://github.com/pmndrs/zustand) — Source and changelog for v5.
-- [Zustand Middleware](https://docs.pmnd.rs/zustand/integrations/persisting-store-data) — Persist, devtools, immer.
-
 ## Keywords
-zustand, state management, react, store, persist, middleware
+zustand, zustand 5, state management, store, selectors, useShallow, persist

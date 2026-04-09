@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.3"
+  version: "1.4"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -135,12 +135,7 @@ public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest req
 
 ## Commands
 
-```bash
-# FluentValidation v11+ — three separate packages required
-dotnet add package FluentValidation                                  # core validators
-dotnet add package FluentValidation.AspNetCore                       # AddFluentValidationAutoValidation (v11: split from core)
-dotnet add package FluentValidation.DependencyInjectionExtensions    # AddValidatorsFromAssemblyContaining
-```
+> **FluentValidation v11 breaking change**: `AddFluentValidationAutoValidation()` moved from the core `FluentValidation` package to `FluentValidation.AspNetCore`. Install three packages: `FluentValidation`, `FluentValidation.AspNetCore`, and `FluentValidation.DependencyInjectionExtensions`.
 
 ---
 
@@ -154,6 +149,9 @@ dotnet add package FluentValidation.DependencyInjectionExtensions    # AddValida
 ---
 
 ## Changelog
+
+### v1.4 — 2026-04-09
+- **Fixed (W-04)**: Replaced `dotnet add package` commands block with an inline prose note. Generic install commands are agent knowledge — only the breaking change note (v11 package split) deserves to stay.
 
 ### v1.3 — 2026-03-28
 - **Fixed (W-03)**: Added FluentValidation v11 breaking change note — `AddFluentValidationAutoValidation()` was removed from the core `FluentValidation` package and moved to `FluentValidation.AspNetCore`. Updated Commands section to list all three packages with explicit comments.

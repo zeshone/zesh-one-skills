@@ -9,7 +9,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.2"
+  version: "1.3"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -78,30 +78,14 @@ Apply the following precedence rules **in order**:
 ## Canonical Data Flow
 
 ```
-HTTP Request
-    │
-    ▼
-[Controller]
-  Model Binding → Request DTO
-  FluentValidation → validated Request DTO
-    │
-    ▼  (passes validated Request DTO to Service)
-[Service]
-  request.ToEntity()        ← CREATE: builds new Entity
-  manual field merge        ← UPDATE: merges Request fields into existing Entity
-  repository.AddAsync(entity) / repository.UpdateAsync(entity)
-  entity.ToDto()            ← always maps Entity → DTO before returning
-    │
-    ▼  (returns DTO to Controller)
-[Controller]
-  Ok(dto)                   ← 200
-  CreatedAtAction(dto)      ← 201
-  NoContent()               ← 204
-    │
-    ▼
-HTTP Response
-  2xx  → raw resource JSON (DTO body)
-  4xx/5xx → ProblemDetails (see responses/SKILL.md)
+HTTP Request → [Controller] → validated Request DTO
+                               ↓
+                           [Service]
+                           request.ToEntity()        ← CREATE
+                           manual field merge         ← UPDATE (never call .ToEntity() on tracked entity)
+                           entity.ToDto()
+                               ↓
+                           [Controller] → IActionResult (2xx raw JSON / 4xx ProblemDetails)
 ```
 
 ---
@@ -237,7 +221,26 @@ public class UserService : IUserService
 }
 ```
 
-### Generic Mapping Helper — `IEntityMapper<T>` (Optional Pattern)
+### UPDATE — Manual Field Merge (REQUIRED for PUT/PATCH)
+
+Do NOT call `request.ToEntity()` on an existing tracked entity — it creates a new object and loses EF tracking. Merge fields manually in the Service:
+
+```csharp
+public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request)
+{
+    var user = await _repository.GetByIdAsync(id);
+    if (user is null) throw new NotFoundException(nameof(User), id);
+
+    user.FirstName = request.FirstName;
+    user.LastName = request.LastName;
+    user.Email = request.Email.ToLowerInvariant();
+
+    await _repository.UpdateAsync(user);
+    return user.ToDto();
+}
+```
+
+### Generic Mapping Helper — `IEntityMapper<T>` (Optional)
 
 For projects with many similar mappings, a shared generic abstraction is acceptable.
 
@@ -246,7 +249,6 @@ For projects with many similar mappings, a shared generic abstraction is accepta
 public interface IEntityMapper<TEntity, TDto>
 {
     TDto ToDto(TEntity entity);
-    TEntity ToEntity(TDto dto);
     IEnumerable<TDto> ToDtoList(IEnumerable<TEntity> entities);
 }
 ```
@@ -262,20 +264,16 @@ public class UserMapper : IEntityMapper<User, UserDto>
         Email = entity.Email
     };
 
-    public User ToEntity(UserDto dto) => new()
-    {
-        Id = dto.Id,
-        Email = dto.Email
-    };
-
     public IEnumerable<UserDto> ToDtoList(IEnumerable<User> entities) =>
         entities.Select(ToDto);
 }
 ```
 
-> ⚠️ **`IEntityMapper<T>` — Singleton vs Scoped warning (D-34)**
+> ⚠️ **`IEntityMapper<T>` — interface omits `ToEntity()` by design (D-34)**
 >
-> If the mapper implementation is **stateless** (no injected dependencies), `Singleton` is safe:
+> The interface does NOT include `ToEntity(TDto dto)`. Request→Entity mapping is always done via a typed `Request`-specific extension method (e.g., `CreateUserRequest.ToEntity()`), never through a generic `TDto→TEntity` path. A `UserDto` should never be used to construct a domain entity.
+>
+> **Singleton vs Scoped warning**: If the mapper implementation is **stateless** (no injected dependencies), `Singleton` is safe:
 > ```csharp
 > builder.Services.AddSingleton<IEntityMapper<User, UserDto>, UserMapper>();
 > ```
@@ -306,55 +304,8 @@ public class UserMapper : IEntityMapper<User, UserDto>
 
 ---
 
-## Code Examples
-
-### Collection Mapping with LINQ
-
-```csharp
-// Extension method — preferred for any DTO with transformations
-var dtos = users
-    .Where(u => u.IsActive)
-    .Select(u => u.ToDto())
-    .ToList();
-
-// AutoMapper ProjectTo — acceptable for simple 1:1 read-only projections at DB level
-var dtos = await _context.Users
-    .Where(u => u.IsActive)
-    .ProjectTo<UserSimpleDto>(_mapper.ConfigurationProvider)
-    .AsNoTracking()
-    .ToListAsync();
-```
-
-> **Note on `ProjectTo`**: translates mappings to SQL. Only use when the AutoMapper profile
-> is 1:1 with no `ForMember` and all target properties exist in the database schema.
-
-### UPDATE — Manual Field Merge (Service Pattern)
-
-For `PUT`/`PATCH` operations, do NOT call `request.ToEntity()` on an existing entity —
-that would create a new object and lose EF tracking. Merge fields manually in the Service:
-
-```csharp
-public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request)
-{
-    var user = await _repository.GetByIdAsync(id);
-    if (user is null) throw new NotFoundException(nameof(User), id);
-
-    // Manual merge — explicit, auditable, EF-tracking-safe
-    user.FirstName = request.FirstName;
-    user.LastName = request.LastName;
-    user.Email = request.Email.ToLowerInvariant();
-    user.UpdatedAt = DateTime.UtcNow;
-
-    await _repository.UpdateAsync(user);
-    return user.ToDto();
-}
-```
-
----
-
 ## Resources
 
-- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
 - **General conventions**: See [../general/SKILL.md](../general/SKILL.md)
 - **Requests**: See [../requests/SKILL.md](../requests/SKILL.md) — Request DTOs that map to Entity via `.ToEntity()`
 - **Responses**: See [../responses/SKILL.md](../responses/SKILL.md) — Service returns DTO (via `.ToDto()`) which the Controller returns as HTTP response
@@ -366,6 +317,10 @@ public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request)
 ---
 
 ## Changelog
+
+### v1.3 — 2026-04-09
+- **Fixed (W-05)**: Removed duplicate `---` separator before Resources section (formatting artefact).
+- **Fixed (W-06)**: Removed `ToEntity(UserDto dto)` from `IEntityMapper<T>` interface and `UserMapper` implementation. A `UserDto→Entity` path contradicts the Request→Entity rule (D-31). The interface now exposes only `ToDto` and `ToDtoList`. Added inline note explaining why `ToEntity` is intentionally absent.
 
 ### v1.2 — 2026-03-28
 - Removed: "Testing Guidance" section (already in `testing-unit` skill — not mapping-specific)

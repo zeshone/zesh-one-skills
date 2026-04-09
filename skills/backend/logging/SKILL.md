@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.4"
+  version: "2.5"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -26,13 +26,7 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 Always use **Serilog** for structured logging. Never `Console.WriteLine` in production code.
 
-Required packages:
-```bash
-dotnet add package Serilog.AspNetCore
-dotnet add package Serilog.Sinks.Console
-dotnet add package Serilog.Sinks.File
-dotnet add package Serilog.Enrichers.Environment
-```
+Required packages: `Serilog.AspNetCore`, `Serilog.Sinks.Console`, `Serilog.Sinks.File`, `Serilog.Enrichers.Environment`.
 
 ### Structured Logging — Named placeholders, never string interpolation
 
@@ -44,15 +38,14 @@ _logger.LogInformation("User {UserId} retrieved {Count} records", userId, count)
 _logger.LogInformation($"User {userId} retrieved {count} records");
 ```
 
-### Log Levels
+### Log Levels — HTTP Status Mapping
 
-| Level | When to use |
+| HTTP Status | Log Level |
 |---|---|
-| `LogDebug` | Detailed internal state, development only |
-| `LogInformation` | Normal operation events + validation errors (400) — expected flow |
-| `LogWarning` | Recoverable situations + 403, 404, 409 — domain errors |
-| `LogError` | Unhandled exceptions that affect the operation (500) |
-| `LogCritical` | Unrecoverable failures that require immediate attention |
+| `400` validation errors | `LogInformation` — expected flow |
+| `403`, `404`, `409` domain errors | `LogWarning` — recoverable |
+| `500` unhandled exceptions | `LogError` |
+| Unrecoverable / startup failures | `LogCritical` |
 
 ### Correlation ID Middleware — FIRST in the pipeline
 
@@ -202,6 +195,8 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 ```
 
+> **Non-obvious**: The `outputTemplate` above injects `CorrelationId`, `Application`, and `Environment` — these fields are pushed via `LogContext` by `CorrelationIdMiddleware`. The `rollingInterval: RollingInterval.Day` keeps log files manageable without configuration overhead.
+
 ### Request Logging with Serilog
 
 ```csharp
@@ -255,6 +250,9 @@ Sanitize BEFORE logging, never after:
 ---
 
 ## Changelog
+
+### v2.5 — 2026-04-09
+- **Fixed (W-07)**: Added explanatory note to the Serilog bootstrap block. The `outputTemplate` and `rollingInterval` are non-obvious ZeshOne decisions (custom fields from `CorrelationIdMiddleware`, daily rotation as default). The rest of the bootstrap is standard Serilog configuration the agent already knows.
 
 ### v2.4 — 2026-03-28
 - **Fixed (FIX-C)**: Changed `context.Items["CorrelationId"]?.ToString()` to `context.Items["CorrelationId"] as string` in two locations: `WriteErrorResponse` (`problem.Extensions["correlationId"]`) and `UseSerilogRequestLogging` enricher (`diagnosticContext.Set("CorrelationId", ...)`). `Items["CorrelationId"]` is typed `object?` but is always stored as `string` by `CorrelationIdMiddleware`; `as string` is explicit about the type and consistent with FIX-6's philosophy of removing redundant `.ToString()` calls.

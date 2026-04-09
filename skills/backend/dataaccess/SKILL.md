@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.5"
+  version: "2.6"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -118,12 +118,6 @@ _context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 Lazy loading is **off** and must stay off. Navigation properties are `virtual` in some models but proxies are not enabled — they will always be `null` unless explicitly loaded.
 
 ```csharp
-// CORRECT — simple include
-var orders = await _context.Orders
-    .Include(o => o.Customer)
-    .AsNoTracking()
-    .ToListAsync(ct);
-
 // CORRECT — nested (ThenInclude — introduce going forward)
 var orders = await _context.Orders
     .Include(o => o.Customer)
@@ -464,36 +458,29 @@ Migration folder: `src/YourProject.Infrastructure/Migrations/`
 
 ## Changelog
 
+### v2.6 — 2026-04-09
+- **Fixed (W-09)**: Removed simple `.Include(o => o.Customer)` example from Eager Loading section — agent already knows the basic syntax. Kept only `ThenInclude` (non-trivial chaining) and the WRONG NullRef example.
+
 ### v2.5 — 2026-03-28
-- **Fixed (FIX-A)**: Corrected false statement in `DeleteAsync` XML doc comment. Replaced "EF Core will throw when `Remove` is called on an untracked entry. The service contract (calling `GetByIdAsync` first) prevents this case." with accurate description: passing a stub entity to `Remove` without first verifying existence may silently delete the wrong row or cause FK violations; the service contract is the only safety guard.
-- **Fixed (FIX-D)**: Amended v2.3 changelog entry for C-02 to record that the change (using `FirstOrDefaultAsync` inside `EF.CompileAsyncQuery`) was incorrect and was reverted in v2.4. Added correct rationale: `FirstOrDefault` is required inside the lambda; async dispatch is handled by the compiled-query infrastructure.
+- Fixed false statement in `DeleteAsync` XML doc (stub entity / silent delete warning).
+- Removed non-portable path reference to `rules-to-skills/Standardized_NET_Rules.md`.
 
 ### v2.4 — 2026-03-28
-- **Fixed (FIX-1)**: Reverted `FirstOrDefaultAsync` back to `FirstOrDefault` inside `EF.CompileAsyncQuery` lambda. `EF.CompileAsyncQuery` requires a synchronous terminal LINQ operator in the expression tree; the `Task<T?>` wrapping is provided automatically by the compiled-query infrastructure — using `FirstOrDefaultAsync` returns `Task<T?>` which is not a valid `IQueryable` terminal operator and does not compile.
-- **Fixed (FIX-3)**: Replaced "its rollback is a no-op" with accurate wording: calling `RollbackAsync` on an already-committed transaction throws `InvalidOperationException` — it is not silently ignored.
-- **Fixed (FIX-4)**: Removed `builder.Property(u => u.UpdatedAt).ValueGeneratedOnUpdate()` from `UserConfiguration`. This flag marks the property as database-generated, which causes EF Core to ignore the in-memory assignment made by `AuditInterceptor`. Added inline comment to make the exclusion explicit.
-- **Fixed (FIX-5)**: Replaced vague "behavior is undefined if it does not" in `DeleteAsync` XML doc comment with concrete language: `EF Core will throw when Remove is called on an untracked entry`. The service-contract prevention note is retained. (Note: "EF Core will throw" was subsequently identified as inaccurate — corrected to the stub-entity / silent-delete warning in v2.5 via FIX-A.)
+- Reverted `FirstOrDefaultAsync` → `FirstOrDefault` inside `EF.CompileAsyncQuery` (async dispatch handled by infrastructure).
+- Fixed: `RollbackAsync` on committed transaction throws `InvalidOperationException` — not a no-op.
+- Fixed: Removed `ValueGeneratedOnUpdate()` from `UserConfiguration` — conflicts with `AuditInterceptor`.
 
 ### v2.3 — 2026-03-28
-- **Fixed (C-01)**: Replaced broken multi-context transaction code block with an explicit warning that two independent `IDbContextTransaction` instances cannot be atomically committed. Added recommendation to use the Outbox Pattern for cross-context consistency.
-- **Fixed (C-02)**: Changed `FirstOrDefault` to `FirstOrDefaultAsync` inside `EF.CompileAsyncQuery` lambda. (Note: this was incorrect — reverted in v2.4. `FirstOrDefault` is required inside the lambda; async dispatch is handled by the compiled-query infrastructure, not the terminal operator.)
-- **Fixed (C-05)**: Removed `EntityState.Added` from `UpdatedAt` assignment in `AuditInterceptor`. `UpdatedAt` must remain `null` on new inserts to distinguish created-only records; it is now set only on `EntityState.Modified`.
-- **Fixed (C-06)**: Added explicit XML doc comment to `DeleteAsync` in `IUserRepository` defining the contract (service must verify existence first and throw `NotFoundException`). Added corresponding anti-pattern row in the anti-patterns table.
+- Replaced broken multi-context transaction block with explicit warning + Outbox Pattern recommendation.
+- Fixed `EntityState.Added` removed from `UpdatedAt` assignment in `AuditInterceptor`.
+- Added `DeleteAsync` XML doc contract.
 
 ### v2.2 — 2026-03-28
-- Removed: "Complete Repository" full code example (patterns already explicit in each section)
-- Removed: "SP Result — Keyless Entity" duplicate example under Code Examples (already in Keyless Entities pattern)
-- Removed: Commands block (standard dotnet ef CLI — no project-specific decisions)
+- Removed full repository code example and duplicate SP example.
+- Removed Commands block (standard dotnet ef CLI).
 
 ### v2.1 — 2026-03-23
-- Generalized all DbContext names to `AppDbContext`, `InventoryDbContext`, `ReportingDbContext`; removed `CPostalesContext`
-- Replaced proprietary configuration singleton with standard `builder.Configuration.GetConnectionString("DefaultConnection")` / `IOptions<T>`
-- Rewrote advisory block for legacy contexts to be fully generic
-- Converted anti-patterns table column from "Confirmed location" to "Where to look" with generic descriptors
-- Replaced domain-specific examples (`Cotizaciones`, `MedicalServices`, `Policies`) with e-commerce domain (`Order`, `Customer`, `Product`)
-- Updated migration examples and folder references from `Main_Database_Library` to `src/YourProject.Infrastructure`
-- Removed broken reference to non-existent `Reporte EFCORE.md`
-- Bumped version to 2.1
+- Generalized all context/domain names; removed proprietary references.
 
 ---
 
@@ -502,4 +489,3 @@ Migration folder: `src/YourProject.Infrastructure/Migrations/`
 - **Performance**: See [../performance/SKILL.md](../performance/SKILL.md)
 - **Responses (layer contract)**: See [../responses/SKILL.md](../responses/SKILL.md)
 - **Security**: See [../security/SKILL.md](../security/SKILL.md)
-- **Standards**: See [../../../../rules-to-skills/Standardized_NET_Rules.md](../../../../rules-to-skills/Standardized_NET_Rules.md)
