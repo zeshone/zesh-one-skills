@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.7"
+  version: "2.8"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -254,6 +254,8 @@ builder.Services.AddDbContextPool<AppDbContext>((sp, options) =>
 
 The project has **no soft delete pattern**. When needed, implement it this way:
 
+> **Modified version of `BaseEntity` when soft delete is needed**: add `IsDeleted` to the existing class shown above. This is not a second competing base class.
+
 Add `IsDeleted` to the entity:
 ```csharp
 public abstract class BaseEntity
@@ -330,8 +332,8 @@ public interface IUserRepository
 | Layer | Returns | Never |
 |---|---|---|
 | Repository | Domain entities, `null`, empty `List<T>` | DTOs, `ResponseDTO<T>` |
-| Service | DTOs (after mapping) | Raw entities |
-| Controller | `ResponseDTO<T>` wrapped in `IActionResult` | Raw entities |
+| Service | `Result<T>` wrapping DTO (preferred) / bare DTO (legacy `ResponseDTO<T>` path) | Raw entities |
+| Controller | `result.ToHttpResponse()` / raw resource JSON (2xx) / `ProblemDetails` (4xx–5xx) | Raw entities |
 
 ---
 
@@ -540,6 +542,9 @@ Migration folder: `src/YourProject.Infrastructure/Migrations/`
 ---
 
 ## Changelog
+
+### v2.8 — 2026-04-09
+- **Fixed (Round 3)**: Layer contract table updated — controller row no longer mentions `ResponseDTO<T>` as the return type. Canonical controller output is now `result.ToHttpResponse()` or raw HTTP (`2xx` JSON / `ProblemDetails` for `4xx–5xx`), aligned with `responses/SKILL.md`.
 
 ### v2.7 — 2026-04-09
 - **Added**: Two-Level Pool section — documents the distinction between ADO.NET connection pool (`MaxPoolSize`, `MinPoolSize`, `ConnectTimeout` via `SqlConnectionStringBuilder`) and EF Core context pool (`poolSize`). Both must be configured for high-concurrency APIs.

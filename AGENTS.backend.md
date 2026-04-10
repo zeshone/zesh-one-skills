@@ -20,10 +20,10 @@ Use these skills for detailed patterns on-demand:
 | `net8-apirest-security` | OWASP API Top 10, JWT, authorization, BOLA prevention, secure credential handling | [SKILL.md](skills/backend/security/SKILL.md) |
 | `net8-apirest-validations` | FluentValidation, input validation, decision trees, error handling | [SKILL.md](skills/backend/validations/SKILL.md) |
 | `net8-apirest-requests` | Request DTOs, model binding, query parameters, file uploads | [SKILL.md](skills/backend/requests/SKILL.md) |
-| `net8-apirest-responses` | ResponseDTO<T>, HTTP status codes, error formatting, inter-layer communication | [SKILL.md](skills/backend/responses/SKILL.md) |
+| `net8-apirest-responses` | Result<T> (preferred) / ResponseDTO<T> (legacy), HTTP status codes, ProblemDetails, inter-layer communication | [SKILL.md](skills/backend/responses/SKILL.md) |
 | `net8-apirest-mapping` | AutoMapper vs manual mapping, mapping profiles, extension patterns | [SKILL.md](skills/backend/mapping/SKILL.md) |
 | `net8-apirest-logging` | Serilog, structured logging, Correlation IDs, exception handling | [SKILL.md](skills/backend/logging/SKILL.md) |
-| `net8-apirest-performance` | EF Core optimization, async patterns, Polly resilience, DbContextPool | [SKILL.md](skills/backend/performance/SKILL.md) |
+| `net8-apirest-performance` | Polly resilience pipelines (circuit breaker, retry), Kestrel limits, response caching, async parallelism | [SKILL.md](skills/backend/performance/SKILL.md) |
 | `net8-apirest-testing-unit` | Unit testing with xUnit, NSubstitute, FluentAssertions, test data builders | [SKILL.md](skills/backend/testing-unit/SKILL.md) |
 
 ### Shared Skills
@@ -49,7 +49,8 @@ When performing these actions, **ALWAYS** invoke the corresponding skill FIRST:
 | Creating FluentValidation validators or validation rules | `net8-apirest-validations` |
 | Creating AutoMapper profiles or mapping logic | `net8-apirest-mapping` |
 | Configuring Serilog, adding logging, or exception handling | `net8-apirest-logging` |
-| Optimizing EF Core queries or implementing resilience patterns | `net8-apirest-performance` |
+| Optimizing EF Core queries | `net8-apirest-dataaccess` |
+| Implementing resilience patterns (Polly, circuit breaker, retry) | `net8-apirest-performance` |
 | Reviewing or refactoring data access code | `net8-apirest-dataaccess` |
 | Creating or reviewing unit tests for services, validators, or mappings | `net8-apirest-testing-unit` |
 | Deciding between AutoMapper and manual mapping | `net8-apirest-mapping` |

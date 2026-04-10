@@ -10,6 +10,10 @@ metadata:
   inspired-by: gentleman-programming/zustand-5
 ---
 
+## When to Use
+
+Load this skill when creating or configuring Zustand stores — store structure, selectors, async actions, or persistence.
+
 ## Critical Patterns
 
 - One store per feature/domain — never one global store with everything.
@@ -60,6 +64,8 @@ const store = useUserStore();
 ## Async Actions — Standard Shape
 
 ```typescript
+import { fetchProductsAction } from "@/app/(features)/products/actions";
+
 interface ProductStore {
   products: Product[];
   loading: boolean;
@@ -75,8 +81,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   fetchProducts: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch("/api/products");
-      const products = await res.json();
+      const products = await fetchProductsAction();
       set({ products, loading: false });
     } catch {
       set({ error: "Failed to load products", loading: false });

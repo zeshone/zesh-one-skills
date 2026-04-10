@@ -6,13 +6,17 @@ description: >
 license: Apache-2.0
 metadata:
   author: zesh-one
-  version: "1.0"
+  version: "1.1"
   inspired-by: gentleman-programming/react-19
 ---
 
+## When to Use
+
+Load this skill when writing React components — hooks, Server Components, forms, or refs.
+
 ## Critical Patterns
 
-- NEVER add `useMemo` or `useCallback` — the React Compiler handles memoization automatically.
+- With React Compiler active: do NOT add `useMemo` or `useCallback` — the compiler handles memoization. Without it: add them as needed (see prerequisite section below).
 - ALWAYS use named imports from `"react"` — never `import React from "react"`.
 - Server Components are the default — add `"use client"` only when the component needs state, events, or browser APIs.
 - Use `useActionState` (NOT `useFormState` — removed in React 19) for form submission state and pending indicators.
@@ -86,3 +90,8 @@ const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);
 
 ## Keywords
 react, react 19, compiler, use hook, useActionState, forwardRef, server components
+
+## Changelog
+
+### v1.1 — 2026-04-09
+- **Fixed (Round 3)**: Reworded the `useMemo` / `useCallback` directive so the prerequisite is the primary signal: only avoid manual memoization when the React Compiler is actually active.

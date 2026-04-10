@@ -9,7 +9,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.4"
+  version: "1.6"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -43,6 +43,7 @@ public class Result<T>
 {
     public bool IsSuccess { get; private set; }
     public T? Value { get; private set; }
+    public Uri? Location { get; private set; }
     public string? ErrorMessage { get; private set; }
     public int StatusCode { get; private set; }
     public string? Title { get; private set; }
@@ -53,8 +54,17 @@ public class Result<T>
     public static Result<T> Success(T value) =>
         new() { IsSuccess = true, Value = value, StatusCode = 200 };
 
-    public static Result<T> Fail(Exception ex) =>
-        new() { IsSuccess = false, ErrorMessage = ex.Message, StatusCode = 500 };
+    public static Result<T> Created(T value, Uri? location = null) =>
+        new() { IsSuccess = true, Value = value, StatusCode = 201, Location = location };
+
+    public static Result<T> NoContent() =>
+        new() { IsSuccess = true, StatusCode = 204 };
+
+    // WARNING: Never pass raw exception messages from unhandled exceptions here
+    // (SQL text, table names, internal details). Provide a sanitized message explicitly.
+    // Unhandled exceptions should usually flow to ExceptionHandlingMiddleware instead.
+    public static Result<T> Fail(string message, int statusCode = 500) =>
+        new() { IsSuccess = false, ErrorMessage = message, StatusCode = statusCode };
 
     public static Result<T> BusinessFail(string message, int statusCode = 400, string title = "Bad Request") =>
         new() { IsSuccess = false, ErrorMessage = message, StatusCode = statusCode, Title = title };
@@ -63,7 +73,11 @@ public class Result<T>
         new() { IsSuccess = false, StatusCode = 400, Title = "Validation Failed", ValidationErrors = errors };
 
     public IActionResult ToHttpResponse() => IsSuccess
-        ? new OkObjectResult(Value)
+        ? StatusCode == 204
+            ? new NoContentResult()
+            : StatusCode == 201
+            ? new CreatedResult(Location?.ToString() ?? string.Empty, Value)
+            : new OkObjectResult(Value)
         : ValidationErrors is not null
             ? new BadRequestObjectResult(new ValidationProblemDetails(ValidationErrors) { Status = 400 })
             : new ObjectResult(new ProblemDetails
@@ -93,9 +107,23 @@ public async Task<Result<UserDto>> CreateAsync(CreateUserRequest request)
 
     var entity = request.ToEntity();
     await _repository.AddAsync(entity);
-    return Result<UserDto>.Success(entity.ToDto());
+    return Result<UserDto>.Created(entity.ToDto(), new Uri($"/users/{entity.Id}", UriKind.Relative));
 }
 ```
+
+**DELETE convention (`204 No Content`):**
+```csharp
+public async Task<Result<object>> DeleteAsync(Guid id)
+{
+    var user = await _repository.GetByIdAsync(id);
+    if (user is null) throw new NotFoundException(nameof(User), id);
+
+    await _repository.DeleteAsync(id);
+    return Result<object>.NoContent();
+}
+```
+
+> **Convention**: use `Result<object>.NoContent()` for DELETE operations when you need a generic placeholder type. A `204` response has no body, so the generic type is never serialized to the client.
 
 > **Rule**: Domain exceptions (`NotFoundException`, `ForbiddenException`) are still thrown for exceptional flows and caught by `ExceptionHandlingMiddleware`. `Result<T>` handles **expected business outcomes** (not found by design, conflict, validation) — replacing the throw/catch cycle for predictable conditions.
 
@@ -104,7 +132,7 @@ public async Task<Result<UserDto>> CreateAsync(CreateUserRequest request)
 | Layer | Returns | Never |
 |---|---|---|
 | Repository | Domain entities or `null` | DTOs, `Result<T>`, `ResponseDTO<T>` |
-| Service | `Result<T>` wrapping DTO | Raw entities, throws for business failures |
+| Service | `Result<T>` wrapping DTO | Raw entities, null returns for not-found, silently swallowed errors |
 | Controller | `result.ToHttpResponse()` | The `Result<T>` object directly to the client |
 
 ```
@@ -185,7 +213,7 @@ public class PagedResult<T>
 |---|---|
 | `NotFoundException` | `general` skill — `Shared/Exceptions/NotFoundException.cs` |
 | `ForbiddenException` | `security` skill — `Shared/Exceptions/ForbiddenException.cs` |
-| `ConflictException` | `Shared/Exceptions/ConflictException.cs` |
+| `ConflictException` | `general` skill — `Shared/Exceptions/ConflictException.cs` |
 
 ### Uniform 400 — `InvalidModelStateResponseFactory`
 
@@ -234,7 +262,7 @@ options.OnRejected = async (context, ct) =>
 | `ResponseDTO<T>` in the HTTP response body | Internal envelope exposed to client — violates the external contract |
 | `Result<T>` and `ResponseDTO<T>` in the same service | Two conflicting contracts create unpredictable controller code |
 | `Exception?` property on any response DTO | Serializes stack trace and internals to the client — security risk |
-| Returning `null` from service on "not found" | Use `Result<T>.BusinessFail(404)` or throw `NotFoundException` — never null |
+| Returning `null` from service on "not found" | Use `Result<T>.BusinessFail("Not found.", 404, "Not Found")` or throw `NotFoundException` — never null |
 | HTTP 200 for errors | Misleads clients — always use correct status codes |
 | `ResponseDTO<T>` in repositories | Repositories are the data layer, not the API layer |
 | Creating `UnauthorizedException` as a domain exception | `401` belongs to the pipeline — not the domain |
@@ -255,8 +283,17 @@ options.OnRejected = async (context, ct) =>
 
 ## Changelog
 
+### v1.6 — 2026-04-09
+- **Fixed (Round 4)**: Changed `Result<T>.Fail(Exception ex)` to `Result<T>.Fail(string message, int statusCode = 500)` so callers must provide a sanitized message explicitly instead of leaking `ex.Message` by default.
+- **Fixed (Round 4)**: Corrected the `Layer Contract with Result<T>` table — the Service row now documents what to avoid (`Raw entities, null returns for not-found, silently swallowed errors`) instead of incorrectly saying services should throw for business failures.
+
+### v1.5 — 2026-04-09
+- **Fixed (Round 3)**: Added a warning on `Result<T>.Fail(...)` — never forward raw unhandled exception messages to the client; use a generic message and let `ExceptionHandlingMiddleware` sanitize unexpected failures.
+- **Fixed (Round 3)**: Added a minimal DELETE service example using `Result<object>.NoContent()` plus a note explaining the placeholder-type convention for `204 No Content` responses.
+- **Fixed (Round 3)**: Corrected the anti-pattern example from `.BusinessFail(404)` to `.BusinessFail("Not found.", 404, "Not Found")` so the status code is no longer passed into the message parameter.
+
 ### v1.4 — 2026-04-09
-- **Added**: `Result<T>` Railway-Oriented pattern as the preferred internal contract for new projects — factory methods `Success`, `Fail`, `BusinessFail`, `ValidationFail`; `ToHttpResponse()` for controller integration; service and controller usage patterns.
+- **Added**: `Result<T>` Railway-Oriented pattern as the preferred internal contract for new projects — factory methods `Success`, `Created`, `NoContent`, `Fail`, `BusinessFail`, `ValidationFail`; `ToHttpResponse()` for controller integration; service and controller usage patterns.
 - **Updated**: `ResponseDTO<T>` marked as legacy — do not introduce in new services, do not mix with `Result<T>`. Added explicit warning against `Exception?` property (stack trace serialization risk).
 - **Updated**: Layer contract table updated to reflect `Result<T>` as the primary path.
 - **Updated**: Anti-patterns table expanded with `Result<T>`/`ResponseDTO<T>` mixing and `Exception?` DTO field.

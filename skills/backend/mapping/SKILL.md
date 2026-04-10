@@ -9,7 +9,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.3"
+  version: "1.5"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -45,7 +45,7 @@ Apply the following precedence rules **in order**:
 
 > **Why this precedence?** Extension methods are explicit, debuggable, testable as pure functions,
 > and produce zero reflection overhead. AutoMapper's `ForMember` in `Request → Entity` hides
-> critical assignments (`Id = Guid.NewGuid()`, `CreatedAt = DateTime.UtcNow`) that must be
+> critical assignments (`Id = Guid.NewGuid()`, status defaults, normalization rules) that must be
 > auditable. Manual is safer and more maintainable.
 
 ---
@@ -118,7 +118,7 @@ public static class UserMappingExtensions
         FirstName = request.FirstName,
         LastName = request.LastName,
         Email = request.Email.ToLowerInvariant(),
-        CreatedAt = DateTime.UtcNow,
+        // CreatedAt intentionally omitted — set by AuditInterceptor on EntityState.Added (see dataaccess/SKILL.md)
         Status = UserStatus.Active
     };
 
@@ -129,8 +129,12 @@ public static class UserMappingExtensions
 ```
 
 Usage in Service (canonical):
+
+> **Note**: Examples below show the mapping mechanic only. Service return types are governed by [`../responses/SKILL.md`](../responses/SKILL.md) — prefer `Result<UserDto>` over bare `UserDto` in new services.
+
 ```csharp
 // CREATE
+// Legacy pattern — prefer Result<UserDto> in new services (see ../responses/SKILL.md)
 public async Task<UserDto> CreateAsync(CreateUserRequest request)
 {
     var entity = request.ToEntity();        // Service owns this
@@ -139,6 +143,7 @@ public async Task<UserDto> CreateAsync(CreateUserRequest request)
 }
 
 // READ
+// Legacy pattern — prefer Result<UserDto> in new services (see ../responses/SKILL.md)
 public async Task<UserDto> GetByIdAsync(Guid id)
 {
     var user = await _repository.GetByIdAsync(id);
@@ -147,6 +152,7 @@ public async Task<UserDto> GetByIdAsync(Guid id)
 }
 
 // READ LIST
+// Legacy pattern — prefer Result<UserDto> in new services (see ../responses/SKILL.md)
 public async Task<List<UserDto>> GetAllActiveAsync()
 {
     var users = await _repository.GetAllActiveAsync();
@@ -188,7 +194,7 @@ public class UserProfile : Profile
     {
         CreateMap<CreateUserRequest, User>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => UserStatus.Active));
     }
 }
 ```
@@ -226,6 +232,7 @@ public class UserService : IUserService
 Do NOT call `request.ToEntity()` on an existing tracked entity — it creates a new object and loses EF tracking. Merge fields manually in the Service:
 
 ```csharp
+// Legacy pattern — prefer Result<UserDto> in new services (see ../responses/SKILL.md)
 public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request)
 {
     var user = await _repository.GetByIdAsync(id);
@@ -293,9 +300,9 @@ public class UserMapper : IEntityMapper<User, UserDto>
 
 | Anti-pattern | Problem |
 |---|---|
-| Mapping `Request → Entity` with AutoMapper `ForMember` | Hides critical server-side assignments (`Id`, `CreatedAt`). Use extension method — explicit and auditable |
+| Mapping `Request → Entity` with AutoMapper `ForMember` | Hides critical server-side assignments (`Id`, status defaults, normalization rules). Use extension method — explicit and auditable |
 | Mapping inside the Repository | Repository returns pure entities. Mapping to DTOs here violates layer separation (see [`dataaccess`](../dataaccess/SKILL.md)) |
-| Mapping inside the Controller | Controller is thin — no transformation logic. Service owns all mapping (see [`responses`](../responses/SKILL.md) Layer Communication Flow) |
+| Mapping inside the Controller | Controller is thin — no transformation logic. Service owns all mapping (see [`responses`](../responses/SKILL.md) — Layer Contract with `Result<T>`) |
 | Calling `Mapper.Map` statically | Untestable; always inject `IMapper` via constructor |
 | AutoMapper with `ForMember` for complex/conditional logic | Hard to debug; brittle; use extension method |
 | Mapping entities to DTOs inside the EF Core query (non-`ProjectTo`) | Leaks DTO concerns into the data layer |
@@ -317,6 +324,14 @@ public class UserMapper : IEntityMapper<User, UserDto>
 ---
 
 ## Changelog
+
+### v1.5 — 2026-04-09
+- **Fixed (Round 4)**: Removed `CreatedAt = DateTime.UtcNow` from the `ToEntity()` example and replaced it with an explicit comment that `AuditInterceptor` owns `CreatedAt` on insert.
+- **Fixed (Round 4)**: Marked the bare `Task<UserDto>` / `Task<List<UserDto>>` service examples as legacy directly inside the code blocks, pointing new services to `responses/SKILL.md`.
+- **Fixed (Round 4)**: Removed stale `CreatedAt` ownership wording from the AutoMapper rationale and anti-pattern examples so the skill no longer contradicts `dataaccess/SKILL.md`.
+
+### v1.4 — 2026-04-09
+- **Fixed (Round 3)**: Added an explicit note above the service examples clarifying that the examples demonstrate mapping mechanics only. New services should prefer `Result<T>` contracts per `responses/SKILL.md`, not bare DTO returns.
 
 ### v1.3 — 2026-04-09
 - **Fixed (W-05)**: Removed duplicate `---` separator before Resources section (formatting artefact).

@@ -10,6 +10,10 @@ metadata:
   inspired-by: gentleman-programming/tailwind-4
 ---
 
+## When to Use
+
+Load this skill when styling with Tailwind CSS 4 — `cn()`, theme variables, dynamic values, or third-party library integration.
+
 ## Critical Patterns
 
 - NEVER use `var()` inside `className` — use Tailwind semantic classes (`bg-primary`, `text-slate-400`).

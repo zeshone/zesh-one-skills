@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.7"
+  version: "1.8"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -36,6 +36,7 @@ public Guid Id { get; set; } = Guid.NewGuid();
 Every method that accesses a resource by ID **must** verify ownership. Never in the controller, always in the service:
 
 ```csharp
+// Legacy pattern — prefer Result<OrderDto> in new services (see ../responses/SKILL.md)
 public async Task<OrderDto> GetByIdAsync(Guid orderId, Guid requestingUserId)
 {
     var order = await _repository.GetByIdAsync(orderId);
@@ -51,7 +52,12 @@ The `requestingUserId` comes from the JWT claim in the controller:
 ```csharp
 // Guid.Parse with ! throws NullReferenceException if the claim is absent — use TryParse instead.
 if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-    return Unauthorized(); // missing or malformed identity claim — the request is unauthenticated
+    return Unauthorized(new ProblemDetails
+    {
+        Status = StatusCodes.Status401Unauthorized,
+        Title = "Unauthorized",
+        Detail = "Missing or invalid identity claim."
+    }); // missing or malformed identity claim — the request is unauthenticated
 var data = await _orderService.GetByIdAsync(id, userId);
 return Ok(data);
 ```
@@ -72,14 +78,19 @@ public class ForbiddenException : Exception
 ### Authentication Error Messages — Never reveal user existence
 
 ```csharp
-// CORRECT — plain message, no envelope
-return Unauthorized(new { message = "Invalid credentials." });
+// CORRECT — ProblemDetails matches the external response contract
+return Unauthorized(new ProblemDetails
+{
+    Status = StatusCodes.Status401Unauthorized,
+    Title = "Unauthorized",
+    Detail = "Invalid credentials."
+});
 
 // WRONG — reveals user existence
 return Unauthorized(new { message = "User not found." });
 ```
 
-> **Note**: Never wrap controller responses in `ResponseDTO<T>`. See [`../responses/SKILL.md`](../responses/SKILL.md) for the dual-contract pattern.
+> **Note**: Never wrap controller responses in `ResponseDTO<T>`. See [`../responses/SKILL.md`](../responses/SKILL.md) for the response contract.
 
 ### Rate Limiting — Algorithm per scenario
 
@@ -131,14 +142,18 @@ policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<s
 
 | Item | Storage |
 |---|---|
-| JWT Secret | Environment variable / Azure Key Vault |
-| DB Connection String | Environment variable / User Secrets (dev) |
-| API Keys | Environment variable / Key Vault |
+| JWT Secret | External config file (path provided by env var) / Azure Key Vault |
+| DB Connection String | External config file (path provided by env var) / User Secrets (dev) |
+| API Keys | External config file (path provided by env var) / Key Vault |
 
 ```csharp
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT secret not configured.");
 ```
+
+> See [`../general/SKILL.md`](../general/SKILL.md) — Configuration section for the external file pattern. The environment variable points to the config file path, not to the secret value itself.
+>
+> To generate a secure secret in PowerShell: `[System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))`
 
 ---
 
@@ -156,15 +171,6 @@ var jwtSecret = builder.Configuration["Jwt:Secret"]
 
 ---
 
-## Commands
-
-```bash
-# Generate a secure JWT secret (256-bit)
-[System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-```
-
----
-
 ## Resources
 
 - **HTTP responses & exception mapping**: See [`../responses/SKILL.md`](../responses/SKILL.md)
@@ -178,9 +184,12 @@ var jwtSecret = builder.Configuration["Jwt:Secret"]
 
 ## Changelog
 
+### v1.8 — 2026-04-09
+- **Fixed (Round 3)**: Replaced the bare `return Unauthorized();` in the BOLA ownership guard example with an explicit `ProblemDetails` payload for consistency with the canonical auth error contract.
+
 ### v1.7 — 2026-04-09
 - **Fixed (CRITICAL — pipeline contradiction)**: Removed inline pipeline order block from Rate Limiting section. It contradicted `general/SKILL.md` on middleware positions. Replaced with a cross-ref to the canonical pipeline order in `general`.
-- **Fixed**: Removed `dotnet add package` and `dotnet user-secrets` commands from Commands section — generic CLI knowledge, not project decisions. Kept only the PowerShell JWT secret generator (not commonly known).
+- **Fixed**: Removed `dotnet add package` and `dotnet user-secrets` commands from Commands section — generic CLI knowledge, not project decisions. The PowerShell JWT secret generator is now inlined as a note in the Secrets section instead of keeping a dedicated Commands heading.
 
 ### v1.6 — 2026-03-28
 - **Fixed (W-16)**: Added middleware order warning — `UseRateLimiter()` MUST come before `UseCors()`. Inverted order causes CORS `OPTIONS` preflight requests to consume rate limit slots, resulting in legitimate 429 rejections before CORS headers are evaluated.
