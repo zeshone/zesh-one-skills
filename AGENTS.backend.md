@@ -22,8 +22,8 @@ Use these skills for detailed patterns on-demand:
 | `net8-apirest-requests` | Request DTOs, model binding, query parameters, file uploads | [SKILL.md](skills/backend/requests/SKILL.md) |
 | `net8-apirest-responses` | Result<T> (preferred) / ResponseDTO<T> (legacy), HTTP status codes, ProblemDetails, inter-layer communication | [SKILL.md](skills/backend/responses/SKILL.md) |
 | `net8-apirest-mapping` | AutoMapper vs manual mapping, mapping profiles, extension patterns | [SKILL.md](skills/backend/mapping/SKILL.md) |
-| `net8-apirest-logging` | Serilog, structured logging, Correlation IDs, exception handling | [SKILL.md](skills/backend/logging/SKILL.md) |
-| `net8-apirest-performance` | Polly resilience pipelines (circuit breaker, retry), Kestrel limits, response caching, async parallelism | [SKILL.md](skills/backend/performance/SKILL.md) |
+| `net8-apirest-logging` | Serilog bootstrap, CorrelationId middleware, ExceptionHandlingMiddleware, 9 mandatory traceability fields, per-user log partitioning | [SKILL.md](skills/backend/logging/SKILL.md) |
+| `net8-apirest-performance` | Polly resilience pipelines (circuit breaker, retry), Kestrel limits, async parallelism with Task.WhenAll | [SKILL.md](skills/backend/performance/SKILL.md) |
 | `net8-apirest-testing-unit` | Unit testing with xUnit, NSubstitute, FluentAssertions, test data builders | [SKILL.md](skills/backend/testing-unit/SKILL.md) |
 
 ### Shared Skills
@@ -55,7 +55,7 @@ When performing these actions, **ALWAYS** invoke the corresponding skill FIRST:
 | Creating or reviewing unit tests for services, validators, or mappings | `net8-apirest-testing-unit` |
 | Deciding between AutoMapper and manual mapping | `net8-apirest-mapping` |
 | Implementing rate limiting or request size limits | `net8-apirest-security` |
-| Setting up async patterns or parallelism | `net8-apirest-performance` |
+| Setting up async patterns or parallelism with Task.WhenAll | `net8-apirest-performance` |
 | Handling file uploads or multipart requests | `net8-apirest-requests` |
 | Reviewing OWASP compliance or security coverage | `net8-apirest-security` |
 | Creating or reviewing a Pull Request | `github-pr` |
