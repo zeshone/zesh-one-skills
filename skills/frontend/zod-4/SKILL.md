@@ -10,6 +10,10 @@ metadata:
   inspired-by: gentleman-programming/zod-4
 ---
 
+## When to Use
+
+Load this skill when creating or updating Zod schemas — validation, type inference, or React Hook Form integration.
+
 ## Critical Patterns
 
 - Use top-level validators: `z.email()`, `z.uuid()`, `z.url()` — NOT `z.string().email()` (Zod 4 breaking change).

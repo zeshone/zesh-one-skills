@@ -32,7 +32,7 @@
 | `net8-apirest-responses` | `skills/backend/responses/SKILL.md` | API responses, ResponseDTO<T>, HTTP status codes |
 | `net8-apirest-mapping` | `skills/backend/mapping/SKILL.md` | AutoMapper profiles or manual mapping logic |
 | `net8-apirest-logging` | `skills/backend/logging/SKILL.md` | Serilog, structured logging, Correlation IDs |
-| `net8-apirest-performance` | `skills/backend/performance/SKILL.md` | EF Core optimization, async patterns, Polly resilience |
+| `net8-apirest-performance` | `skills/backend/performance/SKILL.md` | Polly resilience pipelines (circuit breaker, retry), Kestrel limits, response caching, async parallelism |
 | `net8-apirest-testing-unit` | `skills/backend/testing-unit/SKILL.md` | Unit testing with xUnit, Moq, FluentAssertions |
 
 ### Frontend Skills — `Gentleman Stack`

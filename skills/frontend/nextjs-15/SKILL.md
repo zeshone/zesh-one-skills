@@ -10,6 +10,10 @@ metadata:
   inspired-by: gentleman-programming/nextjs-15
 ---
 
+## When to Use
+
+Load this skill when working with Next.js 15 — routing, Server Actions, data fetching, middleware, or project structure.
+
 ## Critical Patterns
 
 - Use App Router exclusively — no `pages/` directory.

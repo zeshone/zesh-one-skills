@@ -10,6 +10,10 @@ metadata:
   inspired-by: gentleman-programming/typescript
 ---
 
+## When to Use
+
+Load this skill when writing or reviewing TypeScript — types, interfaces, enums, or generic utilities.
+
 ## Const Types Pattern (REQUIRED)
 
 ```typescript

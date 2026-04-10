@@ -10,6 +10,10 @@ metadata:
   inspired-by: gentleman-programming/github-pr
 ---
 
+## When to Use
+
+Load this skill when creating or reviewing a Pull Request — title, branch naming, description structure, or `gh` CLI usage.
+
 ## Critical Patterns
 
 - PR title follows Conventional Commits format: `<type>(<scope>): <description>`.

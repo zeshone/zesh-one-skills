@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.6"
+  version: "2.7"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -90,7 +90,7 @@ public class CorrelationIdMiddleware
 }
 ```
 
-> `UserId` is NOT enriched here — `Authentication` has not run yet. `UserId` enrichment is done in `ExceptionHandlingMiddleware`.
+> `UserId` is NOT enriched here — `Authentication` has not run yet. `UserId` is pushed in `ExceptionHandlingMiddleware` (error context) and optionally by `UserLogContextMiddleware` (when per-user log partitioning is active).
 
 ### Exception Handling Middleware — Canonical
 
@@ -112,36 +112,51 @@ public class ExceptionHandlingMiddleware
         using (LogContext.PushProperty("UserId", userId))
         {
             try { await _next(context); }
-            catch (ValidationException ex)
+            catch (ValidationException ex) // FluentValidation.ValidationException
             {
-                _logger.LogInformation(ex, "Validation error for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                    userId, context.Request.Path, context.Items["CorrelationId"]);
-                await WriteErrorResponse(context, StatusCodes.Status400BadRequest, "Validation Error", ex.Message);
+                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
+                {
+                    _logger.LogInformation(ex, "Validation error for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
+                        userId, context.Request.Path, context.Items["CorrelationId"]);
+                    await WriteErrorResponse(context, StatusCodes.Status400BadRequest, "Validation Error", ex.Message);
+                }
             }
             catch (ForbiddenException ex)
             {
-                _logger.LogWarning(ex, "Forbidden access for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                    userId, context.Request.Path, context.Items["CorrelationId"]);
-                await WriteErrorResponse(context, StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
+                {
+                    _logger.LogWarning(ex, "Forbidden access for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
+                        userId, context.Request.Path, context.Items["CorrelationId"]);
+                    await WriteErrorResponse(context, StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+                }
             }
             catch (NotFoundException ex)
             {
-                _logger.LogWarning(ex, "Resource not found for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                    userId, context.Request.Path, context.Items["CorrelationId"]);
-                await WriteErrorResponse(context, StatusCodes.Status404NotFound, "Not Found", ex.Message);
+                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
+                {
+                    _logger.LogWarning(ex, "Resource not found for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
+                        userId, context.Request.Path, context.Items["CorrelationId"]);
+                    await WriteErrorResponse(context, StatusCodes.Status404NotFound, "Not Found", ex.Message);
+                }
             }
             catch (ConflictException ex)
             {
-                _logger.LogWarning(ex, "Conflict for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                    userId, context.Request.Path, context.Items["CorrelationId"]);
-                await WriteErrorResponse(context, StatusCodes.Status409Conflict, "Conflict", ex.Message);
+                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
+                {
+                    _logger.LogWarning(ex, "Conflict for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
+                        userId, context.Request.Path, context.Items["CorrelationId"]);
+                    await WriteErrorResponse(context, StatusCodes.Status409Conflict, "Conflict", ex.Message);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                    userId, context.Request.Path, context.Items["CorrelationId"]);
-                await WriteErrorResponse(context, StatusCodes.Status500InternalServerError,
-                    "Internal Server Error", "An unexpected error occurred.");
+                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
+                {
+                    _logger.LogError(ex, "Unhandled exception for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
+                        userId, context.Request.Path, context.Items["CorrelationId"]);
+                    await WriteErrorResponse(context, StatusCodes.Status500InternalServerError,
+                        "Internal Server Error", "An unexpected error occurred.");
+                }
             }
         }
     }
@@ -196,6 +211,8 @@ builder.Host.UseSerilog();
 ```
 
 > **Non-obvious**: The `outputTemplate` above injects `CorrelationId`, `Application`, and `Environment` — these fields are pushed via `LogContext` by `CorrelationIdMiddleware`. The `rollingInterval: RollingInterval.Day` keeps log files manageable without configuration overhead.
+>
+> **Production path note**: `"logs/api-.log"` is a relative path and resolves from the process working directory. In production, prefer an absolute path from configuration, for example `Path.Combine(builder.Configuration["Logging:BasePath"]!, "api-.log")`.
 
 ### Request Logging with Serilog
 
@@ -231,7 +248,7 @@ Log.Logger = new LoggerConfiguration()
         defaultKey: "anonymous",         // file when UserId is not yet available
         configure: (userId, writeTo) =>
             writeTo.File(
-                path: $"logs/{userId}/{DateTime.UtcNow:yyyy-MM}/log-.txt",
+                path: $"logs/{userId}/log-.txt",
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 31,
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}"))
@@ -261,10 +278,11 @@ public class UserLogContextMiddleware
 }
 ```
 
-**Register after `UseAuthentication` in `Program.cs`:**
+**Register after `UseAuthentication()` and before `UseRateLimiter()` in `Program.cs` (see pipeline order in [`../general/SKILL.md`](../general/SKILL.md)):**
 ```csharp
 app.UseAuthentication();
 app.UseMiddleware<UserLogContextMiddleware>(); // must be AFTER auth — identity not available before
+app.UseRateLimiter();
 ```
 
 > **When to use**: multi-tenant SaaS, agent/broker portals, admin panels with multiple operator roles — any scenario where isolating one user's activity in a dedicated file saves significant debugging time.
@@ -272,6 +290,8 @@ app.UseMiddleware<UserLogContextMiddleware>(); // must be AFTER auth — identit
 > **When NOT to use**: public APIs with anonymous traffic or very high user counts (thousands of distinct files per day creates filesystem pressure). For high-cardinality user populations, use structured logging with a log aggregator (Seq, Grafana Loki) and query by `UserId` field instead.
 >
 > **The partition key is your domain**: use whatever claim your domain uses — user ID, tenant code, agent code, organization ID. The pattern is identical; only the claim name and path template change.
+>
+> **Production path note**: In production, use an absolute path from configuration (for example `Path.Combine(builder.Configuration["Logging:BasePath"]!, userId, "log-.txt")`) — relative paths resolve to the process working directory.
 
 ### Sensitive Data — Fields Forbidden in Logs
 
@@ -309,6 +329,9 @@ Sanitize BEFORE logging, never after:
 ---
 
 ## Changelog
+
+### v2.7 — 2026-04-09
+- **Fixed (Round 4)**: Added explicit production-path notes for both the bootstrap file sink and the per-user `WriteTo.Map` sink. Relative `logs/...` paths resolve from the process working directory, so production deployments should use absolute paths from configuration.
 
 ### v2.6 — 2026-04-09
 - **Added**: Per-User Log Partitioning with `WriteTo.Map` — partition log files by any user identity claim (user ID, tenant, agent, organization). Includes `UserLogContextMiddleware`, bootstrap configuration, and guidance on when to use vs when a log aggregator is the better choice. Pattern derived from production multi-tenant microservices audit.

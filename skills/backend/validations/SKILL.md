@@ -40,12 +40,7 @@ External system validation?
 
 ### Setup — Auto-registration + Auto-validation
 
-> **FluentValidation v11 breaking change**: `AddFluentValidationAutoValidation()` and `AddFluentValidationClientsideAdapters()` were removed from the core `FluentValidation` package. They now live exclusively in `FluentValidation.AspNetCore`. Install both packages:
-
-```bash
-dotnet add package FluentValidation.AspNetCore   # contains AddFluentValidationAutoValidation
-dotnet add package FluentValidation.DependencyInjectionExtensions  # contains AddValidatorsFromAssemblyContaining
-```
+> **FluentValidation v11 breaking change**: `AddFluentValidationAutoValidation()` and `AddFluentValidationClientsideAdapters()` were removed from the core `FluentValidation` package. They now live exclusively in `FluentValidation.AspNetCore`. Install the three required packages: `FluentValidation` (core abstractions and validators), `FluentValidation.AspNetCore` (contains `AddFluentValidationAutoValidation()`), and `FluentValidation.DependencyInjectionExtensions` (contains `AddValidatorsFromAssemblyContaining`).
 
 ```csharp
 // Program.cs — a single line registers all validators in the assembly
@@ -130,12 +125,6 @@ public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest req
 | A single global validator for multiple DTOs | Violates SRP — one validator per DTO |
 | Reading `IFormFile` stream in FluentValidation | Blocks the stream before the controller reads it |
 | Exposing `ResponseDTO<T>` as the body of HTTP 400 | Violates D-25/D-26 — always use `ProblemDetails` for HTTP errors |
-
----
-
-## Commands
-
-> **FluentValidation v11 breaking change**: `AddFluentValidationAutoValidation()` moved from the core `FluentValidation` package to `FluentValidation.AspNetCore`. Install three packages: `FluentValidation`, `FluentValidation.AspNetCore`, and `FluentValidation.DependencyInjectionExtensions`.
 
 ---
 
