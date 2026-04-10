@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.7"
+  version: "1.8"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -130,31 +130,12 @@ app.MapControllers();       // 6. Route to controllers
 >
 > **ExceptionHandlingMiddleware tradeoff**: It is intentionally positioned before `UseAuthorization()` so authenticated `UserId` is already available for error logging. Authorization policy handler exceptions are **not** caught here — they surface as unhandled `500` responses unless you also add a fallback middleware after `UseAuthorization()`.
 
-### Interface-First — All Injectable Dependencies Have an Interface
-
-```csharp
-public interface IUserService { Task<UserDto> GetByIdAsync(Guid id); }
-public class UserService : IUserService { ... }
-```
-
 ### Custom Exception — Domain Error Modeling
 
-```csharp
-// Shared/Exceptions/NotFoundException.cs
-public class NotFoundException : Exception
-{
-    public NotFoundException(string resource, Guid id)
-        : base($"{resource} with id '{id}' was not found.") { }
-}
-```
-
-```csharp
-// Shared/Exceptions/ConflictException.cs
-public class ConflictException : Exception
-{
-    public ConflictException(string message) : base(message) { }
-}
-```
+| Exception | Signature | Location |
+|---|---|---|
+| `NotFoundException` | `(string resource, Guid id)` → `"{resource} with id '{id}' was not found."` | `Shared/Exceptions/NotFoundException.cs` |
+| `ConflictException` | `(string message)` | `Shared/Exceptions/ConflictException.cs` |
 
 
 ## Skill Family — When to Load Each One

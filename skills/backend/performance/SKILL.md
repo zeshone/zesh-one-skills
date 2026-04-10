@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.5"
+  version: "1.6"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -26,12 +26,14 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 Use `Task.WhenAll` for independent async calls — never `await` them sequentially.
 
 ```csharp
-var userTask = _userRepository.GetByIdAsync(userId, ct);
-var ordersTask = _orderRepository.GetRecentByUserIdAsync(userId, ct);
-await Task.WhenAll(userTask, ordersTask);
-// If either task throws, WhenAll rethrows the first exception — the other task's exception is discarded unless accessed via task.Exception.
-var user = userTask.Result;
-var orders = ordersTask.Result;
+// Use Task.WhenAll for independent calls — never await sequentially.
+var taskA = repository.GetUsersAsync(ct);
+var taskB = repository.GetOrdersAsync(ct);
+await Task.WhenAll(taskA, taskB);
+// GOTCHA: WhenAll rethrows the FIRST exception only.
+// The other task's exception is silently discarded unless accessed via task.Exception.
+var users = taskA.Result;
+var orders = taskB.Result;
 ```
 
 ### Circuit Breaker — Per-Dependency Named Pipeline
@@ -143,20 +145,7 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 ```
 
-### Response Caching — For stable data
-
-```csharp
-// Output caching (ASP.NET Core 7+) — preferred over ResponseCache
-builder.Services.AddOutputCache(options =>
-{
-    options.AddPolicy("products", b => b.Expire(TimeSpan.FromMinutes(5)));
-});
-app.UseOutputCache();
-
-[HttpGet]
-[OutputCache(PolicyName = "products")]
-public async Task<IActionResult> GetProducts() { ... }
-```
+> **Reference values**: `MaxConcurrentConnections = 1000` and `MaxRequestBodySize = 10 MB` are starting points for medium-load REST APIs — adjust based on load testing. `RequestHeadersTimeout` is documented here to make the decision explicit; Kestrel's default is 30s.
 
 ---
 

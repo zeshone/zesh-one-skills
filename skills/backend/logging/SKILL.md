@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.7"
+  version: "2.8"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -28,24 +28,11 @@ Always use **Serilog** for structured logging. Never `Console.WriteLine` in prod
 
 Required packages: `Serilog.AspNetCore`, `Serilog.Sinks.Console`, `Serilog.Sinks.File`, `Serilog.Enrichers.Environment`.
 
-### Structured Logging — Named placeholders, never string interpolation
-
-```csharp
-// CORRECT — structured, queryable
-_logger.LogInformation("User {UserId} retrieved {Count} records", userId, count);
-
-// WRONG — not structured, not queryable
-_logger.LogInformation($"User {userId} retrieved {count} records");
-```
-
 ### Log Levels — HTTP Status Mapping
 
 | HTTP Status | Log Level |
 |---|---|
-| `400` validation errors | `LogInformation` — expected flow |
-| `403`, `404`, `409` domain errors | `LogWarning` — recoverable |
-| `500` unhandled exceptions | `LogError` |
-| Unrecoverable / startup failures | `LogCritical` |
+| `400` validation errors | `LogInformation` — expected flow, not a warning |
 
 ### Correlation ID Middleware — FIRST in the pipeline
 
@@ -200,8 +187,6 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .MinimumLevel.Override("System", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .Enrich.WithMachineName()
-    .Enrich.WithEnvironmentName()
     .WriteTo.Console(outputTemplate:
         "[{Timestamp:HH:mm:ss} {Level:u3}] [{CorrelationId}] [{Application}/{Environment}] {Message:lj}{NewLine}{Exception}")
     .WriteTo.File("logs/api-.log", rollingInterval: RollingInterval.Day)

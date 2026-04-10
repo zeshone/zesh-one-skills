@@ -9,7 +9,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.6"
+  version: "1.7"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -71,7 +71,11 @@ public class Result<T>
 
     public static Result<T> ValidationFail(Dictionary<string, string[]> errors) =>
         new() { IsSuccess = false, StatusCode = 400, Title = "Validation Failed", ValidationErrors = errors };
+```
 
+> **`ToHttpResponse()` contract**: `201 → CreatedResult(Location, Value)`; `204 → NoContentResult`; `ValidationErrors → ValidationProblemDetails(400)`; all other failures → `ProblemDetails` with the factory's `StatusCode` and `Title`. `Location` on 201 is required per REST — see anti-pattern table.
+
+```csharp
     public IActionResult ToHttpResponse() => IsSuccess
         ? StatusCode == 204
             ? new NoContentResult()

@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: zesh-one
-  version: "1.0"
+  version: "1.1"
   inspired-by: gentleman-programming/typescript
 ---
 
@@ -50,12 +50,6 @@ interface User {
   address: { street: string; city: string };
 }
 ```
-
-## Never Use `any`
-
-- Use `unknown` for truly dynamic input — narrow with a type guard before use.
-- Use generics for flexible but typed functions.
-- `any` is always wrong; there is always a better option.
 
 ## Critical Patterns
 

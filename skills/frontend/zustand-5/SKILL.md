@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: zesh-one
-  version: "1.1"
+  version: "1.2"
   inspired-by: gentleman-programming/zustand-5
 ---
 
@@ -63,31 +63,21 @@ const store = useUserStore();
 
 ## Async Actions — Standard Shape
 
+Actions live in `@/app/(features)/{feature}/actions` — import them into the store, never call services directly.
+
 ```typescript
 import { fetchProductsAction } from "@/app/(features)/products/actions";
 
-interface ProductStore {
-  products: Product[];
-  loading: boolean;
-  error: string | null;
-  fetchProducts: () => Promise<void>;
-}
-
-export const useProductStore = create<ProductStore>((set) => ({
-  products: [],
-  loading: false,
-  error: null,
-
-  fetchProducts: async () => {
-    set({ loading: true, error: null });
-    try {
-      const products = await fetchProductsAction();
-      set({ products, loading: false });
-    } catch {
-      set({ error: "Failed to load products", loading: false });
-    }
-  },
-}));
+// Inside create():
+fetchProducts: async () => {
+  set({ loading: true, error: null });
+  try {
+    const products = await fetchProductsAction();
+    set({ products, loading: false });
+  } catch {
+    set({ error: "Failed to load products", loading: false });
+  }
+},
 ```
 
 ## Persist Middleware
