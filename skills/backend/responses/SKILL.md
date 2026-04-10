@@ -1,15 +1,15 @@
 ---
 name: net8-apirest-responses
 description: >
-  Unified response standards for ASP.NET Core 8 REST APIs covering the dual response contract:
-  `ResponseDTO<T>` for internal inter-layer communication (Service → Controller) and standard
-  HTTP responses (raw resource JSON or `ProblemDetails`) for external controller → client responses.
-  Trigger: When building API responses, defining return types for services and repositories,
-  or standardizing how data and errors flow from the data layer to the client in a .NET 8 API.
+  Unified response standards for ASP.NET Core 8 REST APIs. Covers two internal contracts:
+  `Result<T>` (preferred — Railway-Oriented) and `ResponseDTO<T>` (legacy), plus the external
+  HTTP contract (raw resource JSON or `ProblemDetails`) for controller → client responses.
+  Trigger: When building API responses, defining return types for services, or standardizing
+  how data and errors flow from the data layer to the client in a .NET 8 API.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.3"
+  version: "1.4"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -24,16 +24,102 @@ allowed-tools: Read, Edit, Write, Glob, Grep
 
 ## Critical Patterns
 
-### Dual Response Contract (D-25)
+### Internal Contract — Choose One
 
-| Boundary | Contract | Who uses it |
+| Contract | Status | When to use |
 |---|---|---|
-| **Internal** (Service → Controller) | `ResponseDTO<T>` | Services |
-| **External** (Controller → Client) | Raw HTTP: resource JSON (2xx) or `ProblemDetails` (4xx/5xx) | Controllers |
+| `Result<T>` | ✅ **Preferred** | New projects and new services |
+| `ResponseDTO<T>` | ⚠️ **Legacy** | Existing codebases already using it — do not mix both in the same service |
 
-> **Rule**: `ResponseDTO<T>` is an internal transport contract. It is **never** serialized as an HTTP response body for external clients.
+---
 
-### `ResponseDTO<T>` — Definition
+### `Result<T>` — Railway-Oriented Pattern (Preferred)
+
+`Result<T>` makes success and failure explicit return types — no exceptions for business failures, no null checks, no internal envelope leaking to the client.
+
+```csharp
+// Shared/Models/Result.cs
+public class Result<T>
+{
+    public bool IsSuccess { get; private set; }
+    public T? Value { get; private set; }
+    public string? ErrorMessage { get; private set; }
+    public int StatusCode { get; private set; }
+    public string? Title { get; private set; }
+    public Dictionary<string, string[]>? ValidationErrors { get; private set; }
+
+    private Result() { }
+
+    public static Result<T> Success(T value) =>
+        new() { IsSuccess = true, Value = value, StatusCode = 200 };
+
+    public static Result<T> Fail(Exception ex) =>
+        new() { IsSuccess = false, ErrorMessage = ex.Message, StatusCode = 500 };
+
+    public static Result<T> BusinessFail(string message, int statusCode = 400, string title = "Bad Request") =>
+        new() { IsSuccess = false, ErrorMessage = message, StatusCode = statusCode, Title = title };
+
+    public static Result<T> ValidationFail(Dictionary<string, string[]> errors) =>
+        new() { IsSuccess = false, StatusCode = 400, Title = "Validation Failed", ValidationErrors = errors };
+
+    public IActionResult ToHttpResponse() => IsSuccess
+        ? new OkObjectResult(Value)
+        : ValidationErrors is not null
+            ? new BadRequestObjectResult(new ValidationProblemDetails(ValidationErrors) { Status = 400 })
+            : new ObjectResult(new ProblemDetails
+            {
+                Status = StatusCode,
+                Title = Title ?? "Error",
+                Detail = ErrorMessage
+            }) { StatusCode = StatusCode };
+}
+```
+
+**Controller pattern — always:**
+```csharp
+public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+{
+    var result = await _userService.CreateAsync(request);
+    return result.ToHttpResponse();
+}
+```
+
+**Service pattern:**
+```csharp
+public async Task<Result<UserDto>> CreateAsync(CreateUserRequest request)
+{
+    if (await _repository.ExistsByEmailAsync(request.Email))
+        return Result<UserDto>.BusinessFail("Email already registered.", 409, "Conflict");
+
+    var entity = request.ToEntity();
+    await _repository.AddAsync(entity);
+    return Result<UserDto>.Success(entity.ToDto());
+}
+```
+
+> **Rule**: Domain exceptions (`NotFoundException`, `ForbiddenException`) are still thrown for exceptional flows and caught by `ExceptionHandlingMiddleware`. `Result<T>` handles **expected business outcomes** (not found by design, conflict, validation) — replacing the throw/catch cycle for predictable conditions.
+
+### Layer Contract with `Result<T>`
+
+| Layer | Returns | Never |
+|---|---|---|
+| Repository | Domain entities or `null` | DTOs, `Result<T>`, `ResponseDTO<T>` |
+| Service | `Result<T>` wrapping DTO | Raw entities, throws for business failures |
+| Controller | `result.ToHttpResponse()` | The `Result<T>` object directly to the client |
+
+```
+Repository  →        Service         →   Controller  →   Client
+  Entity       Result<T>.Success(dto)    ToHttpResponse()   HTTP 2xx (raw JSON)
+  null         Result<T>.BusinessFail()                     HTTP 4xx (ProblemDetails)
+```
+
+---
+
+### `ResponseDTO<T>` — Legacy Contract
+
+> ⚠️ **Legacy**: Use only in codebases already built on this pattern. Do NOT introduce in new services. Do NOT mix `Result<T>` and `ResponseDTO<T>` in the same service.
+>
+> ⛔ **Never add an `Exception?` property to `ResponseDTO<T>`** — exceptions serialized as JSON leak stack traces and internal details to the client.
 
 ```csharp
 // Shared/Models/ResponseDTO.cs
@@ -42,26 +128,21 @@ public class ResponseDTO<T>
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
     public T? Data { get; set; }
+    // ⛔ NEVER: public Exception? Exception { get; set; }
 }
 ```
 
-### Layer Contract — What each layer returns
+**Legacy layer contract:**
 
-| Layer | Returns | Never |
+| Boundary | Contract | Who uses it |
 |---|---|---|
-| Repository | Domain entities or `null` | DTOs, `ResponseDTO<T>` |
-| Service | DTOs (after mapping) or throws domain exception | Raw entities |
-| Controller | `IActionResult` — raw resource JSON (2xx) or `ProblemDetails` (4xx/5xx) | The `ResponseDTO<T>` envelope to the client |
+| **Internal** (Service → Controller) | `ResponseDTO<T>` | Services |
+| **External** (Controller → Client) | Raw HTTP: resource JSON (2xx) or `ProblemDetails` (4xx/5xx) | Controllers |
 
-```
-Repository  →      Service      →   Controller  →   Client
-  Entity     throws / DTO          IActionResult    HTTP 2xx (raw JSON)
-                                                    HTTP 4xx/5xx (ProblemDetails)
-```
+> **Rule**: `ResponseDTO<T>` is an internal transport contract. It is **never** serialized as an HTTP response body.
 
-### `ResponseDTO<T>` — Usage Rules (internal)
-
-- `Success: true` → `Data` is the result; **never `null`** when data exists. Use empty values for empty results: `[]` for lists, `string.Empty` for strings, `0` for numerics, `new T()` if parameterless constructor.
+**Usage rules:**
+- `Success: true` → `Data` is the result; **never `null`**. Use empty values: `[]`, `string.Empty`, `0`.
 - `Success: false` → `Message` is a clear error description; `Data` is `null`.
 
 ### Paged Response
@@ -150,8 +231,10 @@ options.OnRejected = async (context, ct) =>
 
 | Anti-pattern | Problem |
 |---|---|
-| `ResponseDTO<T>` in the HTTP response body | Violates D-25 — the client receives an internal envelope |
-| Returning `null` from service on "not found" | The controller must null-check everywhere; better to throw |
+| `ResponseDTO<T>` in the HTTP response body | Internal envelope exposed to client — violates the external contract |
+| `Result<T>` and `ResponseDTO<T>` in the same service | Two conflicting contracts create unpredictable controller code |
+| `Exception?` property on any response DTO | Serializes stack trace and internals to the client — security risk |
+| Returning `null` from service on "not found" | Use `Result<T>.BusinessFail(404)` or throw `NotFoundException` — never null |
 | HTTP 200 for errors | Misleads clients — always use correct status codes |
 | `ResponseDTO<T>` in repositories | Repositories are the data layer, not the API layer |
 | Creating `UnauthorizedException` as a domain exception | `401` belongs to the pipeline — not the domain |
@@ -171,6 +254,13 @@ options.OnRejected = async (context, ct) =>
 ---
 
 ## Changelog
+
+### v1.4 — 2026-04-09
+- **Added**: `Result<T>` Railway-Oriented pattern as the preferred internal contract for new projects — factory methods `Success`, `Fail`, `BusinessFail`, `ValidationFail`; `ToHttpResponse()` for controller integration; service and controller usage patterns.
+- **Updated**: `ResponseDTO<T>` marked as legacy — do not introduce in new services, do not mix with `Result<T>`. Added explicit warning against `Exception?` property (stack trace serialization risk).
+- **Updated**: Layer contract table updated to reflect `Result<T>` as the primary path.
+- **Updated**: Anti-patterns table expanded with `Result<T>`/`ResponseDTO<T>` mixing and `Exception?` DTO field.
+- **Updated**: Frontmatter description updated to reflect dual-contract evolution.
 
 ### v1.3 — 2026-04-09
 - **Fixed (CRITICAL)**: Dual Contract table boundary label corrected from "Repository → Service" to "Service → Controller". Repositories return pure entities — they never produce `ResponseDTO<T>`. Updated frontmatter description to match.

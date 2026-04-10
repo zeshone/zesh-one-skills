@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.5"
+  version: "2.6"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -214,6 +214,65 @@ app.UseSerilogRequestLogging(options =>
 
 > `StatusCode` and `Duration` are captured automatically by Serilog. Do not duplicate them.
 
+### Per-User Log Partitioning — `WriteTo.Map`
+
+For applications with distinct users (agents, customers, admins, tenants), partition log files by user identity using `WriteTo.Map`. This makes per-user debugging trivial — no log queries needed.
+
+```csharp
+// Install: Serilog.Sinks.Map
+// The property name ("UserId" in this example) must be pushed to LogContext
+// BEFORE WriteTo.Map is evaluated — use a middleware that runs after Authentication.
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.Map(
+        keyPropertyName: "UserId",       // LogContext property to partition by
+        defaultKey: "anonymous",         // file when UserId is not yet available
+        configure: (userId, writeTo) =>
+            writeTo.File(
+                path: $"logs/{userId}/{DateTime.UtcNow:yyyy-MM}/log-.txt",
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 31,
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}"))
+    .CreateLogger();
+```
+
+**Middleware to push user identity into `LogContext`** (runs after `UseAuthentication`):
+
+```csharp
+public class UserLogContextMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public UserLogContextMiddleware(RequestDelegate next) => _next = next;
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        // Resolve the identity key from the claim appropriate to your domain:
+        // ClaimTypes.NameIdentifier for user ID, a custom claim for tenant/agent/etc.
+        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
+
+        using (LogContext.PushProperty("UserId", userId))
+        {
+            await _next(context);
+        }
+    }
+}
+```
+
+**Register after `UseAuthentication` in `Program.cs`:**
+```csharp
+app.UseAuthentication();
+app.UseMiddleware<UserLogContextMiddleware>(); // must be AFTER auth — identity not available before
+```
+
+> **When to use**: multi-tenant SaaS, agent/broker portals, admin panels with multiple operator roles — any scenario where isolating one user's activity in a dedicated file saves significant debugging time.
+>
+> **When NOT to use**: public APIs with anonymous traffic or very high user counts (thousands of distinct files per day creates filesystem pressure). For high-cardinality user populations, use structured logging with a log aggregator (Seq, Grafana Loki) and query by `UserId` field instead.
+>
+> **The partition key is your domain**: use whatever claim your domain uses — user ID, tenant code, agent code, organization ID. The pattern is identical; only the claim name and path template change.
+
 ### Sensitive Data — Fields Forbidden in Logs
 
 Sanitize BEFORE logging, never after:
@@ -250,6 +309,9 @@ Sanitize BEFORE logging, never after:
 ---
 
 ## Changelog
+
+### v2.6 — 2026-04-09
+- **Added**: Per-User Log Partitioning with `WriteTo.Map` — partition log files by any user identity claim (user ID, tenant, agent, organization). Includes `UserLogContextMiddleware`, bootstrap configuration, and guidance on when to use vs when a log aggregator is the better choice. Pattern derived from production multi-tenant microservices audit.
 
 ### v2.5 — 2026-04-09
 - **Fixed (W-07)**: Added explanatory note to the Serilog bootstrap block. The `outputTemplate` and `rollingInterval` are non-obvious ZeshOne decisions (custom fields from `CorrelationIdMiddleware`, daily rotation as default). The rest of the bootstrap is standard Serilog configuration the agent already knows.

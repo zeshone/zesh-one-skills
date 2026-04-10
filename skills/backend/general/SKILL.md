@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.4"
+  version: "1.5"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -63,6 +63,49 @@ tests/             ← Unit & integration tests (ver testing-unit/SKILL.md)
 
 > **Rule**: Stateless helpers ALWAYS as `Singleton`. Never register a stateless helper as `Scoped`.
 
+### Configuration — External File via Environment Variable (Mandatory)
+
+Secrets and environment-specific settings **must never** be hardcoded or committed to source control inside `appsettings.json`. The mandatory pattern:
+
+1. **All sensitive config** (connection strings, JWT secrets, API keys, external URLs) lives in a file **outside the repository**, on the server.
+2. An environment variable (`{APP_NAME}_CONFIG_PATH` or equivalent) points to that file's absolute path.
+3. `appsettings.json` in the repo contains only non-sensitive defaults (log levels, feature flags with safe defaults).
+
+```csharp
+// Program.cs — load external config file via env var
+var configPath = Environment.GetEnvironmentVariable("APP_CONFIG_PATH")
+    ?? throw new InvalidOperationException(
+        "APP_CONFIG_PATH environment variable is not set. " +
+        "Set it to the absolute path of the external configuration file.");
+
+builder.Configuration.AddJsonFile(configPath, optional: false, reloadOnChange: true);
+```
+
+> **`reloadOnChange: true`**: ASP.NET Core's built-in file watcher hot-reloads the config when the external file changes — no restart needed for config updates.
+
+**Prohibited — will be rejected in code review:**
+
+```csharp
+// ❌ NEVER — secrets in appsettings.json (committed to git)
+// appsettings.json: { "Jwt": { "Secret": "my-real-secret" } }
+
+// ❌ NEVER — hardcoded connection string in code
+var cs = "Server=prod-server;Database=MyDb;User=sa;Password=12345;";
+
+// ❌ NEVER — config singleton reading from a hardcoded path
+var config = MyConfig.Instance.Settings.ConnectionString;
+```
+
+**Correct `appsettings.json` (safe to commit):**
+```json
+{
+  "Serilog": { "MinimumLevel": "Information" },
+  "AllowedHosts": "*"
+}
+```
+
+> **External file location convention**: Use an absolute path on the server outside the deployment directory (e.g., `/etc/myapp/config.json` on Linux, `C:\Config\myapp\config.json` on Windows). Never inside `wwwroot` or the app folder. The environment variable name should follow the pattern `{SERVICE_NAME}_CONFIG_PATH`.
+
 ### Middleware Pipeline Order
 
 ```csharp
@@ -112,6 +155,9 @@ public class NotFoundException : Exception
 ---
 
 ## Changelog
+
+### v1.5 — 2026-04-09
+- **Added**: External configuration file pattern via environment variable — mandatory for all sensitive settings. Explicit prohibition on secrets in `appsettings.json`, hardcoded strings, and config singletons with static paths. Pattern extracted from production microservices audit.
 
 ### v1.4 — 2026-04-09
 - **Fixed (W-13)**: Removed PascalCase and camelCase rows from Naming Conventions table — standard C# conventions the agent already knows. Kept only the ZeshOne-specific decisions: `_camelCase` for private fields, English for all code, plural nouns for URLs.
