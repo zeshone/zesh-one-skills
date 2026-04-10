@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.6"
+  version: "2.7"
 allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
@@ -53,6 +53,33 @@ builder.Services.AddDbContextPool<AppDbContext>(..., poolSize: 128);
 builder.Services.AddDbContextPool<InventoryDbContext>(..., poolSize: 128);
 builder.Services.AddDbContextPool<ReportingDbContext>(..., poolSize: 128);
 ```
+
+### Two-Level Pool — ADO.NET + EF Core
+
+`AddDbContextPool` reuses `DbContext` **instances** (avoids object allocation). The ADO.NET connection pool reuses **TCP connections** to SQL Server. Both levels must be configured for high-concurrency APIs.
+
+```csharp
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string not configured.");
+
+// Level 1 — ADO.NET connection pool (TCP connections to SQL Server)
+var connBuilder = new SqlConnectionStringBuilder(connectionString)
+{
+    MaxPoolSize = 200,          // max concurrent connections to SQL Server
+    MinPoolSize = 10,           // connections kept alive between requests
+    ConnectTimeout = 30,        // seconds to wait before failing
+    Pooling = true,
+    MultipleActiveResultSets = true,
+    TrustServerCertificate = true
+};
+
+// Level 2 — EF Core context pool (DbContext instances, not connections)
+builder.Services.AddDbContextPool<AppDbContext>(options =>
+    options.UseSqlServer(connBuilder.ConnectionString),
+    poolSize: 128);
+```
+
+> **Non-obvious**: These are two independent pools. `MaxPoolSize` (ADO.NET) controls how many SQL connections exist. `poolSize` (EF) controls how many `DbContext` objects are reused. A `DbContext` from the pool acquires a connection from the ADO.NET pool on demand — they are not 1:1.
 
 ### Connection Strings — Standard ASP.NET Core
 
@@ -331,20 +358,41 @@ var rows = await _context.Database
 
 > **Important for FromSqlRaw + SPs**: add `.AsEnumerable()` immediately after when calling SPs to prevent EF from attempting to compose the result into a subquery, which generates invalid SQL.
 
-### Keyless Entities — Existing Pattern (Maintain)
+### Keyless Entities — SP Result Sets Pattern
 
-Used for SPs and view projections — already established in existing contexts.
+Use keyless entities to map stored procedure result sets as typed classes. This avoids raw `DataTable` usage and keeps the result strongly typed without creating a real domain entity.
 
 ```csharp
-// Register — in OnModelCreating or IEntityTypeConfiguration
-modelBuilder.Entity<PolicySummaryResult>().HasNoKey();
+// Features/Reports/Models/PolicySummaryResult.cs
+// This is NOT a domain entity — it is a SP result projection
+public class PolicySummaryResult
+{
+    public Guid PolicyId { get; set; }
+    public string HolderName { get; set; } = string.Empty;
+    public decimal Premium { get; set; }
+    public DateTime ExpiresAt { get; set; }
+}
+```
 
-// Query
+**Register in `OnModelCreating` or `IEntityTypeConfiguration<T>`:**
+```csharp
+// HasNoKey() — no PK, EF won't try to track or update these
+// ToView(null) — CRITICAL: tells EF there is no backing table or view.
+//                Without this, migrations try to CREATE a table for it.
+modelBuilder.Entity<PolicySummaryResult>().HasNoKey().ToView(null);
+```
+
+**Query:**
+```csharp
 var results = await _context.Set<PolicySummaryResult>()
     .FromSqlRaw("EXEC sp_GetPolicySummary @AgentId", new SqlParameter("@AgentId", agentId))
     .AsNoTracking()
     .ToListAsync(ct);
 ```
+
+> **Why `.ToView(null)`**: without it, EF's migration tooling assumes the entity needs a table and generates a `CREATE TABLE` migration on the next `dotnet ef migrations add`. `.ToView(null)` explicitly marks it as unmapped — migrations ignore it.
+
+> **File location**: Place SP result classes in `Features/{Feature}/Models/` with a `Result` suffix (e.g., `PolicySummaryResult.cs`) to distinguish them from domain entities. Never suffix them `Dto` — they are not DTOs; they don't cross service layer boundaries.
 
 ---
 
@@ -386,6 +434,41 @@ await _context.SaveChangesAsync(); // committed, no rollback if next fails
 _context.OrderItems.AddRange(items);
 await _context.SaveChangesAsync(); // if this fails, order is orphaned
 ```
+
+### `CreateExecutionStrategy()` — Required When Retry Policies Are Active
+
+> ⚠️ **Gotcha**: If EF Core is configured with a retry-on-failure execution strategy (e.g., `EnableRetryOnFailure()` for SQL Server), opening a manual transaction directly with `BeginTransactionAsync` throws `InvalidOperationException`:
+> *"The configured execution strategy does not support user-initiated transactions."*
+
+Wrap the entire transaction block inside `CreateExecutionStrategy().ExecuteAsync()`:
+
+```csharp
+public async Task CreateOrderWithRetryAsync(Order order, Notification notif, CancellationToken ct = default)
+{
+    // Required when UseSqlServer(..., o => o.EnableRetryOnFailure()) is configured
+    var strategy = _context.Database.CreateExecutionStrategy();
+
+    await strategy.ExecuteAsync(async () =>
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+        try
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync(ct);
+            _context.Notifications.Add(notif);
+            await _context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
+        }
+    });
+}
+```
+
+> **Why it's needed**: EF's retry strategy needs to control the entire operation so it can retry from the start on transient failure. A manually opened transaction breaks that contract — `CreateExecutionStrategy` restores it by giving EF a re-entrant execution scope.
 
 > ⚠️ **WARNING — Multi-context transactions cannot be made atomic without a distributed coordinator.**
 >
@@ -457,6 +540,11 @@ Migration folder: `src/YourProject.Infrastructure/Migrations/`
 ---
 
 ## Changelog
+
+### v2.7 — 2026-04-09
+- **Added**: Two-Level Pool section — documents the distinction between ADO.NET connection pool (`MaxPoolSize`, `MinPoolSize`, `ConnectTimeout` via `SqlConnectionStringBuilder`) and EF Core context pool (`poolSize`). Both must be configured for high-concurrency APIs.
+- **Added**: `CreateExecutionStrategy()` pattern — mandatory wrapper for manual transactions when EF retry-on-failure policies are active. Without it, `BeginTransactionAsync` throws `InvalidOperationException`. Explains why EF needs to control the execution scope.
+- **Updated**: Keyless entities section expanded with `ToView(null)` explanation (critical — without it, migrations generate a spurious `CREATE TABLE`), file naming convention (`Result` suffix), and clear distinction from domain entities and DTOs.
 
 ### v2.6 — 2026-04-09
 - **Fixed (W-09)**: Removed simple `.Include(o => o.Customer)` example from Eager Loading section — agent already knows the basic syntax. Kept only `ThenInclude` (non-trivial chaining) and the WRONG NullRef example.
