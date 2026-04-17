@@ -1,10 +1,10 @@
 # Zesh-One-Skills
 
-> Suite de skills para agentes AI — Backend .NET 8 REST API y Frontend, con soporte a herramientas [OpenCode](https://opencode.ai) + [Engram](https://github.com/gentleman-programming/engram) + [Agents Team Lite](https://github.com/gentleman-programming).
+> Suite de skills para agentes AI — Backend .NET 8 REST API, Frontend (Next.js 15) y Apps móviles (Ionic + Capacitor), con soporte a herramientas [OpenCode](https://opencode.ai) + [Engram](https://github.com/gentleman-programming/engram) + [Agents Team Lite](https://github.com/gentleman-programming).
 
 ## Qué es esto
 
-Repositorio privado de skills e instrucciones de contexto para agentes AI utilizados en proyectos backend .NET 8 y frontend. Centraliza las convenciones, reglas de arquitectura y guías de desarrollo que el agente debe conocer para trabajar correctamente en proyectos Zesh.
+Repositorio privado de skills e instrucciones de contexto para agentes AI utilizados en proyectos backend .NET 8, frontend Next.js 15 y apps móviles Ionic + Capacitor. Centraliza las convenciones, reglas de arquitectura y guías de desarrollo que el agente debe conocer para trabajar correctamente en proyectos Zesh.
 
 Los skills están diseñados para **OpenCode** con el stack de herramientas de Gentleman Programming: engram (memoria persistente) y agents-team-lite (orquestación de sub-agentes).
 
@@ -23,6 +23,7 @@ Los skills están diseñados para **OpenCode** con el stack de herramientas de G
 zesh-one-skills/
 ├── AGENTS.backend.md      # Instrucciones de agente para proyectos backend (distribuir como AGENTS.md)
 ├── AGENTS.frontend.md     # Instrucciones de agente para proyectos frontend (distribuir como AGENTS.md)
+├── AGENTS.apps.md         # Instrucciones de agente para proyectos mobile (distribuir como AGENTS.md)
 ├── skills/
 │   ├── backend/           # Skills de dominio backend (.NET 8 REST API)
 │   │   ├── dataaccess/
@@ -38,10 +39,16 @@ zesh-one-skills/
 │   ├── frontend/          # Skills de dominio frontend (Next.js 15, React 19, etc.)
 │   │   ├── nextjs-15/
 │   │   ├── react-19/
+│   │   ├── security/
+│   │   ├── shadcn-ui/
+│   │   ├── tanstack-query/
 │   │   ├── tailwind-4/
 │   │   ├── typescript/
 │   │   ├── zod-4/
 │   │   └── zustand-5/
+│   ├── apps/              # Skills mobile / native (Ionic + Capacitor)
+│   │   ├── capacitor/
+│   │   └── ionic-angular/
 │   └── shared/            # Skills cross-domain
 │       └── github-pr/
 ├── tools/                 # Scripts de validación (lint, test, verify)

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // tools/lint-skills.js — Skill documentation linter for Zesh-One-Skills
-// Rules: FM-001..FM-008, SEC-001..SEC-004, LNK-001
+// Rules: FM-001..FM-008, SEC-001..SEC-004, ANT-001, LNK-001
 // Profiles: strict (Zesh-One author) vs relaxed (vendor)
 // Exit: 0 if clean or warnings-only, 1 if any error
 
@@ -19,10 +19,11 @@ try {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 // Allow test injection via LINT_SKILLS_ROOTS env var (path.delimiter-separated absolute paths).
-// When unset the default three skill roots are used unchanged.
+// When unset the default four skill roots are used unchanged.
 let SKILLS_ROOTS = [
   path.resolve(__dirname, '..', 'skills', 'backend'),
   path.resolve(__dirname, '..', 'skills', 'frontend'),
+  path.resolve(__dirname, '..', 'skills', 'apps'),
   path.resolve(__dirname, '..', 'skills', 'shared'),
 ];
 if (process.env.LINT_SKILLS_ROOTS) {
@@ -44,6 +45,7 @@ const RULE_META = {
   'SEC-002': { desc: 'Section `## Critical Patterns` must be present' },
   'SEC-003': { desc: '`## Changelog` required when version >= 2.0 (Zesh-One)' },
   'SEC-004': { desc: 'Section `## Resources` recommended' },
+  'ANT-001': { desc: '`## Keywords` section found in body (antipattern)' },
   'LNK-001': { desc: 'Relative link in `## Resources` points to a non-existent file' },
 };
 
@@ -217,19 +219,26 @@ function lintSkillFile(filePath, content) {
   }
 
   // FM-007: allowed-tools (Zesh-One warning)
-  if (isZeshOne && !fm['allowed-tools']) {
+  if (
+    isZeshOne &&
+    (
+      !fm['allowed-tools'] ||
+      (Array.isArray(fm['allowed-tools']) && fm['allowed-tools'].length === 0) ||
+      (typeof fm['allowed-tools'] === 'string')
+    )
+  ) {
     push('warning', 'FM-007', 1, '`allowed-tools` field recommended for Zesh-One skills');
   }
 
   // ── Section checks ─────────────────────────────────────────────────────────
   const headings = [];
-  for (const line of body.split('\n')) {
+  body.split('\n').forEach((line, index) => {
     const m = line.match(/^(#{1,6})\s+(.+)/);
-    if (m) headings.push(m[2].trim());
-  }
+    if (m) headings.push({ text: m[2].trim(), line: index + 1 });
+  });
 
   const hasHeading = (pattern) =>
-    headings.some((h) => pattern.test(h));
+    headings.some((h) => pattern.test(h.text));
 
   // SEC-001: ## When to Use
   if (!hasHeading(/^When\s+to\s+Use/i)) {
@@ -252,6 +261,18 @@ function lintSkillFile(filePath, content) {
   // SEC-004: ## Resources recommended
   if (!hasHeading(/^Resources?/i)) {
     push('warning', 'SEC-004', frontmatterEndLine + 1, 'Section `## Resources` not found (recommended)');
+  }
+
+  // ANT-001: ## Keywords / Tags / Palabras clave antipattern (all skills)
+  for (const heading of headings) {
+    if (/^(Keywords?|Tags?|Etiquetas?|Palabras?\s+clave)$/i.test(heading.text)) {
+      push(
+        'warning',
+        'ANT-001',
+        frontmatterEndLine + heading.line,
+        '`## Keywords` section found — agents search frontmatter, not body. Remove this section.'
+      );
+    }
   }
 
   // ── Link validation ─────────────────────────────────────────────────────────

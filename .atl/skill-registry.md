@@ -5,7 +5,7 @@
 ## Project: zesh-one-skills
 
 **Stack**: Node.js 25 (tooling/validation) + Markdown skill files  
-**Domain**: AI Agent Skills repository — Backend (.NET 8 REST API) + Frontend (Next.js 15, React 19)
+**Domain**: AI Agent Skills repository — Backend (.NET 8 REST API) + Frontend (Next.js 15, React 19) + Apps (Ionic Angular, Capacitor)
 
 ---
 
@@ -33,7 +33,7 @@
 | `net8-apirest-mapping` | `skills/backend/mapping/SKILL.md` | AutoMapper profiles or manual mapping logic |
 | `net8-apirest-logging` | `skills/backend/logging/SKILL.md` | Serilog, structured logging, Correlation IDs |
 | `net8-apirest-performance` | `skills/backend/performance/SKILL.md` | Polly resilience pipelines (circuit breaker, retry), Kestrel limits, response caching, async parallelism |
-| `net8-apirest-testing-unit` | `skills/backend/testing-unit/SKILL.md` | Unit testing with xUnit, Moq, FluentAssertions |
+| `net8-apirest-testing-unit` | `skills/backend/testing-unit/SKILL.md` | Unit testing with xUnit, NSubstitute, FluentAssertions |
 
 ### Frontend Skills — `Gentleman Stack`
 
@@ -45,6 +45,16 @@
 | `tailwind-4` | `skills/frontend/tailwind-4/SKILL.md` | Working with Tailwind CSS classes |
 | `zod-4` | `skills/frontend/zod-4/SKILL.md` | Creating or updating Zod schemas |
 | `zustand-5` | `skills/frontend/zustand-5/SKILL.md` | Using or configuring Zustand stores |
+| `tanstack-query` | `skills/frontend/tanstack-query/SKILL.md` | Managing server/async state, caching, mutations, and prefetching |
+| `shadcn-ui` | `skills/frontend/shadcn-ui/SKILL.md` | Building UI components, forms, dark mode, or shadcn/ui primitives |
+| `security` | `skills/frontend/security/SKILL.md` | Configuring security headers, CSP, auth guards, validation, and cookie security |
+
+### Apps Skills
+
+| Skill Name | Path | Trigger |
+|------------|------|---------|
+| `ionic-angular` | `skills/apps/ionic-angular/SKILL.md` | Building Ionic Angular apps — standalone components, navigation, lifecycle, forms, or signals |
+| `capacitor` | `skills/apps/capacitor/SKILL.md` | Using Capacitor plugins, native APIs, platform detection, or mobile build/deploy |
 
 ### Shared Skills
 
@@ -86,9 +96,7 @@
 - Register dependencies in `Program.cs` with scoped lifetime for services/repositories
 
 ### `net8-apirest-responses` compact rules
-- Always return `ResponseDTO<T>` wrapper: `{ Success, Data, Errors, StatusCode }`
-- Use proper HTTP status codes: 200/201 for success, 400 for validation, 404 for not found, 500 for server errors
-- Never expose raw exceptions to the client
+- Prefer `Result<T>` (Railway-Oriented) for new code; `ResponseDTO<T>` is legacy — do NOT mix in the same service. Use proper HTTP status codes: 200/201 for success, 400 for validation, 404 for not found, 500 for server errors. Never expose raw exceptions to the client. Use `result.ToHttpResponse()` in controllers; use `PagedResult<T>` for list endpoints. HTTP codes: 200/201 success, 204 delete, 400 validation, 404 not found, 409 conflict, 500 server error.
 
 ### `net8-apirest-security` compact rules
 - OWASP API Top 10 compliance required
@@ -101,7 +109,7 @@
 - Never log sensitive data (passwords, tokens, PII)
 
 ### `net8-apirest-testing-unit` compact rules
-- xUnit + Moq + FluentAssertions
+- xUnit + NSubstitute + FluentAssertions
 - Test data builders pattern for complex objects
 - Unit tests for services, validators, and mappings — not controllers
 
@@ -111,7 +119,7 @@
 - No `any` — use `unknown` + type guards
 
 ### `react-19` compact rules
-- React Compiler is active — do NOT use `useMemo` or `useCallback` manually
+- React Compiler is NOT active by default — only omit `useMemo`/`useCallback` after verifying compiler is enabled (`experimental.reactCompiler: true`).
 - Prefer Server Components; use `'use client'` only when needed
 - No class components
 
@@ -119,6 +127,31 @@
 - App Router only (no pages/ directory)
 - Server Actions for mutations
 - Use `loading.tsx` and `error.tsx` for streaming/error boundaries
+
+### `tanstack-query` compact rules
+- TanStack Query for ALL server/API state — never React Context for async data
+- Use query key factories and `queryOptions()` / `infiniteQueryOptions()` helpers
+- Prefetch in Server Components and hydrate with `HydrationBoundary`
+
+### `shadcn-ui` compact rules
+- Install components with `npx shadcn@latest add ...` — never `npm install` UI primitives directly
+- Keep generated primitives in `components/ui/` untouched; customize via composition and CSS variables
+- Forms use React Hook Form + Zod + shadcn `Form*` primitives
+
+### `security` compact rules
+- Generate CSP nonce in middleware and apply security headers globally
+- Protect routes in middleware before render, not only in components
+- Validate inputs with Zod and keep sensitive cookies `httpOnly + secure + sameSite`
+
+### `ionic-angular` compact rules
+- Prefer standalone architecture with `@ionic/angular/standalone`
+- Every routed page must use `<ion-page>` and refresh data in `ionViewWillEnter`
+- Use `NavController` for animated navigation and Angular signals for app state
+
+### `capacitor` compact rules
+- Run `ionic cap sync` after every plugin install
+- Use `Capacitor.getPlatform()` / `isNativePlatform()` — never user-agent sniffing
+- Wrap native plugin calls in `try/catch` and separate cancellation from real errors
 
 ### `github-pr` compact rules
 - Branch naming: `feat/`, `fix/`, `chore/`, `docs/` prefix
