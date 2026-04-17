@@ -7,13 +7,7 @@ license: Apache-2.0
 metadata:
   author: Zesh-One
   version: "2.8"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
 ## When to Use
@@ -262,10 +256,15 @@ The project has **no soft delete pattern**. When needed, implement it this way:
 
 > **Modified version of `BaseEntity` when soft delete is needed**: add `IsDeleted` to the existing class shown above. This is not a second competing base class.
 
-Add `IsDeleted` to `BaseEntity`:
+Add `IsDeleted` to the entity:
 ```csharp
-// Add to existing BaseEntity:
-public bool IsDeleted { get; set; } = false;
+public abstract class BaseEntity
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public bool IsDeleted { get; set; } = false;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
 ```
 
 Register `HasQueryFilter` — automatically excludes soft-deleted records from ALL queries:
@@ -278,7 +277,6 @@ Override `SaveChangesAsync` in `DbContext` to intercept physical deletes:
 ```csharp
 public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
 {
-    // Prerequisite: IsDeleted must be added to BaseEntity (see soft delete section above)
     foreach (var entry in ChangeTracker.Entries<BaseEntity>())
     {
         if (entry.State == EntityState.Deleted)

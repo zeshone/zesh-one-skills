@@ -4,14 +4,8 @@ description: >
   ZeshOne Pull Request conventions.
   Trigger: When creating or reviewing a Pull Request.
 license: Apache-2.0
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
 metadata:
-  author: Zesh-One
+  author: zesh-one
   version: "1.0"
   inspired-by: gentleman-programming/github-pr
 ---
@@ -87,8 +81,5 @@ EOF
 )"
 ```
 
-## Resources
-
-- [GitHub CLI PR Docs](https://cli.github.com/manual/gh_pr_create)
-- [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-- [GitHub Pull Requests Guide](https://docs.github.com/en/pull-requests)
+## Keywords
+github, pull request, conventional commits, branch, alfa, gh cli

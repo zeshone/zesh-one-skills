@@ -7,13 +7,7 @@ license: Apache-2.0
 metadata:
   author: Zesh-One
   version: "1.8"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
 ## When to Use
@@ -158,20 +152,9 @@ app.MapControllers();       // 6. Route to controllers
 | Requests, input DTOs | [`requests`](../requests/SKILL.md) | Designing request contracts |
 | Logging, observability | [`logging`](../logging/SKILL.md) | Configuring Serilog, structured logging |
 
-## Resources
-
-- ASP.NET Core Fundamentals (.NET 8) — https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-8.0
-- Dependency Injection in ASP.NET Core (.NET 8) — https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0
-- Configuration in ASP.NET Core (.NET 8) — https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-8.0
-- Clean Architecture for ASP.NET Core — https://jasontaylor.dev/clean-architecture-getting-started/
-- .NET Application Architecture Guides — https://learn.microsoft.com/en-us/dotnet/architecture/
-
 ---
 
 ## Changelog
-
-### v1.8 — 2026-04-16
-- **Added**: `## Resources` section with .NET 8 / Clean Architecture reference links.
 
 ### v1.7 — 2026-04-09
 - **Fixed (Round 4)**: Replaced the concrete `/etc/myapp/config.json` example with provisioned-path placeholders and an explicit note that infrastructure tooling defines the exact absolute path.

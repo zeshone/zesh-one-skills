@@ -33,11 +33,10 @@ cp AGENTS.frontend.md /ruta/a/tu-proyecto/AGENTS.md
 
 ## Paso 2: Copiá los skills relevantes
 
-Los skills están organizados en cuatro dominios bajo `skills/`:
+Los skills están organizados en tres dominios bajo `skills/`:
 
 - `skills/backend/` — Arquitectura, data access, logging, responses, security, testing y más para .NET 8 REST API
 - `skills/frontend/` — Next.js 15, React 19, Tailwind 4, TypeScript, Zod 4, Zustand 5
-- `skills/apps/` — Mobile native layer (Ionic Angular, Capacitor)
 - `skills/shared/` — Skills cross-domain (github-pr, convenciones de Pull Request)
 
 **Acción:** Copiá el directorio del dominio que necesitás (más `skills/shared/`) a tu proyecto o referenciá este repositorio directamente desde tu `AGENTS.md`.
@@ -67,8 +66,8 @@ Si todo pasa sin errores, la suite está lista. Si hay fallos, revisá los mensa
 ## Notas
 
 - Esta suite está diseñada para un solo agente (OpenCode). No es multi-agente por defecto.
-- El alcance principal es backend .NET 8, frontend (Next.js 15, React 19) y apps móviles (Ionic Angular, Capacitor). Los skills están separados por dominio en `skills/backend/`, `skills/frontend/` y `skills/apps/`.
-- `skills/shared/` contiene skills cross-domain — inclúyelos siempre junto con el dominio principal.
+- El alcance principal es backend .NET 8 y frontend (Next.js 15, React 19). Los skills están separados por dominio en `skills/backend/` y `skills/frontend/`.
+- `skills/shared/` contiene skills cross-domain — incluilos siempre junto con el dominio principal.
 
 ## Uso en monorepos o proyectos multi-dominio
 

@@ -7,13 +7,7 @@ license: Apache-2.0
 metadata:
   author: Zesh-One
   version: "1.6"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
 ## When to Use

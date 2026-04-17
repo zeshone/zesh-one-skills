@@ -7,13 +7,7 @@ license: Apache-2.0
 metadata:
   author: Zesh-One
   version: "2.8"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
 ## When to Use
@@ -316,14 +310,6 @@ Sanitize BEFORE logging, never after:
 | [`responses`](../responses/SKILL.md) | Defines the exception → HTTP contract. The middleware implementation lives here. |
 | [`general`](../general/SKILL.md) | Defines the pipeline order. `CorrelationIdMiddleware` goes at position 0. |
 | [`security`](../security/SKILL.md) | `ForbiddenException` and the prohibition on logging tokens. |
-
-## Resources
-
-- Serilog — https://serilog.net/
-- Serilog.AspNetCore — https://github.com/serilog/serilog-aspnetcore
-- Serilog.Sinks.File — https://github.com/serilog/serilog-sinks-file
-- Serilog Enrichment and LogContext — https://github.com/serilog/serilog/wiki/Enrichment
-- Serilog Request Logging Middleware — https://github.com/serilog/serilog-aspnetcore#request-logging
 
 ---
 

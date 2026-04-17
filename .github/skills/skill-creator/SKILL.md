@@ -7,16 +7,7 @@ license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
-  - Bash
-  - WebFetch
-  - WebSearch
-  - Task
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, WebFetch, WebSearch, Task
 ---
 
 ## When to Create a Skill
@@ -93,8 +84,8 @@ metadata:
 | Type | Pattern | Examples |
 |------|---------|----------|
 | Generic skill | `{technology}` | `pytest`, `playwright`, `typescript` |
-| Project-specific | `{project}-{component}` | `acme-api`, `acme-ui`, `acme-sdk-check` |
-| Testing skill | `{project}-test-{component}` | `acme-test-sdk`, `acme-test-api` |
+| Prowler-specific | `prowler-{component}` | `prowler-api`, `prowler-ui`, `prowler-sdk-check` |
+| Testing skill | `prowler-test-{component}` | `prowler-test-sdk`, `prowler-test-api` |
 | Workflow skill | `{action}-{target}` | `skill-creator`, `jira-task` |
 
 ---
@@ -113,12 +104,12 @@ Link to external guides?    → references/ (with local path)
 
 ---
 
-## Decision: Project-Specific vs Generic
+## Decision: Prowler-Specific vs Generic
 
 ```
 Patterns apply to ANY project?     → Generic skill (e.g., pytest, typescript)
-Patterns are project-specific?     → {project}-{name} skill
-Generic skill needs project info?  → Add references/ pointing to project docs
+Patterns are Prowler-specific?     → prowler-{name} skill
+Generic skill needs Prowler info?  → Add references/ pointing to Prowler docs
 ```
 
 ---
@@ -129,7 +120,7 @@ Generic skill needs project info?  → Add references/ pointing to project docs
 |-------|----------|-------------|
 | `name` | Yes | Skill identifier (lowercase, hyphens) |
 | `description` | Yes | What + Trigger in one block |
-| `license` | Yes | Always `Apache-2.0` for Zesh-One skills |
+| `license` | Yes | Always `Apache-2.0` for Prowler |
 | `metadata.author` | Yes | `gentleman-programming` |
 | `metadata.version` | Yes | Semantic version as string |
 

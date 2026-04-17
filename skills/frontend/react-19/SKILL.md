@@ -4,14 +4,8 @@ description: >
   ZeshOne React 19 conventions.
   Trigger: When writing React components.
 license: Apache-2.0
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
 metadata:
-  author: Zesh-One
+  author: zesh-one
   version: "1.1"
   inspired-by: gentleman-programming/react-19
 ---
@@ -94,11 +88,8 @@ function Input({ ref, ...props }: React.ComponentProps<"input">) {
 const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);
 ```
 
-## Resources
-
-- [React 19 Blog Announcement](https://react.dev/blog/2024/12/05/react-19)
-- [React `useActionState`](https://react.dev/reference/react/useActionState)
-- [React `use`](https://react.dev/reference/react/use)
+## Keywords
+react, react 19, compiler, use hook, useActionState, forwardRef, server components
 
 ## Changelog
 

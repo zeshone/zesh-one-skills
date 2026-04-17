@@ -30,18 +30,7 @@ function assert(name, condition) {
 // ─── Read real skill file ─────────────────────────────────────────────────────
 
 const skillPath = path.join(__dirname, '..', 'skills', 'backend', 'logging', 'SKILL.md');
-let content;
-try {
-  content = fs.readFileSync(skillPath, 'utf8');
-} catch (error) {
-  console.error(JSON.stringify({
-    status: 'FAIL',
-    step: 'read-skill',
-    file: skillPath,
-    message: error.message,
-  }, null, 2));
-  process.exit(1);
-}
+const content = fs.readFileSync(skillPath, 'utf8');
 
 // ─── Scenarios ────────────────────────────────────────────────────────────────
 

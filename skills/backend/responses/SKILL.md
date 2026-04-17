@@ -10,13 +10,7 @@ license: Apache-2.0
 metadata:
   author: Zesh-One
   version: "1.7"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+allowed-tools: Read, Edit, Write, Glob, Grep
 ---
 
 ## When to Use
@@ -49,7 +43,7 @@ public class Result<T>
 {
     public bool IsSuccess { get; private set; }
     public T? Value { get; private set; }
-    public Uri? Location { get; private set; } // Non-null only when StatusCode == 201 (enforced by Created factory at compile time)
+    public Uri? Location { get; private set; }
     public string? ErrorMessage { get; private set; }
     public int StatusCode { get; private set; }
     public string? Title { get; private set; }
@@ -60,7 +54,7 @@ public class Result<T>
     public static Result<T> Success(T value) =>
         new() { IsSuccess = true, Value = value, StatusCode = 200 };
 
-    public static Result<T> Created(T value, Uri location) =>
+    public static Result<T> Created(T value, Uri? location = null) =>
         new() { IsSuccess = true, Value = value, StatusCode = 201, Location = location };
 
     public static Result<T> NoContent() =>
@@ -77,18 +71,16 @@ public class Result<T>
 
     public static Result<T> ValidationFail(Dictionary<string, string[]> errors) =>
         new() { IsSuccess = false, StatusCode = 400, Title = "Validation Failed", ValidationErrors = errors };
+```
 
-    // `ToHttpResponse()` contract:
-    // - 201 → CreatedResult(Location, Value)
-    // - 204 → NoContentResult
-    // - ValidationErrors → ValidationProblemDetails(400)
-    // - all other failures → ProblemDetails with the factory's StatusCode and Title
-    // `Created(...)` enforces the 201 `Location` requirement at compile time — see anti-pattern table.
+> **`ToHttpResponse()` contract**: `201 → CreatedResult(Location, Value)`; `204 → NoContentResult`; `ValidationErrors → ValidationProblemDetails(400)`; all other failures → `ProblemDetails` with the factory's `StatusCode` and `Title`. `Location` on 201 is required per REST — see anti-pattern table.
+
+```csharp
     public IActionResult ToHttpResponse() => IsSuccess
         ? StatusCode == 204
             ? new NoContentResult()
             : StatusCode == 201
-                ? new CreatedResult(Location!.ToString(), Value) // Safe: Created() factory guarantees non-null Location for 201
+            ? new CreatedResult(Location?.ToString() ?? string.Empty, Value)
             : new OkObjectResult(Value)
         : ValidationErrors is not null
             ? new BadRequestObjectResult(new ValidationProblemDetails(ValidationErrors) { Status = 400 })
@@ -294,10 +286,6 @@ options.OnRejected = async (context, ct) =>
 ---
 
 ## Changelog
-
-### v1.7 — 2026-04-16
-- **Added**: Documented `Result<T>` as the preferred Railway-Oriented internal contract, including the full merged class with `Success`, `Created`, `NoContent`, `BusinessFail`, `ValidationFail`, and `ToHttpResponse()` for controller integration.
-- **Added**: Included `PagedResult<T>` and clarified the controller/service usage pattern so list endpoints and HTTP mapping stay aligned with the external raw JSON / `ProblemDetails` contract.
 
 ### v1.6 — 2026-04-09
 - **Fixed (Round 4)**: Changed `Result<T>.Fail(Exception ex)` to `Result<T>.Fail(string message, int statusCode = 500)` so callers must provide a sanitized message explicitly instead of leaking `ex.Message` by default.
