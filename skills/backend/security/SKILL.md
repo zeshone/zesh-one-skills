@@ -7,12 +7,19 @@ license: Apache-2.0
 metadata:
   author: Zesh-One
   version: "1.8"
-allowed-tools: Read, Edit, Write, Glob, Grep
+allowed-tools:
+  - Read
+  - Edit
+  - Write
+  - Bash
+  - Glob
+  - Grep
 ---
 
 ## When to Use
 
 - Implementing JWT authentication or OAuth 2.0
+- JWT bootstrap (`AddAuthentication`, `TokenValidationParameters`) is in `general/SKILL.md`. This skill covers authorization, BOLA, OWASP, rate limiting, and CORS.
 - Configuring authorization policies
 - Preventing unauthorized access to resources (BOLA/IDOR)
 - Setting up CORS, rate limiting, or request size limits

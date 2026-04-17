@@ -44,27 +44,28 @@ console.log('\n── Scenario: Linter finds no skills → must exit 1 ───
 
 let exitCode = 0;
 try {
-  // execFileSync throws when the child exits non-zero — that is exactly the
-  // behaviour we want to assert, so we catch and record the exit status.
-  execFileSync(
-    process.execPath,
-    [path.join(__dirname, 'lint-skills.js')],
-    {
-      env: { ...process.env, LINT_SKILLS_ROOTS: roots.join(path.delimiter) },
-      stdio: 'pipe',
-    },
-  );
-  // If we reach here the linter exited 0 — that is the failure case.
-  exitCode = 0;
-} catch (err) {
-  exitCode = typeof err.status === 'number' ? err.status : 1;
+  try {
+    // execFileSync throws when the child exits non-zero — that is exactly the
+    // behaviour we want to assert, so we catch and record the exit status.
+    execFileSync(
+      process.execPath,
+      [path.join(__dirname, 'lint-skills.js')],
+      {
+        env: { ...process.env, LINT_SKILLS_ROOTS: roots.join(path.delimiter) },
+        stdio: 'pipe',
+      },
+    );
+    // If we reach here the linter exited 0 — that is the failure case.
+    exitCode = 0;
+  } catch (err) {
+    exitCode = typeof err.status === 'number' ? err.status : 1;
+  }
+
+  assert('lint-skills exits with code 1 when zero SKILL.md files found', exitCode === 1);
+} finally {
+  // ─── Teardown ─────────────────────────────────────────────────────────────
+  fs.rmSync(tmpBase, { recursive: true, force: true });
 }
-
-assert('lint-skills exits with code 1 when zero SKILL.md files found', exitCode === 1);
-
-// ─── Teardown ───────────────────────────────────────────────────────────────
-
-fs.rmSync(tmpBase, { recursive: true, force: true });
 
 // ─── Summary ────────────────────────────────────────────────────────────────
 

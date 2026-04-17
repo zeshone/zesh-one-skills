@@ -4,8 +4,13 @@ description: >
   ZeshOne Zustand 5 conventions.
   Trigger: When creating or configuring Zustand stores.
 license: Apache-2.0
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
 metadata:
-  author: zesh-one
+  author: Zesh-One
   version: "1.2"
   inspired-by: gentleman-programming/zustand-5
 ---
@@ -63,10 +68,10 @@ const store = useUserStore();
 
 ## Async Actions — Standard Shape
 
-Actions live in `@/app/(features)/{feature}/actions` — import them into the store, never call services directly.
+Actions live in `@/features/{feature}/actions` — import them into the store, never call services directly.
 
 ```typescript
-import { fetchProductsAction } from "@/app/(features)/products/actions";
+import { fetchProductsAction } from "@/features/products/actions";
 
 // Inside create():
 fetchProducts: async () => {
@@ -96,5 +101,9 @@ export const useSettingsStore = create<SettingsStore>()(
 );
 ```
 
-## Keywords
-zustand, zustand 5, state management, store, selectors, useShallow, persist
+## Resources
+
+- Zustand Docs — https://zustand.docs.pmnd.rs/
+- Zustand Getting Started — https://zustand.docs.pmnd.rs/getting-started/introduction
+- Zustand Prevent Rerenders with useShallow — https://zustand.docs.pmnd.rs/guides/prevent-rerenders-with-use-shallow
+- Zustand Persist Middleware — https://zustand.docs.pmnd.rs/integrations/persisting-store-data

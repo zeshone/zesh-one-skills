@@ -142,6 +142,8 @@ const FIXTURE_VALIDATIONS_CLEAN = `---
 name: net8-apirest-validations
 description: "Skill de validaciones para .NET 8. Trigger: when validating."
 license: MIT
+allowed-tools:
+  - Read
 metadata:
   author: Zesh-One
   version: "1.0"
@@ -155,6 +157,32 @@ Always register validators in DI container.
 
 ## Resources
 - **FluentValidation docs**: https://docs.fluentvalidation.net/en/latest/aspnet.html
+`;
+
+// ANT-001: skill válida con sección antipatrón ## Keywords
+const FIXTURE_ANT001_KEYWORDS_SECTION = `---
+name: test-skill
+description: "A test skill. Trigger: when testing."
+license: MIT
+allowed-tools:
+  - Read
+metadata:
+  author: Zesh-One
+  version: "1.0"
+---
+
+## When to Use
+Use this skill when testing.
+
+## Critical Patterns
+Pattern here.
+
+## Keywords
+- testing
+- lint
+
+## Resources
+- Example docs: https://example.com/docs
 `;
 
 // ─── Scenarios ────────────────────────────────────────────────────────────────
@@ -199,9 +227,14 @@ console.log('\n── Scenario 5: Valid skill — zero errors ──');
 {
   const results = lintSkillFile('/fake/SKILL.md', FIXTURE_VALID_SKILL);
   const errors = results.filter(r => r.level === 'error');
+  const warnings = results.filter(r => r.level === 'warning');
   assert(
     'zero errors for fully valid skill',
     errors.length === 0
+  );
+  assert(
+    'zero warnings for fully valid skill',
+    warnings.length === 0
   );
 }
 
@@ -214,12 +247,29 @@ console.log('\n── Scenario 6: LNK-001 — broken cross-reference (pre-fix va
   );
 }
 
-console.log('\n── Scenario 7: validations clean — zero errors ──');
+console.log('\n── Scenario 7: validations clean — zero errors and zero warnings ──');
 {
   const results = lintSkillFile('/fake/SKILL.md', FIXTURE_VALIDATIONS_CLEAN);
   assert(
     'zero errors for clean validations skill',
     results.filter(r => r.level === 'error').length === 0
+  );
+  assert(
+    'zero warnings for clean validations skill',
+    results.filter(r => r.level === 'warning').length === 0
+  );
+}
+
+console.log('\n── Scenario 8: ANT-001 — Keywords section antipattern ──');
+{
+  const results = lintSkillFile('/fake/SKILL.md', FIXTURE_ANT001_KEYWORDS_SECTION);
+  assert(
+    'reports ruleId ANT-001',
+    results.some(r => r.ruleId === 'ANT-001')
+  );
+  assert(
+    'ANT-001 is the only result for Keywords fixture',
+    results.filter(r => r.ruleId !== 'ANT-001').length === 0
   );
 }
 
