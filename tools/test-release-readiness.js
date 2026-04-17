@@ -115,8 +115,11 @@ console.log('\n── REQ-04: ADOPTING.md explicitly guides copying AGENTS.md �
 {
   const adoptingPath = path.join(ROOT, 'ADOPTING.md');
   const exists = fs.existsSync(adoptingPath);
+  assert('ADOPTING.md exists (required for REQ-04)', exists);
 
-  if (exists) {
+  if (!exists) {
+    // Skip content assertions when the file is missing — existence already failed.
+  } else {
     const content = fs.readFileSync(adoptingPath, 'utf8');
     assert(
       'ADOPTING.md mentions copying AGENTS.md (cp or copy instruction)',
@@ -126,9 +129,6 @@ console.log('\n── REQ-04: ADOPTING.md explicitly guides copying AGENTS.md �
       'ADOPTING.md references the cp/copy action for AGENTS distribution file',
       content.includes('cp AGENTS.') || content.includes('copy AGENTS.') || content.includes('Copiá')
     );
-  } else {
-    assert('ADOPTING.md exists (required for REQ-04)', false);
-    assert('ADOPTING.md copy instruction present (required for REQ-04)', false);
   }
 }
 

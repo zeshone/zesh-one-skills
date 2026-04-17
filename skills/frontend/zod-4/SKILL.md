@@ -4,8 +4,13 @@ description: >
   ZeshOne Zod 4 conventions.
   Trigger: When creating or updating Zod schemas.
 license: Apache-2.0
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
 metadata:
-  author: zesh-one
+  author: Zesh-One
   version: "1.0"
   inspired-by: gentleman-programming/zod-4
 ---
@@ -56,8 +61,10 @@ As of 2026, `npm install zod` still installs Zod 3 (stable default).
 Zod 4 requires an explicit install:
 
 ```bash
-npm install zod@beta   # Zod 4
+npm install zod@beta   # Verify this maps to v4: npm show zod dist-tags
 ```
+
+Verify the beta tag maps to v4 before installing: `npm show zod dist-tags`. If Zod 4 is stable, use `npm install zod@^4` instead.
 
 Do NOT assume Zod 4 is active unless `package.json` explicitly targets the beta tag or v4 stable has been released.
 
@@ -93,5 +100,9 @@ const { register, handleSubmit } = useForm<FormData>({
 });
 ```
 
-## Keywords
-zod, zod 4, validation, schema, safeParse, react hook form
+## Resources
+
+- Zod Docs — https://zod.dev/
+- Zod API Reference — https://zod.dev/api
+- Zod Ecosystem — https://zod.dev/ecosystem
+- React Hook Form Resolvers — https://github.com/react-hook-form/resolvers
