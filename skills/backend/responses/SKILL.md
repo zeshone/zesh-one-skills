@@ -1,330 +1,129 @@
 ---
-name: net8-apirest-responses
+name: responses
 description: >
-  Unified response standards for ASP.NET Core 8 REST APIs. Covers two internal contracts:
-  `Result<T>` (preferred — Railway-Oriented) and `ResponseDTO<T>` (legacy), plus the external
-  HTTP contract (raw resource JSON or `ProblemDetails`) for controller → client responses.
-  Trigger: When building API responses, defining return types for services, or standardizing
-  how data and errors flow from the data layer to the client in a .NET 8 API.
+  Operational response contract guidance for ASP.NET Core APIs with strict
+  internal boundaries and safe external error mapping.
+  Trigger: When defining service return contracts, mapping domain failures to HTTP,
+  or enforcing consistent response behavior across backend services.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.7"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+  version: "2.0"
+allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
 ## When to Use
 
-- Defining return types for services and repositories
-- Standardizing success and error responses
-- Implementing exception handling middleware
-- Reviewing the data flow from the data layer to the client
-
----
+- Defining how service outcomes become HTTP responses.
+- Refactoring endpoints that leak internal contracts to clients.
+- Establishing one response style for a service boundary.
+- Reviewing error handling for security and consistency.
 
 ## Critical Patterns
 
-### Internal Contract — Choose One
+This skill enforces ONE internal contract per service and ONE external contract for clients.
 
-| Contract | Status | When to use |
-|---|---|---|
-| `Result<T>` | ✅ **Preferred** | New projects and new services |
-| `ResponseDTO<T>` | ⚠️ **Legacy** | Existing codebases already using it — do not mix both in the same service |
+1. **DO choose exactly one internal contract (`Result<T>` or legacy `ResponseDTO<T>`); DO NOT mix both in one service; WHY: mixed contracts force fragile controller branching.**
+2. **DO use `Result<T>` for new services; DO NOT introduce `ResponseDTO<T>` in greenfield code; WHY: explicit success/failure semantics reduce hidden behavior.**
+3. **DO keep repositories returning entities/null only; DO NOT return transport envelopes from repositories; WHY: repository is data boundary, not API contract boundary.**
+4. **DO map internal contracts at controller boundary (`ToHttpResponse()` style); DO NOT return internal envelope objects as HTTP payload; WHY: clients must receive stable raw JSON or `ProblemDetails`.**
+5. **DO use explicit expected-failure factories for business outcomes (validation/conflict/not found by design); DO NOT throw exceptions for normal business branches; WHY: expected behavior should be first-class, testable flow.**
+6. **DO keep unhandled exceptions in middleware ownership; DO NOT serialize raw exception text from services; WHY: stack traces and internals are security leaks.**
+7. **DO use status-accurate mapping (201/204/400/403/404/409/500); DO NOT return `200` for failures; WHY: clients, retries, and observability depend on real status semantics.**
+8. **DO emit `Location` for 201 Created; DO NOT return 201 without canonical resource URI; WHY: REST clients depend on discoverability of created resources.**
+9. **DO return `Result<object>.NoContent()` for body-less successful deletes/mutations; DO NOT attach decorative payloads to 204; WHY: 204 contract has no body.**
+10. **DO keep external error shape standardized with `ProblemDetails`; DO NOT create custom error objects per endpoint; WHY: standard shape lowers client complexity and incidents.**
 
----
-
-### `Result<T>` — Railway-Oriented Pattern (Preferred)
-
-`Result<T>` makes success and failure explicit return types — no exceptions for business failures, no null checks, no internal envelope leaking to the client.
+Example boundary mapping:
 
 ```csharp
-// Shared/Models/Result.cs
-public class Result<T>
+public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
 {
-    public bool IsSuccess { get; private set; }
-    public T? Value { get; private set; }
-    public Uri? Location { get; private set; } // Non-null only when StatusCode == 201 (enforced by Created factory at compile time)
-    public string? ErrorMessage { get; private set; }
-    public int StatusCode { get; private set; }
-    public string? Title { get; private set; }
-    public Dictionary<string, string[]>? ValidationErrors { get; private set; }
-
-    private Result() { }
-
-    public static Result<T> Success(T value) =>
-        new() { IsSuccess = true, Value = value, StatusCode = 200 };
-
-    public static Result<T> Created(T value, Uri location) =>
-        new() { IsSuccess = true, Value = value, StatusCode = 201, Location = location };
-
-    public static Result<T> NoContent() =>
-        new() { IsSuccess = true, StatusCode = 204 };
-
-    // WARNING: Never pass raw exception messages from unhandled exceptions here
-    // (SQL text, table names, internal details). Provide a sanitized message explicitly.
-    // Unhandled exceptions should usually flow to ExceptionHandlingMiddleware instead.
-    public static Result<T> Fail(string message, int statusCode = 500) =>
-        new() { IsSuccess = false, ErrorMessage = message, StatusCode = statusCode };
-
-    public static Result<T> BusinessFail(string message, int statusCode = 400, string title = "Bad Request") =>
-        new() { IsSuccess = false, ErrorMessage = message, StatusCode = statusCode, Title = title };
-
-    public static Result<T> ValidationFail(Dictionary<string, string[]> errors) =>
-        new() { IsSuccess = false, StatusCode = 400, Title = "Validation Failed", ValidationErrors = errors };
-
-    // `ToHttpResponse()` contract:
-    // - 201 → CreatedResult(Location, Value)
-    // - 204 → NoContentResult
-    // - ValidationErrors → ValidationProblemDetails(400)
-    // - all other failures → ProblemDetails with the factory's StatusCode and Title
-    // `Created(...)` enforces the 201 `Location` requirement at compile time — see anti-pattern table.
-    public IActionResult ToHttpResponse() => IsSuccess
-        ? StatusCode == 204
-            ? new NoContentResult()
-            : StatusCode == 201
-                ? new CreatedResult(Location!.ToString(), Value) // Safe: Created() factory guarantees non-null Location for 201
-            : new OkObjectResult(Value)
-        : ValidationErrors is not null
-            ? new BadRequestObjectResult(new ValidationProblemDetails(ValidationErrors) { Status = 400 })
-            : new ObjectResult(new ProblemDetails
-            {
-                Status = StatusCode,
-                Title = Title ?? "Error",
-                Detail = ErrorMessage
-            }) { StatusCode = StatusCode };
-}
-```
-
-**Controller pattern — always:**
-```csharp
-public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
-{
-    var result = await _userService.CreateAsync(request);
+    var result = await _users.CreateAsync(request); // Result<UserDto>
     return result.ToHttpResponse();
 }
 ```
 
-**Service pattern:**
-```csharp
-public async Task<Result<UserDto>> CreateAsync(CreateUserRequest request)
-{
-    if (await _repository.ExistsByEmailAsync(request.Email))
-        return Result<UserDto>.BusinessFail("Email already registered.", 409, "Conflict");
+Layer contract baseline:
 
-    var entity = request.ToEntity();
-    await _repository.AddAsync(entity);
-    return Result<UserDto>.Created(entity.ToDto(), new Uri($"/users/{entity.Id}", UriKind.Relative));
-}
-```
+- Repository: entity or null.
+- Service: internal contract (`Result<T>` preferred, `ResponseDTO<T>` legacy only).
+- Controller: HTTP response mapping only.
 
-**DELETE convention (`204 No Content`):**
-```csharp
-public async Task<Result<object>> DeleteAsync(Guid id)
-{
-    var user = await _repository.GetByIdAsync(id);
-    if (user is null) throw new NotFoundException(nameof(User), id);
+Expected exception ownership:
 
-    await _repository.DeleteAsync(id);
-    return Result<object>.NoContent();
-}
-```
+- Domain exceptions still possible for exceptional paths: `NotFoundException`, `ForbiddenException`, `ConflictException`.
+- `401 Unauthorized` is auth pipeline ownership, not domain exception ownership.
 
-> **Convention**: use `Result<object>.NoContent()` for DELETE operations when you need a generic placeholder type. A `204` response has no body, so the generic type is never serialized to the client.
+## Constraints & Tradeoffs
 
-> **Rule**: Domain exceptions (`NotFoundException`, `ForbiddenException`) are still thrown for exceptional flows and caught by `ExceptionHandlingMiddleware`. `Result<T>` handles **expected business outcomes** (not found by design, conflict, validation) — replacing the throw/catch cycle for predictable conditions.
-
-### Layer Contract with `Result<T>`
-
-| Layer | Returns | Never |
-|---|---|---|
-| Repository | Domain entities or `null` | DTOs, `Result<T>`, `ResponseDTO<T>` |
-| Service | `Result<T>` wrapping DTO | Raw entities, null returns for not-found, silently swallowed errors |
-| Controller | `result.ToHttpResponse()` | The `Result<T>` object directly to the client |
-
-```
-Repository  →        Service         →   Controller  →   Client
-  Entity       Result<T>.Success(dto)    ToHttpResponse()   HTTP 2xx (raw JSON)
-  null         Result<T>.BusinessFail()                     HTTP 4xx (ProblemDetails)
-```
-
----
-
-### `ResponseDTO<T>` — Legacy Contract
-
-> ⚠️ **Legacy**: Use only in codebases already built on this pattern. Do NOT introduce in new services. Do NOT mix `Result<T>` and `ResponseDTO<T>` in the same service.
->
-> ⛔ **Never add an `Exception?` property to `ResponseDTO<T>`** — exceptions serialized as JSON leak stack traces and internal details to the client.
-
-```csharp
-// Shared/Models/ResponseDTO.cs
-public class ResponseDTO<T>
-{
-    public bool Success { get; set; }
-    public string Message { get; set; } = string.Empty;
-    public T? Data { get; set; }
-    // ⛔ NEVER: public Exception? Exception { get; set; }
-}
-```
-
-**Legacy layer contract:**
-
-| Boundary | Contract | Who uses it |
-|---|---|---|
-| **Internal** (Service → Controller) | `ResponseDTO<T>` | Services |
-| **External** (Controller → Client) | Raw HTTP: resource JSON (2xx) or `ProblemDetails` (4xx/5xx) | Controllers |
-
-> **Rule**: `ResponseDTO<T>` is an internal transport contract. It is **never** serialized as an HTTP response body.
-
-**Usage rules:**
-- `Success: true` → `Data` is the result; **never `null`**. Use empty values: `[]`, `string.Empty`, `0`.
-- `Success: false` → `Message` is a clear error description; `Data` is `null`.
-
-### Paged Response
-
-```csharp
-// Shared/Models/PagedResult.cs
-public class PagedResult<T>
-{
-    public List<T> Items { get; set; } = new();
-    public int TotalCount { get; set; }
-    public int Page { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
-}
-```
-
----
-
-## Exception Handling — HTTP Mapping (Single Source of Truth)
-
-> **Ownership**: The exception → HTTP contract lives here (`responses`). The middleware implementation, logging and correlationId live in [`logging`](../logging/SKILL.md).
-
-### Canonical Table
-
-| Exception | HTTP Status | Log Level | Client Message |
-|---|---|---|---|
-| `NotFoundException` | `404 Not Found` | Warning | `ex.Message` (safe) |
-| `ForbiddenException` | `403 Forbidden` | Warning | `ex.Message` (safe) |
-| `ConflictException` | `409 Conflict` | Warning | `ex.Message` (safe) |
-| `ValidationException` (manual) | `400 Bad Request` | Information | First error message |
-| `Exception` (unhandled) | `500 Internal Server Error` | Error | Generic — **never expose stack trace** |
-
-> **`401 Unauthorized` — Pipeline/Auth ownership (D-27)**  
-> `401` is NOT a domain exception. It is resolved by the auth pipeline (JWT bearer, `[Authorize]`).  
-> **Do not create `UnauthorizedException`.**
-
-### Exception Location Reference
-
-| Exception | Defined in |
-|---|---|
-| `NotFoundException` | `general` skill — `Shared/Exceptions/NotFoundException.cs` |
-| `ForbiddenException` | `security` skill — `Shared/Exceptions/ForbiddenException.cs` |
-| `ConflictException` | `general` skill — `Shared/Exceptions/ConflictException.cs` |
-
-### Uniform 400 — `InvalidModelStateResponseFactory`
-
-```csharp
-builder.Services.AddControllers()
-    .ConfigureApiBehaviorOptions(options =>
-    {
-        options.InvalidModelStateResponseFactory = context =>
-        {
-            var firstError = context.ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .FirstOrDefault() ?? "Validation failed.";
-
-            return new BadRequestObjectResult(new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Bad Request",
-                Detail = firstError
-            });
-        };
-    });
-```
-
-### Uniform 429 — Rate Limiter `OnRejected`
-
-```csharp
-options.OnRejected = async (context, ct) =>
-{
-    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-    await context.HttpContext.Response.WriteAsJsonAsync(new ProblemDetails
-    {
-        Status = StatusCodes.Status429TooManyRequests,
-        Title = "Too Many Requests",
-        Detail = "Rate limit exceeded. Please try again later."
-    }, ct);
-};
-```
-
----
+- `Result<T>` clarity comes with explicit factory/status mapping work in service code.
+- Legacy code may need temporary `ResponseDTO<T>` retention; migration should be per-service, never mixed in one service.
+- Strict external contract (`2xx` resource JSON, non-`2xx` `ProblemDetails`) may require adapters in old controllers.
+- Middleware-centric unexpected-error handling improves safety but requires disciplined no-leak service behavior.
+- Uniform contracts improve maintenance but can feel verbose for trivial endpoints; keep consistency anyway.
+- Cross-team migration requires a clear cutline by feature/service to avoid long-lived hybrid states.
+- Contract consolidation may surface hidden assumptions in clients that expected custom error payloads.
+- Consistency rules should be enforced in PR review checklists to prevent regressions.
+- Teams integrating with external gateways may need explicit adapter mapping while preserving internal standards.
 
 ## Anti-Patterns
 
-| Anti-pattern | Problem |
-|---|---|
-| `ResponseDTO<T>` in the HTTP response body | Internal envelope exposed to client — violates the external contract |
-| `Result<T>` and `ResponseDTO<T>` in the same service | Two conflicting contracts create unpredictable controller code |
-| `Exception?` property on any response DTO | Serializes stack trace and internals to the client — security risk |
-| Returning `null` from service on "not found" | Use `Result<T>.BusinessFail("Not found.", 404, "Not Found")` or throw `NotFoundException` — never null |
-| HTTP 200 for errors | Misleads clients — always use correct status codes |
-| `ResponseDTO<T>` in repositories | Repositories are the data layer, not the API layer |
-| Creating `UnauthorizedException` as a domain exception | `401` belongs to the pipeline — not the domain |
-| Not including `Location` header on 201 Created | Violates REST |
+- Returning `ResponseDTO<T>` directly in controller HTTP payload.
+- Returning `Result<T>` object as public JSON envelope.
+- Exposing `Exception`, `StackTrace`, SQL fragments, or internal identifiers to clients.
+- Returning null from service for not-found/conflict flows.
+- Converting all failures to generic `500` and losing domain meaning.
+- Creating `UnauthorizedException` for 401 semantics.
+- Combining legacy and modern response contracts inside one feature slice.
+- Ignoring 201 `Location` and 204 empty-body semantics.
 
----
+## Progressive Disclosure
+
+Use this order when implementing or reviewing:
+
+1. Choose internal contract per service (`Result<T>` preferred).
+2. Confirm repository/service/controller boundary ownership.
+3. Verify status mapping for happy path and expected failures.
+4. Verify unexpected failures bubble to middleware and remain sanitized.
+5. Check external payload shape consistency (`ProblemDetails` for non-2xx).
+
+Practical review checklist:
+
+- Verify one contract keyword appears in service signatures.
+- Verify controller returns mapped HTTP result, not envelope object.
+- Verify 201 responses include location semantics.
+- Verify 204 responses send no payload.
+- Verify expected business failure and unexpected failure paths are both covered.
+- Verify no exception field/string from internals is serialized.
+
+Escalate to related skills when needed:
+
+- Middleware + correlation/logging ownership: `../logging/SKILL.md`.
+- Authorization/forbidden policy details: `../security/SKILL.md`.
+- Shared exception conventions: `../general/SKILL.md`.
+- Input and mapping boundaries: `../requests/SKILL.md`, `../mapping/SKILL.md`, `../validations/SKILL.md`.
 
 ## Resources
 
-- **General / NotFoundException**: See [../general/SKILL.md](../general/SKILL.md)
-- **Requests**: See [../requests/SKILL.md](../requests/SKILL.md)
-- **Mapping**: See [../mapping/SKILL.md](../mapping/SKILL.md)
-- **Logging / ExceptionHandlingMiddleware**: See [../logging/SKILL.md](../logging/SKILL.md)
-- **Validations**: See [../validations/SKILL.md](../validations/SKILL.md)
-- **Security / ForbiddenException**: See [../security/SKILL.md](../security/SKILL.md)
+- [../logging/SKILL.md](../logging/SKILL.md)
+- [../security/SKILL.md](../security/SKILL.md)
+- [../general/SKILL.md](../general/SKILL.md)
+- [../requests/SKILL.md](../requests/SKILL.md)
+- [../mapping/SKILL.md](../mapping/SKILL.md)
+- [../validations/SKILL.md](../validations/SKILL.md)
+- [ASP.NET ProblemDetails docs](https://learn.microsoft.com/aspnet/core/fundamentals/error-handling)
 
----
+Related governance docs in this repo:
+
+- `README.md` for project-wide defaults.
+- `ADOPTING.md` for distribution and verification workflow.
 
 ## Changelog
 
+### v2.0 — 2026-04-21
+- Rewritten as concise operational guidance with mandatory sections and repository-standard wording.
+- Enforced one-contract-per-service and no raw exception leakage as default policy.
+
 ### v1.7 — 2026-04-16
-- **Added**: Documented `Result<T>` as the preferred Railway-Oriented internal contract, including the full merged class with `Success`, `Created`, `NoContent`, `BusinessFail`, `ValidationFail`, and `ToHttpResponse()` for controller integration.
-- **Added**: Included `PagedResult<T>` and clarified the controller/service usage pattern so list endpoints and HTTP mapping stay aligned with the external raw JSON / `ProblemDetails` contract.
-
-### v1.6 — 2026-04-09
-- **Fixed (Round 4)**: Changed `Result<T>.Fail(Exception ex)` to `Result<T>.Fail(string message, int statusCode = 500)` so callers must provide a sanitized message explicitly instead of leaking `ex.Message` by default.
-- **Fixed (Round 4)**: Corrected the `Layer Contract with Result<T>` table — the Service row now documents what to avoid (`Raw entities, null returns for not-found, silently swallowed errors`) instead of incorrectly saying services should throw for business failures.
-
-### v1.5 — 2026-04-09
-- **Fixed (Round 3)**: Added a warning on `Result<T>.Fail(...)` — never forward raw unhandled exception messages to the client; use a generic message and let `ExceptionHandlingMiddleware` sanitize unexpected failures.
-- **Fixed (Round 3)**: Added a minimal DELETE service example using `Result<object>.NoContent()` plus a note explaining the placeholder-type convention for `204 No Content` responses.
-- **Fixed (Round 3)**: Corrected the anti-pattern example from `.BusinessFail(404)` to `.BusinessFail("Not found.", 404, "Not Found")` so the status code is no longer passed into the message parameter.
-
-### v1.4 — 2026-04-09
-- **Added**: `Result<T>` Railway-Oriented pattern as the preferred internal contract for new projects — factory methods `Success`, `Created`, `NoContent`, `Fail`, `BusinessFail`, `ValidationFail`; `ToHttpResponse()` for controller integration; service and controller usage patterns.
-- **Updated**: `ResponseDTO<T>` marked as legacy — do not introduce in new services, do not mix with `Result<T>`. Added explicit warning against `Exception?` property (stack trace serialization risk).
-- **Updated**: Layer contract table updated to reflect `Result<T>` as the primary path.
-- **Updated**: Anti-patterns table expanded with `Result<T>`/`ResponseDTO<T>` mixing and `Exception?` DTO field.
-- **Updated**: Frontmatter description updated to reflect dual-contract evolution.
-
-### v1.3 — 2026-04-09
-- **Fixed (CRITICAL)**: Dual Contract table boundary label corrected from "Repository → Service" to "Service → Controller". Repositories return pure entities — they never produce `ResponseDTO<T>`. Updated frontmatter description to match.
-- **Fixed (W-12)**: Collapsed three-row ResponseDTO usage table into two bullet rules — cleaner, same information, removes redundant scenario split.
-
-### v1.2 — 2026-03-28
-- **Removed**: Full CRUD controller example (already in `general/SKILL.md`)
-- **Removed**: Verbose explanation of the "why" behind the dual contract
-- **Removed**: Full middleware snippets (they live in `logging/SKILL.md`)
-- **Removed**: Repository and Service return pattern examples (consolidated in the layer contract table)
-- **Kept**: Dual contract table, ResponseDTO<T> definition, layer contract table, paged result, HTTP status table, exception mapping as single source of truth, uniform 400/429
-
-### v1.1 — 2026-03-24
-- Dual Response Contract D-25/D-26/D-27; ProblemDetails; exception ownership clarified
+- Consolidated previous history into a single legacy baseline for contract-evolution context.

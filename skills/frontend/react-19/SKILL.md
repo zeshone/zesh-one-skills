@@ -1,106 +1,112 @@
 ---
 name: react-19
 description: >
-  ZeshOne React 19 conventions.
-  Trigger: When writing React components.
+  Operational React 19 rules for component boundaries, forms, and modern APIs.
+  Trigger: When building or refactoring React 19 components, hooks, refs, or form actions.
 license: Apache-2.0
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+allowed-tools: Read Edit Write Glob Grep
 metadata:
   author: Zesh-One
-  version: "1.1"
+  version: "1.2"
   inspired-by: gentleman-programming/react-19
 ---
 
 ## When to Use
 
-Load this skill when writing React components — hooks, Server Components, forms, or refs.
+Load this skill when creating React 19 UI units that require component boundary decisions (`server` vs `client`), form actions, async reads, or ref forwarding replacements.
 
 ## Critical Patterns
 
-- With React Compiler active: do NOT add `useMemo` or `useCallback` — the compiler handles memoization. Without it: add them as needed (see prerequisite section below).
-- ALWAYS use named imports from `"react"` — never `import React from "react"`.
-- Server Components are the default — add `"use client"` only when the component needs state, events, or browser APIs.
-- Use `useActionState` (NOT `useFormState` — removed in React 19) for form submission state and pending indicators.
-- `ref` is a plain prop in React 19 — do NOT use `forwardRef`.
-
-## React Compiler — Prerequisite (Non-Obvious)
-
-The compiler is NOT active by default. Without it, removing `useMemo`/`useCallback` causes re-render regressions.
-
-- **Next.js 15**: add `experimental: { reactCompiler: true }` to `next.config.ts` — compiler is bundled.
-- **Vite / other bundlers**: install `babel-plugin-react-compiler` and configure Babel explicitly.
-
-Verify the compiler is active before removing any manual memoization from existing code.
-
-## use() Hook — New React 19 API
-
-`use()` does two things `useContext` cannot:
-
-1. Reads a Promise inside a Suspense boundary (suspends until resolved).
-2. Called conditionally — unlike `useContext`, it is not subject to the Rules of Hooks position constraint.
-
-```typescript
-import { use } from "react";
-
-// Reads promise — suspends until resolved
-function Comments({ promise }: { promise: Promise<Comment[]> }) {
-  const comments = use(promise);
-  return comments.map(c => <div key={c.id}>{c.text}</div>);
-}
-
-// Conditional context — not possible with useContext
-function Theme({ showTheme }: { showTheme: boolean }) {
-  if (showTheme) {
-    const theme = use(ThemeContext);
-    return <div style={{ color: theme.primary }}>Themed</div>;
-  }
-  return <div>Plain</div>;
-}
-```
-
-## useActionState — Replaces useFormState (Breaking Change)
-
-`useFormState` was removed in React 19. The replacement is `useActionState` from `"react"` (not from `"react-dom"`).
+1. **Do** default to Server Components; **don't** add `"use client"` by habit. **Why:** keeps bundles smaller.
+2. **Do** add `"use client"` only for state, events, refs, or browser APIs; **don't** use it for static render-only views. **Why:** client boundaries are expensive.
+3. **Do** verify React Compiler activation before removing memoization; **don't** strip `useMemo`/`useCallback` blindly. **Why:** non-compiled apps can regress.
+4. **Do** use named React imports; **don't** use default `React` import. **Why:** aligns with modern JSX runtime and linting.
+5. **Do** use `useActionState` for form action status; **don't** use removed `useFormState`. **Why:** React 19 API compatibility.
+6. **Do** treat `ref` as a prop in new components; **don't** introduce `forwardRef` for React 19-first code. **Why:** simpler component signatures.
+7. **Do** use `use()` for promise reads within Suspense; **don't** re-implement loading orchestration manually. **Why:** native async read semantics.
+8. **Do** keep `use()` reads close to render usage; **don't** pass unresolved promises across deep trees without boundaries. **Why:** improves failure locality.
+9. **Do** model form actions as idempotent server mutations; **don't** rely only on client-side optimistic assumptions. **Why:** prevents divergence.
+10. **Do** re-check hook behavior after compiler/tooling upgrades; **don't** assume past heuristics still hold. **Why:** compiler/runtime contracts evolve.
 
 ```typescript
 import { useActionState } from "react";
 
-function Form() {
-  const [state, action, isPending] = useActionState(submitAction, null);
-  return (
-    <form action={action}>
-      <button disabled={isPending}>
-        {isPending ? "Saving..." : "Save"}
-      </button>
-    </form>
-  );
+export function ProfileForm() {
+  const [state, action, isPending] = useActionState(saveProfileAction, null);
+  return <form action={action}><button disabled={isPending}>{isPending ? "Saving..." : "Save"}</button></form>;
 }
 ```
 
-## ref as Plain Prop — forwardRef Removed (Breaking Change)
+## Constraints & Tradeoffs
 
-```typescript
-// ✅ React 19
-function Input({ ref, ...props }: React.ComponentProps<"input">) {
-  return <input ref={ref} {...props} />;
-}
+- Server-first composition improves performance but can constrain direct browser API access.
+- React Compiler reduces manual memo work, but only when explicitly enabled in tooling.
+- `use()` improves async ergonomics yet requires clear Suspense/error boundary strategy.
+- `ref` as prop simplifies new code, but migration may coexist with legacy `forwardRef` wrappers.
+- Form action flows centralize mutation handling, but can feel indirect versus inline handlers.
 
-// ❌ forwardRef no longer needed — do not use it
-const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);
-```
+Boundary decision checklist:
+- Mark as server by default, then justify each client boundary.
+- Confirm compiler status before deleting memoization primitives.
+- Ensure every `use()` path has surrounding Suspense and error boundaries.
+- Keep form pending and result handling colocated with action usage.
+- Avoid mixed legacy/new ref patterns unless migration demands coexistence.
+
+Compiler activation hints:
+- Next.js: verify `experimental.reactCompiler` before cleanup refactors.
+- Non-Next bundlers: verify compiler plugin wiring in Babel/toolchain.
+- Treat compiler status as environment-specific, not repository-wide by assumption.
+
+## Anti-Patterns
+
+1. Client-marking entire trees because one child uses events.
+2. Replacing `useActionState` with ad-hoc pending booleans per form.
+3. Removing memoization without confirming compiler enablement.
+4. Using `use()` outside controlled Suspense/error boundaries.
+5. Mixing legacy and modern ref patterns in the same component without intent.
+6. Importing broad client-only libraries into server component entry points.
+7. Converting server components to client components only to run simple formatting logic.
+
+## Progressive Disclosure
+
+1. Adopt server-vs-client boundary discipline first.
+2. Move forms to `useActionState` and explicit pending UX.
+3. Introduce `use()` for async reads where Suspense already exists.
+4. Enable and validate React Compiler before memo simplification passes.
+5. Cross-check app-level integration with [../nextjs-15/SKILL.md](../nextjs-15/SKILL.md).
+
+Team rollout pattern:
+- **Phase 1**: boundary rules + import hygiene.
+- **Phase 2**: forms migrated to action-based flow.
+- **Phase 3**: selective `use()` adoption in high-impact async reads.
+- **Phase 4**: compiler-enabled optimization cleanup.
+
+Execution guardrails:
+- Keep one concern per component boundary refactor PR.
+- Validate behavior snapshots before and after client/server boundary changes.
+- Prefer incremental migration over whole-tree rewrites.
 
 ## Resources
 
 - [React 19 Blog Announcement](https://react.dev/blog/2024/12/05/react-19)
 - [React `useActionState`](https://react.dev/reference/react/useActionState)
 - [React `use`](https://react.dev/reference/react/use)
+- [React Server Components Reference](https://react.dev/reference/rsc/server-components)
+- [Next.js 15 baseline conventions](../nextjs-15/SKILL.md)
+
+Related operational pairings:
+- Use with [../typescript/SKILL.md](../typescript/SKILL.md) for typed component contracts.
+- Use with [../security/SKILL.md](../security/SKILL.md) when forms mutate sensitive data.
+- Use with [../tanstack-query/SKILL.md](../tanstack-query/SKILL.md) for client cache orchestration.
+- Keep boundary and data-fetching concerns separated during refactors.
 
 ## Changelog
 
+### v1.2 — 2026-04-21
+- Standardized to operational format with exact required section set.
+- Replaced long explanatory blocks with 10 atomic Do/Don't rules.
+- Reduced snippets to one compact reference while preserving key React 19 guidance.
+- Added boundary checklist and rollout notes to keep guidance practical.
+
 ### v1.1 — 2026-04-09
-- **Fixed (Round 3)**: Reworded the `useMemo` / `useCallback` directive so the prerequisite is the primary signal: only avoid manual memoization when the React Compiler is actually active.
+- Reworded memoization rule to make compiler prerequisite explicit.

@@ -1,200 +1,117 @@
 ---
-name: net8-apirest-general
+name: general
 description: >
-  General architecture and coding conventions for ASP.NET Core 8 REST APIs using Clean Architecture with Vertical Slices.
-  Trigger: When creating, scaffolding, or structuring any .NET 8 REST API project, controllers, services, repositories, or feature folders.
+  Operational defaults for ASP.NET Core 8 REST API architecture and conventions.
+  Trigger: When creating, restructuring, or reviewing backend feature slices, dependency wiring, middleware order, and shared conventions.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.8"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+  version: "2.0"
+allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
 ## When to Use
 
-- Creating a new .NET 8 REST API project or feature
-- Scaffolding controllers, services, repositories, or DTOs
-- Reviewing project structure and folder organization
-- Applying naming conventions or deciding code style
-- Registering dependencies in `Program.cs`
-
----
+- Starting a new backend feature or module in a .NET 8 API.
+- Reviewing architecture consistency before PR.
+- Deciding where behavior belongs (controller vs service vs repository).
+- Aligning middleware order and cross-cutting concerns.
+- Enforcing naming and configuration conventions.
 
 ## Critical Patterns
 
-### Project Structure — Vertical Slices + Clean Architecture
+### Core Rules (Do/Don't + Why)
 
-```
-Features/
-  {Feature}/
-    Controllers/   ← HTTP endpoints, thin layer
-    Services/      ← Business logic (interface + implementation)
-    Repositories/  ← Data access (interface + implementation)
-    DTOs/          ← Request/Response transfer objects
-    Models/        ← Domain entities (EF Core mapped)
-    Mappings/      ← Extension methods or AutoMapper profiles
-    Validators/    ← FluentValidation rules
-    Exceptions/    ← Domain-specific custom exceptions
+- **Do**: Organize by vertical slice (`Features/{Feature}/...`), not by global technical layers. **Why**: keeps change scope local and reduces cross-feature coupling.
+- **Do**: Keep controllers thin (transport only) and move business rules to services. **Why**: improves testability and prevents HTTP concerns from leaking into domain logic.
+- **Do**: Keep repository scope focused on persistence concerns only. **Why**: avoids mixing query mechanics with business policy.
+- **Do**: Register stateless helpers as `Singleton`. **Why**: lower allocation churn and explicit lifecycle intent.
+- **Don't**: Put secrets in `appsettings.json` or hardcode config paths. **Why**: secrets belong outside git and outside deploy artifact.
+- **Do**: Load sensitive config via env-var path (`{SERVICE}_CONFIG_PATH`) to an external file. **Why**: enables secure rotation and environment separation.
+- **Do**: Keep all identifiers, comments, and docs in English. **Why**: consistent language lowers review friction across teams.
+- **Do**: Use plural resource names in URLs (`/users`, `/orders`). **Why**: stable REST semantics and predictable routing.
+- **Do**: Keep shared exceptions canonical (`NotFoundException`, `ConflictException`) and map centrally. **Why**: consistent API error behavior.
+- **Don't**: Duplicate detailed rules from specialized skills. **Why**: this skill is the index/defaults layer, not the full tutorial.
 
-Shared/
-  Models/          ← ResponseDTO<T>, PagedResult<T>, shared models
-  Models/BaseEntity.cs  ← Id, CreatedAt, UpdatedAt (see dataaccess/SKILL.md)
-  Exceptions/      ← Shared custom exceptions
-    NotFoundException.cs
-    ConflictException.cs
-  Helpers/         ← Global utilities (e.g., PasswordHasher)
-  Middlewares/     ← Global pipeline middlewares
-  Extensions/      ← Extension methods
-  Interceptors/    ← EF Core interceptors (e.g., AuditInterceptor)
-
-Database/
-  Context/         ← EF Core DbContext definition
-
-tests/             ← Unit & integration tests (see testing-unit/SKILL.md)
-```
-
-### Naming Conventions
-
-| Element | Convention | Example |
-|---|---|---|
-| Private fields | `_camelCase` | `_logger`, `_repository` |
-| Source code | English | All identifiers |
-| Comments & docs | English | Code-level comments |
-| Resource names in URLs | Plural nouns | `/users`, `/orders` |
-
-### Dependency Injection Lifetimes
-
-> **Rule**: Stateless helpers ALWAYS as `Singleton`. Never register a stateless helper as `Scoped`.
-
-### Configuration — External File via Environment Variable (Mandatory)
-
-Secrets and environment-specific settings **must never** be hardcoded or committed to source control inside `appsettings.json`. The mandatory pattern:
-
-1. **All sensitive config** (connection strings, JWT secrets, API keys, external URLs) lives in a file **outside the repository**, on the server.
-2. An environment variable (`{APP_NAME}_CONFIG_PATH` or equivalent) points to that file's absolute path.
-3. `appsettings.json` in the repo contains only non-sensitive defaults (log levels, feature flags with safe defaults).
+### Canonical Middleware Order
 
 ```csharp
-// Program.cs — load external config file via env var
-var configPath = Environment.GetEnvironmentVariable("APP_CONFIG_PATH")
-    ?? throw new InvalidOperationException(
-        "APP_CONFIG_PATH environment variable is not set. " +
-        "Set it to the absolute path of the external configuration file.");
-
-builder.Configuration.AddJsonFile(configPath, optional: false, reloadOnChange: true);
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseAuthentication();
+app.UseMiddleware<UserLogContextMiddleware>(); // optional
+app.UseRateLimiter();
+app.UseCors();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseAuthorization();
+app.MapControllers();
 ```
 
-> **`reloadOnChange: true`**: ASP.NET Core's built-in file watcher hot-reloads the config when the external file changes — no restart needed for config updates.
+## Constraints & Tradeoffs
 
-**Prohibited — will be rejected in code review:**
+- `ExceptionHandlingMiddleware` before `UseAuthorization()` favors richer user-aware logs, but authorization handler exceptions may bypass this handler.
+- `UseRateLimiter()` before `UseCors()` protects early, but can return `429` without CORS headers for preflight; consider `OPTIONS` exemptions when needed.
+- Vertical slices improve ownership but may duplicate simple DTO names across features; accept local duplication over global coupling.
+- External config file reload (`reloadOnChange`) improves operability but requires secure file permissions in provisioning.
 
-```csharp
-// ❌ NEVER — secrets in appsettings.json (committed to git)
-// appsettings.json: { "Jwt": { "Secret": "my-real-secret" } }
+### Scope Boundaries
 
-// ❌ NEVER — hardcoded connection string in code
-var cs = "Server=prod-server;Database=MyDb;User=sa;Password=12345;";
+- This skill defines baseline defaults; it does not own low-level implementation recipes.
+- If a rule conflicts with a specialized skill, specialized skill wins for that domain.
+- Use this file to resolve architectural placement questions first, then load domain skill.
 
-// ❌ NEVER — config singleton reading from a hardcoded path
-var config = MyConfig.Instance.Settings.ConnectionString;
-```
+### PR Review Checklist (Architecture)
 
-**Correct `appsettings.json` (safe to commit):**
-```json
-{
-  "Serilog": { "MinimumLevel": "Information" },
-  "AllowedHosts": "*"
-}
-```
+- Is behavior in the correct layer (controller/service/repository)?
+- Are external settings loaded from an external config path env var?
+- Is middleware order intentionally preserved with explicit comments when changed?
+- Are new shared abstractions justified by at least two real consumers?
+- Are cross-skill links added when introducing non-trivial domain rules?
 
-> **External file location convention**: Use an absolute path on the server outside the deployment directory (e.g., `"<provisioned-path>/config.json"` or `"/path/set-at-provisioning-time/config.json"`). The exact path is defined by your infrastructure tooling — never hardcode it. Never inside `wwwroot` or the app folder. The environment variable name should follow the pattern `{SERVICE_NAME}_CONFIG_PATH`.
+## Anti-Patterns
 
-### Middleware Pipeline Order
+- Fat controllers with domain branching and validation orchestration.
+- Shared “God services” used by unrelated features.
+- Hardcoded connection strings, secrets, or static config singleton paths.
+- Creating new cross-cutting conventions without linking the owning skill.
+- Putting feature-specific code under `Shared/` for convenience.
+- Moving exceptions and contracts ad hoc across folders during refactors.
+- Merging architecture changes without updating changelog or rationale.
 
-```csharp
-app.UseMiddleware<CorrelationIdMiddleware>(); // 0. FIRST — ensures correlationId is present in ALL logs
-app.UseAuthentication();    // 1. Verify identity
-app.UseMiddleware<UserLogContextMiddleware>(); // 1.5 (optional) only when per-user log partitioning is active; see ../logging/SKILL.md
-app.UseRateLimiter();       // 2. Protect from abuse — requires builder.Services.AddRateLimiter(...)
-app.UseCors();              // 3. Cross-origin policy
-app.UseMiddleware<ExceptionHandlingMiddleware>(); // 4. Global exception handler — after auth so UserId is available
-app.UseAuthorization();     // 5. Check permissions
-app.MapControllers();       // 6. Route to controllers
-```
+## Progressive Disclosure
 
-> **Canonical error contract**: Exception mapping, `ProblemDetails` format, and the 9 traceability fields live in [`logging/SKILL.md`](../logging/SKILL.md).
->
-> **Optional middleware slot**: `UseMiddleware<UserLogContextMiddleware>()` belongs between `UseAuthentication()` and `UseRateLimiter()` only when per-user log partitioning is active. See [`../logging/SKILL.md`](../logging/SKILL.md).
->
-> **UseRateLimiter before UseCors**: CORS preflight (`OPTIONS`) requests that hit the rate limit return `429` without CORS headers, so the browser reports a CORS error. Consider exempting `OPTIONS` requests from rate limiting if this is a concern.
->
-> **ExceptionHandlingMiddleware tradeoff**: It is intentionally positioned before `UseAuthorization()` so authenticated `UserId` is already available for error logging. Authorization policy handler exceptions are **not** caught here — they surface as unhandled `500` responses unless you also add a fallback middleware after `UseAuthorization()`.
+1. **Start here (this skill)**: baseline structure, middleware order, and repo-wide defaults.
+2. **Go deeper by domain**:
+   - Data access: [`../dataaccess/SKILL.md`](../dataaccess/SKILL.md)
+   - API contracts/errors: [`../responses/SKILL.md`](../responses/SKILL.md)
+   - Auth/rate limits: [`../security/SKILL.md`](../security/SKILL.md)
+   - Logging/traceability: [`../logging/SKILL.md`](../logging/SKILL.md)
+3. **Implementation details**: load specialized skill only when the task enters that domain.
 
-### Custom Exception — Domain Error Modeling
+### Skill Routing Map
 
-| Exception | Signature | Location |
-|---|---|---|
-| `NotFoundException` | `(string resource, Guid id)` → `"{resource} with id '{id}' was not found."` | `Shared/Exceptions/NotFoundException.cs` |
-| `ConflictException` | `(string message)` | `Shared/Exceptions/ConflictException.cs` |
+- DTO and response envelope shape: [`../responses/SKILL.md`](../responses/SKILL.md)
+- Validation strategy and registration: [`../validations/SKILL.md`](../validations/SKILL.md)
+- AutoMapper/extensions and mapping ownership: [`../mapping/SKILL.md`](../mapping/SKILL.md)
+- Unit test patterns and fixtures: [`../testing-unit/SKILL.md`](../testing-unit/SKILL.md)
+- Performance and resilience specifics: [`../performance/SKILL.md`](../performance/SKILL.md)
 
+### Done Criteria for This Skill
 
-## Skill Family — When to Load Each One
-
-| Domain | Skill | When to Load |
-|---------|-------|---------------|
-| Data access, EF Core, DbContext, repositories, migrations | [`dataaccess`](../dataaccess/SKILL.md) | Configuring DbContext, writing repositories |
-| Unit tests, mocks, assertions, test data builders | [`testing-unit`](../testing-unit/SKILL.md) | Creating or reviewing unit tests |
-| Responses, response DTOs, HTTP error handling | [`responses`](../responses/SKILL.md) | Designing response contracts, exception handling |
-| Validations, FluentValidation | [`validations`](../validations/SKILL.md) | Writing or reviewing validation rules |
-| Mapping, AutoMapper, mapping extensions | [`mapping`](../mapping/SKILL.md) | Configuring AutoMapper profiles or extension methods |
-| Security, authentication, authorization, rate limiting | [`security`](../security/SKILL.md) | Implementing auth, JWT, policies, rate limiter |
-| Performance, caching, optimization | [`performance`](../performance/SKILL.md) | Resilience patterns (Polly, circuit breaker, retry), Kestrel limits, response caching, async parallelism |
-| Requests, input DTOs | [`requests`](../requests/SKILL.md) | Designing request contracts |
-| Logging, observability | [`logging`](../logging/SKILL.md) | Configuring Serilog, structured logging |
+- Feature structure is coherent without adding unnecessary global abstractions.
+- Middleware and error handling decisions are explicit and link to logging ownership.
+- Security-sensitive configuration is externalized and not committed.
+- API naming and language conventions stay consistent across touched files.
 
 ## Resources
 
-- ASP.NET Core Fundamentals (.NET 8) — https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-8.0
-- Dependency Injection in ASP.NET Core (.NET 8) — https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0
-- Configuration in ASP.NET Core (.NET 8) — https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-8.0
-- Clean Architecture for ASP.NET Core — https://jasontaylor.dev/clean-architecture-getting-started/
-- .NET Application Architecture Guides — https://learn.microsoft.com/en-us/dotnet/architecture/
-
----
+- ASP.NET Core fundamentals (.NET 8): https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-8.0
+- ASP.NET Core configuration (.NET 8): https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-8.0
+- Dependency injection in ASP.NET Core: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0
+- Clean Architecture reference: https://jasontaylor.dev/clean-architecture-getting-started/
 
 ## Changelog
 
-### v1.8 — 2026-04-16
-- **Added**: `## Resources` section with .NET 8 / Clean Architecture reference links.
-
-### v1.7 — 2026-04-09
-- **Fixed (Round 4)**: Replaced the concrete `/etc/myapp/config.json` example with provisioned-path placeholders and an explicit note that infrastructure tooling defines the exact absolute path.
-- **Fixed (Round 4)**: Added the pipeline-order tradeoff note explaining that `ExceptionHandlingMiddleware` runs before `UseAuthorization()` for `UserId` logging, so authorization handler exceptions are not caught unless a fallback middleware is added later in the pipeline.
-
-### v1.6 — 2026-04-09
-- **Fixed (Round 3)**: Added the optional `UserLogContextMiddleware` slot between `UseAuthentication()` and `UseRateLimiter()` in the canonical pipeline, with a cross-ref to `logging/SKILL.md`.
-- **Fixed (Round 3)**: Added a note explaining the `UseRateLimiter()` before `UseCors()` side-effect: rate-limited preflight `OPTIONS` requests return `429` without CORS headers, which browsers surface as CORS errors. Documented the `OPTIONS` exemption tradeoff.
-
-### v1.5 — 2026-04-09
-- **Added**: External configuration file pattern via environment variable — mandatory for all sensitive settings. Explicit prohibition on secrets in `appsettings.json`, hardcoded strings, and config singletons with static paths. Pattern extracted from production microservices audit.
-
-### v1.4 — 2026-04-09
-- **Fixed (W-13)**: Removed PascalCase and camelCase rows from Naming Conventions table — standard C# conventions the agent already knows. Kept only the ZeshOne-specific decisions: `_camelCase` for private fields, English for all code, plural nouns for URLs.
-
-### v1.3 — 2026-03-28
-- **Removed**: SOLID principles section (agent already knows this)
-- **Removed**: Async/await tutorial, LINQ over loops, HTTP verb semantics table (language standard)
-- **Removed**: Controller design boilerplate (thin controller is baseline knowledge)
-- **Kept**: Project structure, naming conventions, DI lifetimes rule, pipeline order, skill family table
-
-### v1.2 — 2026-03-25
-- Pipeline order — CorrelationIdMiddleware moved to position 0
-
-### v1.1 — 2026-03-24
-- Skill Family table added; DI lifetimes, naming conventions
+### v2.0 — 2026-04-21
+- Reduced encyclopedic content to operational defaults and tradeoffs.
+- Added mandatory sections: `Constraints & Tradeoffs`, `Anti-Patterns`, and `Progressive Disclosure`.
+- Kept canonical middleware order and cross-skill references; removed duplicated deep tutorials.

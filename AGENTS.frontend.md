@@ -1,83 +1,34 @@
-# Frontend Domain — ZeshOne Development Guidelines
+# Frontend Domain Agent Guide (Next.js 15 + React 19)
 
-## How to Use This Guide
+## Scope
+Use this file as the execution default for frontend work in this repo. Keep outputs focused on shipping features safely and fast. If a domain skill conflicts with this file, the skill wins.
 
-- Start here for cross-project norms on frontend development.
-- Each skill has detailed patterns available on-demand.
-- Domain skills override this file when guidance conflicts.
+## Mandatory Skill Routing (load first)
 
----
+| Work Type | Skill |
+|---|---|
+| Type modeling, strict typing, interface strategy | `typescript` |
+| React component behavior and modern APIs | `react-19` |
+| Routing, App Router architecture, Server Actions | `nextjs-15` |
+| Styling strategy and Tailwind patterns | `tailwind-4` |
+| Schema validation | `zod-4` |
+| Local client state | `zustand-5` |
+| Server state, caching, mutations, hydration | `tanstack-query` |
+| UI primitives/forms with shadcn patterns | `shadcn-ui` |
+| Security headers, CSP, guards, cookie safety | `security` |
+| PR preparation/review | `github-pr` |
 
-## Stack Base
+## Operational Defaults
+- Stack baseline: Next.js 15 App Router, React 19, TypeScript strict, Tailwind v4.
+- API boundary is fixed: Client -> Server Action -> .NET API. Do not expose backend endpoints directly to browser clients.
+- Validate user input on the server boundary with Zod (Server Action/API route).
+- Use TanStack Query for server/API data and caching; use Zustand for local UI state.
+- Keep component APIs narrow and type-first.
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 15 (App Router) |
-| UI Library | React 19 |
-| Language | TypeScript 5 (strict mode) |
-| Styling | Tailwind CSS v4 (CSS-first, no config file) |
-| Server state | TanStack Query v5 |
-| Client state | Zustand 5 |
-| Forms | React Hook Form + Zod 4 |
-| UI Components | shadcn/ui (radix-ui base, oklch colors) |
-
-**API pattern:** All external API calls go through Server Actions — Client → Server Action → .NET API. Endpoints are never exposed to the browser.
-
----
-
-## Available Skills
-
-### Frontend Skills (ZeshOne)
-
-| Skill | Description | Path |
-|-------|-------------|------|
-| `typescript` | Const types, flat interfaces, no any | [SKILL.md](skills/frontend/typescript/SKILL.md) |
-| `react-19` | React Compiler, use(), useActionState, no forwardRef | [SKILL.md](skills/frontend/react-19/SKILL.md) |
-| `nextjs-15` | App Router, Vertical Slices, Server Actions as API proxy, project structure, performance | [SKILL.md](skills/frontend/nextjs-15/SKILL.md) |
-| `tailwind-4` | cn(), CSS-first config, fluid typography, container queries, CSS modern features | [SKILL.md](skills/frontend/tailwind-4/SKILL.md) |
-| `zod-4` | Breaking changes from v3, safeParse, error param | [SKILL.md](skills/frontend/zod-4/SKILL.md) |
-| `zustand-5` | Per-feature stores, selectors, useShallow v5 path | [SKILL.md](skills/frontend/zustand-5/SKILL.md) |
-| `tanstack-query` | Query key factories, prefetch + HydrationBoundary, mutations, optimistic updates, infinite queries | [SKILL.md](skills/frontend/tanstack-query/SKILL.md) |
-| `shadcn-ui` | shadcn/ui components, React Hook Form + Zod pattern, dark mode via next-themes | [SKILL.md](skills/frontend/shadcn-ui/SKILL.md) |
-| `security` | CSP nonce, security headers, auth guards, XSS prevention, cookies, rate limiting | [SKILL.md](skills/frontend/security/SKILL.md) |
-
-### Shared Skills (ZeshOne)
-
-| Skill | Description | Path |
-|-------|-------------|------|
-| `github-pr` | Branch naming, PR conventions, base branch alfa | [SKILL.md](skills/shared/github-pr/SKILL.md) |
-
----
-
-## Auto-invoke Skills
-
-When performing these actions, **ALWAYS** invoke the corresponding skill FIRST:
-
-| Action | Skill |
-|--------|-------|
-| Writing TypeScript types or interfaces | `typescript` |
-| Writing React components | `react-19` + `typescript` |
-| App Router / Server Actions / Next.js routing | `nextjs-15` |
-| Defining project structure or feature organization | `nextjs-15` |
-| Working with Tailwind CSS classes | `tailwind-4` |
-| Creating or updating Zod schemas | `zod-4` |
-| Building forms with validation | `shadcn-ui` + `zod-4` |
-| Using or configuring Zustand stores | `zustand-5` |
-| Fetching data, caching, mutations | `tanstack-query` |
-| Building UI components (buttons, dialogs, tables) | `shadcn-ui` |
-| Security headers, auth guards, CSP, input validation | `security` |
-| Creating or reviewing a Pull Request | `github-pr` |
-
----
-
-## Critical Cross-Skill Rules
-
-- Server Actions are the ONLY way to call .NET APIs — never from the client.
-- `params` and `searchParams` in Next.js 15 are Promises — always `await`.
-- React Compiler must be explicitly enabled — verify before removing `useMemo`/`useCallback`.
-- NEVER use `px` for font sizes or spacing — use `rem` or `clamp()`.
-- NEVER use `var()` inside `className` — use Tailwind semantic classes.
-- NEVER use React Context for server/API data — use TanStack Query.
-- All user input validated with Zod on the server (Server Action or API route).
-- Sensitive cookies: always `httpOnly + secure + sameSite`.
-- No secrets in `NEXT_PUBLIC_` env vars.
+## Non-Negotiables
+- Do not call .NET APIs directly from client components.
+- Do not treat `params`/`searchParams` as synchronous in Next.js 15.
+- Do not remove memoization patterns unless React Compiler enablement is verified.
+- Do not use `px` for typography/spacing tokens in new code.
+- Do not place secrets in `NEXT_PUBLIC_` variables.
+- Do not use React Context as a replacement for server-state tools.

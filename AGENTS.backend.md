@@ -1,61 +1,33 @@
-# Backend Domain — .NET 8 REST API Development Guidelines
+# Backend Domain Agent Guide (.NET 8 REST)
 
-## How to Use This Guide
+## Scope
+Use this file as the execution default for backend work in this repo. Keep outputs pragmatic and implementation-ready. If a domain skill conflicts with this file, the skill wins.
 
-- Start here for cross-project norms on ASP.NET Core 8 REST API development.
-- Each domain has a dedicated skill with detailed patterns (e.g., `general/SKILL.md`, `dataaccess/SKILL.md`).
-- Domain skills override this file when guidance conflicts.
+## Mandatory Skill Routing (load first)
 
----
+| Work Type | Skill |
+|---|---|
+| Architecture, project structure, feature scaffolding | `net8-apirest-general` |
+| EF Core, DbContext, repositories, migrations, query optimization | `net8-apirest-dataaccess` |
+| JWT/OAuth, authorization, OWASP controls, rate limiting, BOLA mitigation | `net8-apirest-security` |
+| Request DTOs, model binding, query params, file uploads | `net8-apirest-requests` |
+| Validation rules and validators | `net8-apirest-validations` |
+| API response contracts and status mapping | `net8-apirest-responses` |
+| Mapping strategy (AutoMapper/manual) and profiles | `net8-apirest-mapping` |
+| Serilog, correlation, exception logging and traceability | `net8-apirest-logging` |
+| Resilience and performance (Polly, limits, parallelism) | `net8-apirest-performance` |
+| Unit tests (xUnit, NSubstitute, FluentAssertions) | `net8-apirest-testing-unit` |
+| PR preparation/review | `github-pr` |
 
-## Available Skills
+## Operational Defaults
+- Build features with Clean Architecture + Vertical Slice conventions from `net8-apirest-general`.
+- Prefer `Result<T>` contracts; treat `ResponseDTO<T>` as legacy compatibility only.
+- Validate external input at the edge with FluentValidation.
+- Keep API boundaries explicit: request DTO in, response contract out.
+- Keep security and observability as first-class requirements, not post-work additions.
 
-Use these skills for detailed patterns on-demand:
-
-### .NET 8 REST API Skills
-| Skill | Description | URL |
-|-------|-------------|-----|
-| `net8-apirest-general` | Clean Architecture, Vertical Slices, project structure, naming conventions | [SKILL.md](skills/backend/general/SKILL.md) |
-| `net8-apirest-dataaccess` | Entity Framework Core, DbContext pooling, repositories, migrations, audit patterns | [SKILL.md](skills/backend/dataaccess/SKILL.md) |
-| `net8-apirest-security` | OWASP API Top 10, JWT, authorization, BOLA prevention, secure credential handling | [SKILL.md](skills/backend/security/SKILL.md) |
-| `net8-apirest-validations` | FluentValidation, input validation, decision trees, error handling | [SKILL.md](skills/backend/validations/SKILL.md) |
-| `net8-apirest-requests` | Request DTOs, model binding, query parameters, file uploads | [SKILL.md](skills/backend/requests/SKILL.md) |
-| `net8-apirest-responses` | Result<T> (preferred) / ResponseDTO<T> (legacy), HTTP status codes, ProblemDetails, inter-layer communication | [SKILL.md](skills/backend/responses/SKILL.md) |
-| `net8-apirest-mapping` | AutoMapper vs manual mapping, mapping profiles, extension patterns | [SKILL.md](skills/backend/mapping/SKILL.md) |
-| `net8-apirest-logging` | Serilog bootstrap, CorrelationId middleware, ExceptionHandlingMiddleware, 9 mandatory traceability fields, per-user log partitioning | [SKILL.md](skills/backend/logging/SKILL.md) |
-| `net8-apirest-performance` | Polly resilience pipelines (circuit breaker, retry), Kestrel limits, async parallelism with Task.WhenAll | [SKILL.md](skills/backend/performance/SKILL.md) |
-| `net8-apirest-testing-unit` | Unit testing with xUnit, NSubstitute, FluentAssertions, test data builders | [SKILL.md](skills/backend/testing-unit/SKILL.md) |
-
-### Shared Skills
-| Skill | Description | URL |
-|-------|-------------|-----|
-| `github-pr` | Pull Request conventions, branch workflow, PR checklist | [SKILL.md](skills/shared/github-pr/SKILL.md) |
-
----
-
-## Auto-invoke Skills
-
-When performing these actions, **ALWAYS** invoke the corresponding skill FIRST:
-
-| Action | Skill |
-|--------|-------|
-| Creating a new .NET 8 API project or feature | `net8-apirest-general` |
-| Scaffolding controllers, services, repositories | `net8-apirest-general` |
-| Creating or modifying DbContext, repositories, or migrations | `net8-apirest-dataaccess` |
-| Implementing JWT, OAuth, authorization policies | `net8-apirest-security` |
-| Adding security controls (CORS, rate limiting, BOLA prevention) | `net8-apirest-security` |
-| Designing request DTOs or configuring model binding | `net8-apirest-requests` |
-| Building API responses or response DTOs | `net8-apirest-responses` |
-| Creating FluentValidation validators or validation rules | `net8-apirest-validations` |
-| Creating AutoMapper profiles or mapping logic | `net8-apirest-mapping` |
-| Configuring Serilog, adding logging, or exception handling | `net8-apirest-logging` |
-| Optimizing EF Core queries | `net8-apirest-dataaccess` |
-| Implementing resilience patterns (Polly, circuit breaker, retry) | `net8-apirest-performance` |
-| Reviewing or refactoring data access code | `net8-apirest-dataaccess` |
-| Creating or reviewing unit tests for services, validators, or mappings | `net8-apirest-testing-unit` |
-| Deciding between AutoMapper and manual mapping | `net8-apirest-mapping` |
-| Implementing rate limiting or request size limits | `net8-apirest-security` |
-| Setting up async patterns or parallelism with Task.WhenAll | `net8-apirest-performance` |
-| Handling file uploads or multipart requests | `net8-apirest-requests` |
-| Reviewing OWASP compliance or security coverage | `net8-apirest-security` |
-| Creating or reviewing a Pull Request | `github-pr` |
+## Non-Negotiables
+- Do not skip skill loading for domain-specific changes.
+- Do not ship endpoints without validation, auth checks (when required), and structured error mapping.
+- Do not bypass logging/correlation middleware for production flows.
+- Do not optimize performance blindly; apply resilience/perf patterns from the dedicated skill.

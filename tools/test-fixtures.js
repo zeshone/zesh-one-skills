@@ -185,6 +185,48 @@ Pattern here.
 - Example docs: https://example.com/docs
 `;
 
+// FM-007: formato spec actual de allowed-tools como string separado por espacios
+const FIXTURE_FM007_ALLOWED_TOOLS_STRING = `---
+name: test-skill
+description: "A test skill. Trigger: when testing."
+license: MIT
+allowed-tools: Read Write bash
+metadata:
+  author: Zesh-One
+  version: "1.0"
+---
+
+## When to Use
+Use this skill when testing.
+
+## Critical Patterns
+Pattern here.
+
+## Resources
+- Example docs: https://example.com/docs
+`;
+
+// FM-007 edge: string presente pero vacío/de espacios debe seguir warning
+const FIXTURE_FM007_ALLOWED_TOOLS_EMPTY_STRING = `---
+name: test-skill
+description: "A test skill. Trigger: when testing."
+license: MIT
+allowed-tools: "   "
+metadata:
+  author: Zesh-One
+  version: "1.0"
+---
+
+## When to Use
+Use this skill when testing.
+
+## Critical Patterns
+Pattern here.
+
+## Resources
+- Example docs: https://example.com/docs
+`;
+
 // ─── Scenarios ────────────────────────────────────────────────────────────────
 
 console.log('\n── Scenario 1: FM-001 — Invalid YAML frontmatter ──');
@@ -260,7 +302,25 @@ console.log('\n── Scenario 7: validations clean — zero errors and zero war
   );
 }
 
-console.log('\n── Scenario 8: ANT-001 — Keywords section antipattern ──');
+console.log('\n── Scenario 8: FM-007 — allowed-tools string spec format ──');
+{
+  const results = lintSkillFile('/fake/SKILL.md', FIXTURE_FM007_ALLOWED_TOOLS_STRING);
+  assert(
+    'does NOT report FM-007 for string-based allowed-tools in spec format',
+    !results.some(r => r.ruleId === 'FM-007')
+  );
+}
+
+console.log('\n── Scenario 9: FM-007 edge — empty string still warns ──');
+{
+  const results = lintSkillFile('/fake/SKILL.md', FIXTURE_FM007_ALLOWED_TOOLS_EMPTY_STRING);
+  assert(
+    'reports FM-007 for empty string-based allowed-tools',
+    results.some(r => r.ruleId === 'FM-007')
+  );
+}
+
+console.log('\n── Scenario 10: ANT-001 — Keywords section antipattern ──');
 {
   const results = lintSkillFile('/fake/SKILL.md', FIXTURE_ANT001_KEYWORDS_SECTION);
   assert(

@@ -1,181 +1,114 @@
 ---
-name: net8-apirest-testing-unit
+name: testing-unit
 description: >
-  Unit testing standards for ASP.NET Core 8 REST APIs using xUnit, FluentAssertions, and NSubstitute (canonical). Covers Services, Validators, Mappings, and Domain Exceptions with AAA pattern, naming conventions, Test Data Builders, and mocking guidance.
-  Trigger: When writing unit tests, creating test projects, mocking dependencies, or reviewing test quality in a .NET 8 API. Scope: Services, Validators, Mappings, Domain Exceptions only — for integration or E2E testing load a different skill.
+  Operational unit-testing defaults for backend code using xUnit, NSubstitute, and FluentAssertions, focused on services, validators, mappings, and domain behavior.
+  Trigger: When writing or reviewing unit tests for business logic, validation rules, mapping logic, or authorization/ownership branches in backend services.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.2"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+  version: "2.0"
+allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
 ## When to Use
 
-- Creating a new test project or adding tests to an existing one
-- Writing tests for Services, Validators, Mappings, or Domain Exceptions
-- Deciding how to mock dependencies
-- Reviewing test quality, naming, or structure
-
----
-
-## Scope Boundaries
-
-### ✅ IN — Test with this skill
-
-| Layer | Reason |
-|---|---|
-| **Services** | Core business logic, exception paths, interaction with repositories |
-| **Validators** (FluentValidation) | Rule coverage without infrastructure |
-| **Mappings** (extension methods / AutoMapper profiles) | Pure input → output, no side effects |
-| **Domain Exceptions** | Verify message and type propagation |
-
-### ❌ OUT — Do not unit test with this skill
-
-| Layer | Reason |
-|---|---|
-| **Repositories** | Depend on EF Core DbContext → territory of integration tests |
-| **External HTTP clients** | Require network or `HttpMessageHandler` stubs |
-| **Background jobs / Hosted services** | Depend on `IHostedService` lifecycle |
-
-### ⚠️ Controller Unit Tests — Anti-Pattern by default
-
-Unit testing controllers couples tests to ASP.NET Core internals (`ModelState`, `ActionResult` casting, route resolution). Controllers are thin by design — their behavior is validated in integration tests.
-
-**Only justified if:**
-1. The team has zero integration test coverage, AND
-2. The controller has non-trivial conditional logic that cannot be moved to the service
-
-Even then: mark with `// TODO: replace with integration test`.
+- Writing unit tests for service-layer behavior and branch logic
+- Verifying validator rules without infrastructure concerns
+- Testing mappings and pure transformations
+- Reviewing whether tests assert behavior (not implementation details)
 
 ---
 
 ## Critical Patterns
 
-### Naming Convention
+1) **DO** use xUnit + NSubstitute + FluentAssertions as defaults; **DON'T** mix frameworks in new test files.  
+Why: consistency lowers onboarding and maintenance cost.
 
-| Element | Pattern | Example |
-|---|---|---|
-| Test class | `{ClassUnderTest}Tests` | `UserServiceTests` |
-| Test method | `{Method}_When{Condition}_Should{Expected}` | `GetByIdAsync_WhenUserNotFound_ShouldThrowNotFoundException` |
+2) **DO** prioritize service, validator, and mapping tests; **DON'T** default to controller unit tests.  
+Why: controller behavior is usually better verified in integration tests.
 
-Names must be readable without opening the test body.
+3) **DO** structure tests with AAA and a single Act; **DON'T** combine multiple actions in one test.  
+Why: failures remain diagnosable and intent stays clear.
 
-### AAA — Arrange / Act / Assert
+4) **DO** name tests as `{Method}_When{Condition}_Should{Expected}`; **DON'T** use generic names like `Test1`.  
+Why: test reports must be self-explanatory.
 
-Comments are mandatory when the body exceeds 5 lines. **One single Act per test.**
+5) **DO** use test data builders for entities/value setup; **DON'T** inline large object graphs repeatedly.  
+Why: reduces duplication and makes intent explicit.
+
+6) **DO** assert observable behavior and outputs; **DON'T** assert private/internal implementation details.  
+Why: resilient tests survive safe refactors.
+
+7) **DO** verify ownership/policy branches in services (`success`, `not found`, `forbidden`); **DON'T** only test happy path.  
+Why: authorization bugs typically hide in non-happy branches.
+
+8) **DO** mock collaborators at boundaries (repositories/ports); **DON'T** mock DTOs/value objects.  
+Why: excessive mocking creates fragile, low-signal tests.
+
+9) **DO** keep one behavioral reason per test; **DON'T** create “kitchen sink” assertions for unrelated outcomes.  
+Why: focused tests communicate domain rules better.
+
+10) **DO** keep unit tests fast and deterministic; **DON'T** involve DB/network/host lifecycle in this layer.  
+Why: slow/flaky tests break feedback loops.
 
 ```csharp
 [Fact]
-public async Task GetByIdAsync_WhenUserExists_ShouldReturnUserDto()
+public async Task GetByIdAsync_WhenOwnerDiffers_ShouldThrowForbiddenException()
 {
-    // Arrange
     var userId = Guid.NewGuid();
-    var user = new UserBuilder().WithId(userId).Build();
-    _repository.GetByIdAsync(userId).Returns(user);
+    var order = new OrderBuilder().WithUserId(Guid.NewGuid()).Build();
+    _repo.GetByIdAsync(order.Id).Returns(order);
 
-    // Act
-    var result = await _sut.GetByIdAsync(userId);
-
-    // Assert
-    result.Should().NotBeNull();
-    result.Id.Should().Be(userId);
+    await FluentActions.Awaiting(() => _sut.GetByIdAsync(order.Id, userId))
+        .Should().ThrowAsync<ForbiddenException>();
 }
 ```
 
-### Test Data Builders — Always, never inline
+---
 
-```csharp
-// tests/Shared/Builders/UserBuilder.cs
-public class UserBuilder
-{
-    private Guid _id = Guid.NewGuid();
-    private string _email = "test@example.com";
-    private string _firstName = "Test";
-    private string _lastName = "User";
-    private bool _isActive = true;
+## Constraints & Tradeoffs
 
-    public UserBuilder WithId(Guid id) { _id = id; return this; }
-    public UserBuilder WithEmail(string email) { _email = email; return this; }
-    public UserBuilder Inactive() { _isActive = false; return this; }
-
-    public User Build() => new() { Id = _id, Email = _email, FirstName = _firstName, LastName = _lastName, IsActive = _isActive };
-}
-```
-
-Rules:
-- `Build()` with no args must produce a valid entity
-- Never create entities inline in tests — always use Builder
-- One Builder per entity or DTO type
-
-### Mocking — NSubstitute (canonical)
-
-NSubstitute is the only choice for new projects. Do NOT introduce Moq.
-
-> **Moq SponsorLink**: Moq v4.20+ has telemetry — pin to `4.18.x` only if already in an existing project.
-
-| Operation | NSubstitute |
-|---|---|
-| Create substitute | `Substitute.For<IRepo>()` |
-| Stub return | `repo.Method(Arg.Any<Guid>()).Returns(user)` |
-| Verify call | `await repo.Received(1).Method(id)` |
-| Stub exception (async) | `.ThrowsAsync(new Ex())` |
-| Stub exception (sync) | `.Throws(new Ex())` |
-
-Setup in constructor — substitute shared across all tests in the class:
-
-```csharp
-public class UserServiceTests
-{
-    private readonly IUserRepository _repository;
-    private readonly UserService _sut;
-
-    public UserServiceTests()
-    {
-        _repository = Substitute.For<IUserRepository>();
-        _sut = new UserService(_repository);
-    }
-}
-```
+- Unit tests provide strong logic confidence but do NOT validate middleware/routing/pipeline wiring.
+- Avoiding controller unit tests may feel less immediate, but reduces coupling to framework internals.
+- Builder patterns improve readability at cost of maintaining builder helpers.
+- Strict behavior assertions increase robustness but require clearer domain expectations.
 
 ---
 
 ## Anti-Patterns
 
-| Anti-pattern | Problem |
-|---|---|
-| Testing implementation details instead of behavior | Tests break on every refactor even when behavior does not change |
-| Over-mocking — mocking value objects and DTOs | The test does not exercise real logic; false confidence |
-| Multiple Acts in one test | Impossible to tell which Act caused the failure |
-| Name without context (`Test1`, `ShouldWork`) | Failure reports are useless |
-| Repository unit tests with EF Core | DbContext requires a database — territory of integration |
-| Controller unit tests as default | Couples tests to ASP.NET internals; prefer integration tests |
-| `Assert.Equal` instead of FluentAssertions | Lower readability and diagnostics on failures |
+- Controller unit testing as default strategy.
+- Tests that assert framework internals rather than domain behavior.
+- Multiple Acts in a single test method.
+- Over-mocking simple data types and objects.
+- Reliance on DB/network/hosted-service behavior in unit tests.
+- Naming that hides intent (`ShouldWork`, `TestCase1`, etc.).
+
+---
+
+## Progressive Disclosure
+
+1. **Baseline for every new unit test:** rules 1, 3, 4, 6, 10.
+2. **Service logic depth:** add rules 7 and 9 for branch completeness and focus.
+3. **Maintainability at scale:** add rules 5 and 8 when fixture setup grows.
+4. **Boundary check:** if test needs pipeline/routing/EF behavior, move to integration skill.
 
 ---
 
 ## Resources
 
-- **Architecture and conventions**: See [../general/SKILL.md](../general/SKILL.md)
-- **NSubstitute docs**: https://nsubstitute.github.io/
-- **FluentAssertions docs**: https://fluentassertions.com/introduction
-- **xUnit docs**: https://xunit.net/docs/getting-started/netcore/cmdline
+- Security skill for ownership/policy scenarios: [`../security/SKILL.md`](../security/SKILL.md)
+- Backend conventions and structure: [`../general/SKILL.md`](../general/SKILL.md)
+- xUnit: https://xunit.net/docs/getting-started/netcore/cmdline
+- NSubstitute: https://nsubstitute.github.io/
+- FluentAssertions: https://fluentassertions.com/introduction
 
 ---
 
 ## Changelog
 
-### v1.2 — 2026-03-28
-- **Fixed (W-12)**: NSubstitute stub exception column now distinguishes `.ThrowsAsync(new Ex())` for async methods and `.Throws(new Ex())` for sync methods. The previous entry only showed `.Throws()`, which silently passes for sync but does NOT stub async Task-returning methods correctly.
-
-### v1.1 — 2026-03-28
-- **Removed**: Full test examples by layer (Service, Validator, Mapping, Exception) — the agent knows how to write tests once it knows the conventions
-- **Removed**: Full CRUD service test class example of 60 lines
-- **Removed**: Project setup section with detailed folder structure
-- **Kept**: Scope boundaries (decision on what to test), naming convention, AAA, Test Data Builders, NSubstitute vs Moq comparison, anti-patterns
+### v2.0 — 2026-04-21
+- P2 trim: reduced tutorial/setup density and kept operational defaults only.
+- Standardized required section structure and concise rule format.
+- Added 10 atomic Do/Don't rules with short rationale.
+- Kept one short snippet and preserved cross-reference to security ownership tests.

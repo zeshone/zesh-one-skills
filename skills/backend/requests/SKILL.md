@@ -1,137 +1,104 @@
 ---
-name: net8-apirest-requests
+name: requests
 description: >
-  Best practices for handling HTTP requests in ASP.NET Core 8 REST APIs covering model binding, DTO design, input binding sources, and request pipeline conventions.
-  Trigger: When designing request DTOs, configuring model binding, handling query parameters, or processing incoming HTTP payloads in a .NET 8 API.
+  Operational rules for HTTP request contracts in ASP.NET Core 8 APIs.
+  Trigger: When designing request DTOs, binding route/query/body inputs, or defining endpoint signatures in .NET APIs.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "1.2"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+  version: "1.3"
+allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
 ## When to Use
 
-- Designing request DTOs for endpoints
-- Handling file uploads or multipart requests
-- Reviewing controller action signatures
-
----
+- Designing or reviewing request DTOs.
+- Defining action signatures for route, query, header, or body inputs.
+- Auditing pagination, upload, and identifier input safety.
+- Standardizing request contracts before validation/mapping layers.
 
 ## Critical Patterns
 
-### Request DTO Naming
-
-Always suffix `Request`. Never reuse domain entities as request bodies:
-
-```
-CreateUserRequest
-UpdateUserRequest
-SearchUsersRequest
-```
-
-### Pagination — Mandatory cap on `PageSize`
-
-```csharp
-public class PaginationRequest
-{
-    public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 20;
-
-    // Mandatory cap — prevents pageSize=9999
-    public int ValidatedPageSize => Math.Min(PageSize, 100);
-}
-
-public class SearchUsersRequest : PaginationRequest
-{
-    public string? Name { get; set; }
-    public bool? IsActive { get; set; }
-}
-```
-
-### Route Constraints — GUID on public resources
-
-```csharp
-// Rejects invalid IDs before the service — prevents BOLA enumeration
-[HttpGet("{id:guid}")]
-```
-
-Never `{id:int}` on public endpoints — see [`../security/SKILL.md`](../security/SKILL.md).
-
-### Binding Sources — Always explicit
-
-Do not rely on ASP.NET Core's implicit inference. Always annotate:
+1. **Do** suffix inbound DTOs with `Request`; **don't** use entities as request bodies. **Why:** avoids persistence-coupled APIs.
+2. **Do** annotate every binding source (`[FromRoute]`, `[FromQuery]`, `[FromBody]`, `[FromHeader]`); **don't** rely on inference. **Why:** inference drifts under refactors.
+3. **Do** enforce `{id:guid}` for public resource IDs; **don't** expose sequential ints. **Why:** reduces BOLA enumeration risk.
+4. **Do** cap page size server-side (e.g., `Math.Min(PageSize, 100)`); **don't** trust raw client values. **Why:** prevents oversized queries.
+5. **Do** use non-nullable defaults for required strings; **don't** allow implicit null required inputs. **Why:** avoids null-shape ambiguity.
+6. **Do** keep request DTOs transport-focused; **don't** embed domain behavior. **Why:** keeps contracts stable across domain evolution.
+7. **Do** model optional filters as nullable fields; **don't** overload sentinel values (`-1`, `"all"`). **Why:** preserves semantic clarity.
+8. **Do** annotate file upload actions with `[Consumes("multipart/form-data")]`; **don't** inherit JSON consumes for uploads. **Why:** prevents 415 mismatches.
+9. **Do** normalize paging defaults (`Page=1`, `PageSize=20`); **don't** leave unbounded zero/negative inputs. **Why:** deterministic query behavior.
+10. **Do** keep header extraction explicit (tenant, correlation); **don't** hide multi-tenant context in service internals. **Why:** request contract remains auditable.
 
 ```csharp
 [HttpGet("{id:guid}")]
-public async Task<IActionResult> GetById(
+public async Task<IActionResult> Search(
     [FromRoute] Guid id,
-    [FromHeader(Name = "X-Tenant-ID")] string? tenantId) { ... }
-
-[HttpGet]
-public async Task<IActionResult> Search([FromQuery] SearchUsersRequest request) { ... }
-
-[HttpPost]
-public async Task<IActionResult> Create([FromBody] CreateUserRequest request) { ... }
-```
-
-### Null Safety in Request DTOs
-
-Required fields non-nullable with default. Optional fields nullable:
-
-```csharp
-public class CreateUserRequest
+    [FromQuery] SearchUsersRequest request,
+    [FromHeader(Name = "X-Tenant-ID")] string? tenantId)
 {
-    public string FirstName { get; set; } = string.Empty;   // required
-    public string Email { get; set; } = string.Empty;       // required
-    public string? PhoneNumber { get; set; }                // optional
+    request.PageSize = Math.Min(request.PageSize, 100);
+    return Ok();
 }
 ```
 
-### File Uploads
+## Constraints & Tradeoffs
 
-The file upload validation pattern (D-30) lives in [`../validations/SKILL.md`](../validations/SKILL.md).
+- Explicit binding attributes are verbose, but remove ambiguity in API reviews.
+- GUID route constraints improve security posture but reduce URL readability.
+- Hard page-size caps protect infrastructure but may require export endpoints for bulk use cases.
+- Transport DTO isolation adds mapping work; this cost is intentional and controlled by [`../mapping/SKILL.md`](../mapping/SKILL.md).
+- Upload actions require explicit consumes metadata even when controller defaults exist.
 
-> **Critical note**: `[Consumes("multipart/form-data")]` at the action level **overrides** the `[Consumes("application/json")]` on the controller. Always annotate it on file upload actions — without it ASP.NET Core rejects the request with 415.
-
----
+Operational review checklist:
+- Verify every public action declares binding source attributes.
+- Verify list endpoints cap `PageSize` server-side.
+- Verify any public identifier route uses GUID constraints.
+- Verify optional request filters are nullable, not sentinel-based.
+- Verify upload actions declare multipart consumes explicitly.
 
 ## Anti-Patterns
 
-| Anti-pattern | Problem |
-|---|---|
-| Domain entity as request body | Couples the API to the data model; security risk |
-| Binding source without annotation | Implicit inference can fail in non-obvious ways |
-| Pagination without `PageSize` cap | `pageSize=9999` is a DoS vector |
-| `int` IDs on public endpoints | Trivial BOLA enumeration |
-| `ResponseDTO<T>` as HTTP response body | Violates D-25/D-26 — return raw resource or `ProblemDetails` |
-| Reading `IFormFile` stream in validator | Blocks the stream — see D-30 in `validations` |
+1. Reusing EF/domain entities as inbound request contracts.
+2. Accepting unbounded `PageSize` directly from query string.
+3. Mixed implicit and explicit binding in the same controller.
+4. Public routes with `{id:int}` for externally visible resources.
+5. Validating file streams by reading `IFormFile` content inside validators.
+6. Using magic filter values (`"*"`, `-1`) instead of nullable optionals.
 
----
+## Progressive Disclosure
+
+1. Start with naming, explicit binding, and ID constraints in new endpoints.
+2. Add pagination cap and optional filter hygiene for list endpoints.
+3. Introduce upload-specific consumes + validation flow via [`../validations/SKILL.md`](../validations/SKILL.md).
+4. Harden cross-cutting consistency with mapping and response alignment.
+5. For security-sensitive APIs, apply this skill together with [`../security/SKILL.md`](../security/SKILL.md).
+
+Adoption sequence by maturity:
+- **Foundational**: naming + explicit binding + GUID routes.
+- **Stability**: paging limits + nullable filters + default request values.
+- **Advanced**: upload-specific handling + multi-tenant header contracts.
+- **Governance**: periodic contract reviews with security and response skills.
 
 ## Resources
 
-- **General structure**: See [../general/SKILL.md](../general/SKILL.md)
-- **Mapping**: See [../mapping/SKILL.md](../mapping/SKILL.md)
-- **Validations (file upload D-30)**: See [../validations/SKILL.md](../validations/SKILL.md)
-- **Responses**: See [../responses/SKILL.md](../responses/SKILL.md)
-- **Security (BOLA, GUID IDs)**: See [../security/SKILL.md](../security/SKILL.md)
+- General backend baseline: [../general/SKILL.md](../general/SKILL.md)
+- DTO-to-domain conversion: [../mapping/SKILL.md](../mapping/SKILL.md)
+- File upload validation pattern (D-30): [../validations/SKILL.md](../validations/SKILL.md)
+- Response contract alignment: [../responses/SKILL.md](../responses/SKILL.md)
+- BOLA and identifier hardening: [../security/SKILL.md](../security/SKILL.md)
 
----
+Related implementation notes:
+- Keep request concerns separate from persistence and response envelopes.
+- Validate at boundaries, then map to application-layer command/query models.
+- Use this skill before introducing endpoint-level performance optimizations.
 
 ## Changelog
 
-### v1.2 — 2026-03-28
-- **Removed**: Full binding sources tutorial with table and examples (the agent already knows `[FromBody]`, `[FromQuery]`, etc.)
-- **Removed**: Content negotiation `[Produces]`/`[Consumes]` boilerplate — framework standard
-- **Removed**: Extended file upload section — consolidated in `validations/SKILL.md` (D-30), only referenced here
-- **Kept**: Naming convention, pagination with ValidatedPageSize cap, GUID route constraint, explicit binding, null safety, anti-patterns
+### v1.3 — 2026-04-21
+- Standardized to operational format with required section set.
+- Converted guidance to 10 atomic Do/Don't rules with rationale.
+- Reduced examples to a single short snippet and preserved cross-skill links.
 
-### v1.1 — 2026-03-24
-- File uploads rewritten with D-30 pattern; anti-patterns expanded
+### v1.2 — 2026-03-28
+- Trimmed encyclopedic tutorials; kept high-signal operational guidance.
