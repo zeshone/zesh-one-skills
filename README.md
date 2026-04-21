@@ -1,31 +1,37 @@
 # Zesh-One-Skills
 
-> Suite de skills para agentes AI — Backend .NET 8 REST API, Frontend (Next.js 15) y Apps móviles (Ionic + Capacitor), con soporte a herramientas [OpenCode](https://opencode.ai) + [Engram](https://github.com/gentleman-programming/engram) + [Agents Team Lite](https://github.com/gentleman-programming).
+> AI agent skill suite for backend (.NET 8 REST), frontend (Next.js 15 + React 19), and mobile apps (Ionic + Capacitor), built for OpenCode + Engram + Agent Teams Lite workflows.
 
-## Qué es esto
+## What this repository is
 
-Repositorio privado de skills e instrucciones de contexto para agentes AI utilizados en proyectos backend .NET 8, frontend Next.js 15 y apps móviles Ionic + Capacitor. Centraliza las convenciones, reglas de arquitectura y guías de desarrollo que el agente debe conocer para trabajar correctamente en proyectos Zesh.
+`zesh-one-skills` centralizes domain-specific execution guidance for AI agents.
 
-Los skills están diseñados para **OpenCode** con el stack de herramientas de Gentleman Programming: engram (memoria persistente) y agents-team-lite (orquestación de sub-agentes).
+The suite is intentionally **operational**:
+- concise defaults,
+- explicit constraints,
+- anti-patterns and progressive disclosure,
+- minimal context noise.
 
-## Stack y herramientas
+All skill and AGENTS domain files follow an **English-only** policy.
 
-| Herramienta | Rol |
-|-------------|-----|
-| [OpenCode](https://opencode.ai) | Runtime del agente |
-| [Engram](https://github.com/gentleman-programming/engram) | Memoria persistente entre sesiones |
-| Agents Team Lite | Orquestación y delegación de sub-agentes |
-| Node.js | Pipeline de validación local (`npm run verify`) |
+## Tooling stack
 
-## Estructura del repo
+| Tool | Role |
+|------|------|
+| [OpenCode](https://opencode.ai) | Agent runtime |
+| [Engram](https://github.com/gentleman-programming/engram) | Persistent memory across sessions |
+| Agent Teams Lite | Multi-agent orchestration/delegation |
+| Node.js | Local validation pipeline (`npm run verify`) |
 
-```
+## Repository layout
+
+```text
 zesh-one-skills/
-├── AGENTS.backend.md      # Instrucciones de agente para proyectos backend (distribuir como AGENTS.md)
-├── AGENTS.frontend.md     # Instrucciones de agente para proyectos frontend (distribuir como AGENTS.md)
-├── AGENTS.apps.md         # Instrucciones de agente para proyectos mobile (distribuir como AGENTS.md)
+├── AGENTS.backend.md
+├── AGENTS.frontend.md
+├── AGENTS.apps.md
 ├── skills/
-│   ├── backend/           # Skills de dominio backend (.NET 8 REST API)
+│   ├── backend/
 │   │   ├── dataaccess/
 │   │   ├── general/
 │   │   ├── logging/
@@ -36,7 +42,7 @@ zesh-one-skills/
 │   │   ├── security/
 │   │   ├── testing-unit/
 │   │   └── validations/
-│   ├── frontend/          # Skills de dominio frontend (Next.js 15, React 19, etc.)
+│   ├── frontend/
 │   │   ├── nextjs-15/
 │   │   ├── react-19/
 │   │   ├── security/
@@ -46,33 +52,39 @@ zesh-one-skills/
 │   │   ├── typescript/
 │   │   ├── zod-4/
 │   │   └── zustand-5/
-│   ├── apps/              # Skills mobile / native (Ionic + Capacitor)
+│   ├── apps/
 │   │   ├── capacitor/
 │   │   └── ionic-angular/
-│   └── shared/            # Skills cross-domain
+│   └── shared/
 │       └── github-pr/
-├── tools/                 # Scripts de validación (lint, test, verify)
-├── ADOPTING.md            # Guía para adoptar esta suite en un proyecto nuevo
-└── CREDITS.md             # Atribución de assets vendor
+├── docs/
+│   ├── skills-review-rubric.md
+│   └── skills-sanitization-plan.md
+├── tools/
+├── ADOPTING.md
+├── CHANGELOG.md
+└── CREDITS.md
 ```
 
-## Quick Start
+## Adoption
 
-Para adoptar esta suite en un proyecto nuevo, seguí la guía paso a paso:
+Use the onboarding guide:
 
-→ **[ADOPTING.md](./ADOPTING.md)**
+-> **[ADOPTING.md](./ADOPTING.md)**
 
-## Verificación
-
-Para validar que la suite está consistente y los skills tienen el formato correcto:
+## Validation
 
 ```bash
 npm install
 npm run verify
 ```
 
-El comando ejecuta lint de estructura de skills, prueba fixtures y valida logging specs. Debe terminar con 0 errores.
+`verify` runs fixture tests, semantic checks, skill lint, and release-readiness checks.
 
-## Créditos
+## Changelog
 
-→ **[CREDITS.md](./CREDITS.md)**
+-> **[CHANGELOG.md](./CHANGELOG.md)**
+
+## Credits
+
+-> **[CREDITS.md](./CREDITS.md)**

@@ -109,6 +109,30 @@ function parseMajorVersion(versionStr) {
 }
 
 /**
+ * Determine whether `allowed-tools` contains at least one tool entry.
+ * Supports legacy array format and current spec string format.
+ * @param {unknown} allowedTools
+ * @returns {boolean}
+ */
+function hasAllowedTools(allowedTools) {
+  if (Array.isArray(allowedTools)) {
+    return allowedTools.length > 0;
+  }
+
+  if (typeof allowedTools === 'string') {
+    // Current spec stores tools as a space-separated string.
+    // Be tolerant of comma-separated legacy strings as well.
+    const tokens = allowedTools
+      .split(/[\s,]+/)
+      .map((t) => t.trim())
+      .filter(Boolean);
+    return tokens.length > 0;
+  }
+
+  return false;
+}
+
+/**
  * Extract relative Markdown links from a `## Resources` section.
  * Only returns links that don't start with http/https.
  * @param {string} body
@@ -219,14 +243,7 @@ function lintSkillFile(filePath, content) {
   }
 
   // FM-007: allowed-tools (Zesh-One warning)
-  if (
-    isZeshOne &&
-    (
-      !fm['allowed-tools'] ||
-      (Array.isArray(fm['allowed-tools']) && fm['allowed-tools'].length === 0) ||
-      (typeof fm['allowed-tools'] === 'string')
-    )
-  ) {
+  if (isZeshOne && !hasAllowedTools(fm['allowed-tools'])) {
     push('warning', 'FM-007', 1, '`allowed-tools` field recommended for Zesh-One skills');
   }
 
@@ -364,5 +381,5 @@ function main() {
 if (require.main === module) {
   main();
 } else {
-  module.exports = { lintSkillFile, splitFrontmatter, parseMajorVersion };
+  module.exports = { lintSkillFile, splitFrontmatter, parseMajorVersion, hasAllowedTools };
 }

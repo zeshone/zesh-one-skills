@@ -2,217 +2,111 @@
 name: tailwind-4
 description: >
   ZeshOne Tailwind CSS 4 conventions.
-  Trigger: When styling with Tailwind — cn(), theme variables, dynamic values, fluid typography, container queries.
+  Trigger: When styling UI with Tailwind utilities, semantic tokens, responsive rules, or runtime dynamic values.
 license: Apache-2.0
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
+allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
   inspired-by: gentleman-programming/tailwind-4, frontend-nextjs
 ---
 
 ## When to Use
 
-Load this skill when styling with Tailwind CSS 4 — `cn()`, theme variables, fluid typography, container queries, or third-party library integration.
+Load this skill when styling with Tailwind CSS 4 in this repo.
+
+Use it to enforce utility-first classes, semantic defaults, and safe handling of truly dynamic values.
+
+Cross-reference:
+- `frontend/shadcn-ui`: composition and primitives strategy.
+- `frontend/nextjs-15`: server/client boundaries that affect where styles execute.
 
 ## Critical Patterns
 
-- NEVER use `var()` inside `className` — use Tailwind semantic classes (`bg-primary`, `text-slate-400`).
-- NEVER use hex colors in `className` — always use Tailwind color classes.
-- NEVER use `px` for font sizes or spacing — use `rem` or `clamp()`.
-- `px` is only valid for borders, box-shadows, and outlines.
-- Use `cn()` for conditional/merged classes. Plain `className` for static-only.
-- `style` prop only for truly dynamic runtime values (percentages, progress bars, user-driven sizes).
-- `var()` allowed in `style` props for third-party libs that cannot accept `className` (e.g., Recharts).
-
-## Styling Decision Tree
-
-```
-Static classes only?              → className="..."
-Conditional or mergeable classes? → cn("base", condition && "variant")
-Truly dynamic runtime value?      → style={{ width: `${x}%` }}
-Third-party lib prop (no class)?  → style prop with CHART_COLORS constants
-Fluid spacing?                    → style={{ padding: 'var(--space-md)' }}
-```
-
-## cn() Utility — Implementation
-
-```typescript
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-```
-
-## Tailwind v4 — CSS-First Configuration
-
-No `tailwind.config.js`. Configuration and theme tokens live in CSS via `@theme`.
-
-```css
-/* globals.css */
-@import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-border: var(--border);
-  --radius-lg: var(--radius);
-
-  /* Fluid typography — text-lg, text-2xl, etc. use clamp() automatically */
-  --font-size-xs:   var(--text-xs);
-  --font-size-sm:   var(--text-sm);
-  --font-size-base: var(--text-base);
-  --font-size-lg:   var(--text-lg);
-  --font-size-xl:   var(--text-xl);
-  --font-size-2xl:  var(--text-2xl);
-  --font-size-3xl:  var(--text-3xl);
-  --font-size-4xl:  var(--text-4xl);
-}
-
-:root {
-  /* Fluid type scale: min at 320px viewport, max at 1200px */
-  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
-  --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
-  --text-base: clamp(1rem,     0.9rem  + 0.5vw,  1.125rem);
-  --text-lg:   clamp(1.125rem, 1rem    + 0.6vw,  1.25rem);
-  --text-xl:   clamp(1.25rem,  1.1rem  + 0.75vw, 1.5rem);
-  --text-2xl:  clamp(1.5rem,   1.2rem  + 1.5vw,  2rem);
-  --text-3xl:  clamp(1.875rem, 1.5rem  + 1.875vw,2.5rem);
-  --text-4xl:  clamp(2.25rem,  1.8rem  + 2.25vw, 3rem);
-
-  /* Fluid spacing scale */
-  --space-2xs: clamp(0.125rem, 0.1rem  + 0.125vw, 0.25rem);
-  --space-xs:  clamp(0.25rem,  0.2rem  + 0.25vw,  0.5rem);
-  --space-sm:  clamp(0.5rem,   0.4rem  + 0.5vw,   0.75rem);
-  --space-md:  clamp(1rem,     0.8rem  + 1vw,     1.5rem);
-  --space-lg:  clamp(1.5rem,   1.2rem  + 1.5vw,   2rem);
-  --space-xl:  clamp(2rem,     1.5rem  + 2.5vw,   3rem);
-  --space-2xl: clamp(3rem,     2rem    + 5vw,     5rem);
-
-  /* Semantic color tokens */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --primary: oklch(56% 0.2 250);
-  --border: oklch(30% 0.02 250);
-  --radius: 0.5rem;
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-}
-```
-
-**Why this works:** `text-lg` maps to `--font-size-lg` which maps to `var(--text-lg)` (a clamp value). Fluid without manual `style` props.
-
-**WCAG zoom warning:** Never use bare `vw` — always combine with `rem`:
-```css
-/* WRONG — fails WCAG 1.4.4 */
-font-size: clamp(1rem, 2vw, 2rem);
-/* CORRECT — rem component scales with browser zoom */
-font-size: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
-```
-
-## Container Queries — Component-Level Responsive
+- DO use semantic utility classes (`bg-background`, `text-foreground`, `border-border`) — Why: keeps token mapping centralized and theme-safe.
+- DO use utility-first `className` as default — Why: consistent with project styling standards and easy to review.
+- DO use `cn()` only when classes are conditional or merged — Why: reduces noise in static components.
+- DO keep mobile as the base and layer up with breakpoints (`md:`, `lg:`) — Why: predictable responsive behavior.
+- DO use container queries for component-level adaptation (`@container`, `@sm:`) — Why: reusable components should respond to parent width, not page width.
+- DO prefer `rem` and `clamp()` for typography/spacing tokens — Why: accessibility and stable zoom behavior.
+- DO use `style` only for truly runtime values (e.g., width from API/user input) — Why: static values belong in classes.
+- DON'T place `var(--token)` directly in `className` — Why: Tailwind cannot optimize arbitrary variable strings reliably.
+- DON'T use raw hex/rgb color literals in markup — Why: breaks semantic theming and dark mode consistency.
+- DON'T use `px` for spacing or font sizes — Why: reduces scalability; keep `px` for borders/outlines when needed.
 
 ```tsx
-/* Tailwind v4 — first-class @container support */
-<div className="@container">
-  <div className="flex flex-col @sm:flex-row @lg:grid @lg:grid-cols-3 gap-4" />
-</div>
+<div className={cn("rounded-md border p-4", isActive && "bg-primary text-primary-foreground")} style={{ width: `${progress}%` }} />
 ```
 
-Three layers of responsive:
-- **Media queries** (`sm:`, `md:`, `lg:`) → page-level layout changes
-- **Container queries** (`@container`, `@sm:`, `@md:`) → component-level adaptation
-- **`clamp()`** → fluid typography/spacing, no breakpoints needed
+Use the snippet pattern as a hard boundary: classes for static/conditional styling, `style` only for real runtime numbers.
 
-## Mobile-First Rules
+## Constraints & Tradeoffs
 
-```tsx
-{/* Base = mobile, prefix = larger */}
-<div className="flex flex-col gap-4 md:flex-row md:gap-6" />
-```
+- Tailwind v4 in this repo is CSS-first; token definition lives in CSS, not in long per-component setup blocks.
+- Dynamic inline style is sometimes unavoidable (charts, canvas, third-party props), but overuse removes utility consistency.
+- Container queries improve component reuse but add mental overhead; use them when the component is reused in multiple layout widths.
+- Fluid scales (`clamp`) improve responsiveness, but must include a `rem` term to remain zoom-accessible.
+- Dark mode depends on semantic tokens; one-off hardcoded colors increase maintenance and theme bugs.
 
-Critical mobile patterns:
-- Touch targets: `min-h-11 min-w-11` (44px) on all interactive elements
-- Form inputs: always `text-base` (prevents iOS auto-zoom)
-- Full height: `min-h-dvh` (not `min-h-screen`)
-- Motion: always add `motion-reduce:` variant to animations
+Operational constraints:
+- Prefer explicit, readable utility groups over dense one-line class strings when they become difficult to review.
+- Keep utility ordering stable (layout → spacing → typography → state) to reduce noisy diffs.
+- If a component exceeds maintainable class complexity, extract a small wrapper component instead of moving to custom CSS too early.
+- Use custom CSS only for selectors/utilities Tailwind cannot express cleanly (e.g., complex `:has()` relationships).
+- Before introducing new token names, verify existing semantic tokens can represent the same intent.
 
-## Style Constants for Third-Party Libraries
+## Anti-Patterns
 
-```typescript
-// Only for library props (Recharts fill, stroke, etc.) that cannot receive className
-const CHART_COLORS = {
-  primary: "var(--color-primary)",
-  secondary: "var(--color-secondary)",
-  border: "var(--color-border)",
-};
+- Writing long utility strings with duplicated classes instead of extracting reusable component patterns.
+- Mixing semantic utilities and raw hardcoded colors in the same component.
+- Using `style={{ padding: "16px" }}` for static spacing that should be `p-4`.
+- Defining responsiveness only with page breakpoints when a component-level container rule is more correct.
+- Adding custom CSS for patterns already covered by Tailwind utilities.
+- Using arbitrary values as the first option (`w-[237px]`) when a scale token exists.
+- Shipping components without reduced-motion handling for meaningful animation.
+- Styling form controls below accessible mobile size thresholds.
 
-<XAxis tick={{ fill: CHART_COLORS.primary }} />
-<CartesianGrid stroke={CHART_COLORS.border} />
-```
+Quick decision checks:
+- If the value is known at build time, it should almost always be a class.
+- If the value is computed from runtime/user/API state, `style` can be justified.
+- If style intent is “brand/system,” use semantic tokens; if intent is “one-off visual tweak,” reconsider.
 
-## Dark Mode Pattern (class-based via next-themes)
+## Progressive Disclosure
 
-```css
-@custom-variant dark (&:is(.dark *));
-/* next-themes adds .dark to <html> — Tailwind dark: variants work automatically */
-```
+1. Start with static utility classes.
+2. Add `cn()` only when conditions or variants appear.
+3. Add responsive prefixes for page-level shifts.
+4. Add container queries when component reuse demands local responsiveness.
+5. Add inline `style` only for true runtime values.
+6. Escalate to custom CSS only when utilities cannot express the requirement.
 
-## CSS Modern Features (in Next.js + Tailwind stack)
+If styling decisions affect generated primitives, align with `frontend/shadcn-ui` before changing shared tokens.
 
-**CSS :has() — style parent based on child:**
-```css
-.card:has(img) { grid-template-columns: 12.5rem 1fr; }
-.form-group:has(input:invalid) .label { color: var(--destructive); }
-```
+Review checklist before merge:
+- Utilities are semantic and token-aligned.
+- No hardcoded palette literals in JSX/TSX.
+- No unnecessary inline static style values.
+- Responsive strategy is explicit (page breakpoint vs container query).
+- Interactive targets preserve accessible sizing and motion fallbacks.
 
-**CSS Nesting — max 3 levels deep:**
-```css
-.card {
-  padding: var(--space-md);
-  &:hover { box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.1); }
-  @media (width >= 48rem) { flex-direction: row; }
-  @container card (width >= 25rem) { flex-direction: row; }
-}
-```
-
-**CSS @layer — declare order upfront:**
-```css
-@layer reset, base, tokens, components, utilities, overrides;
-/* Unlayered styles override all layered styles */
-```
-
-**Logical properties — use instead of physical left/right:**
-```css
-/* Physical (avoid) → Logical (use) */
-margin-left/right  → margin-inline
-padding-left/right → padding-inline
-text-align: left   → text-align: start
-/* Tailwind: ms-, me-, ps-, pe-, start-, end- */
-```
+Definition of done for styling updates:
+- New classes follow utility-first defaults and remain readable.
+- Any runtime style usage is justified by non-static input.
+- Any token changes are documented where shared theming is defined.
+- Cross-skill impact on shadcn primitives has been considered.
 
 ## Resources
 
-- Tailwind CSS Docs — https://tailwindcss.com/docs
-- Tailwind CSS Installation (Next.js) — https://tailwindcss.com/docs/installation/framework-guides/nextjs
-- Tailwind CSS Theme Variables — https://tailwindcss.com/docs/theme
-- Tailwind CSS Dark Mode — https://tailwindcss.com/docs/dark-mode
-- Tailwind CSS Responsive Design — https://tailwindcss.com/docs/responsive-design
+- Tailwind Docs — https://tailwindcss.com/docs
+- Tailwind Theme Variables — https://tailwindcss.com/docs/theme
+- Tailwind Container Queries — https://tailwindcss.com/docs/hover-focus-and-other-states#container-queries
+- Tailwind Responsive Design — https://tailwindcss.com/docs/responsive-design
+- Cross-skill: `skills/frontend/shadcn-ui/SKILL.md`
 
 ## Changelog
 
+### v2.1 — 2026-04-21
+- Reduced encyclopedic setup content and converted to operational rules with constraints, anti-patterns, and progressive disclosure.
+
 ### v2.0 — 2026-04-16
-- Added Tailwind v4 CSS-first configuration guidance, fluid typography and spacing tokens, container queries, and modern CSS integration rules.
+- Added Tailwind v4 CSS-first conventions, semantic token usage, and responsive strategy guidance.

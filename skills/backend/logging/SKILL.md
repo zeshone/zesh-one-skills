@@ -1,358 +1,125 @@
 ---
-name: net8-apirest-logging
+name: logging
 description: >
-  Structured logging, end-to-end traceability, and canonical exception handling for ASP.NET Core 8 REST APIs using Serilog with ProblemDetails, CorrelationId, and mandatory observability fields.
-  Trigger: When implementing logging, configuring Serilog, writing exception handlers, adding Correlation ID tracking, or diagnosing incidents in a .NET 8 API.
+  Operational logging standards for ASP.NET Core APIs using Serilog structured events,
+  request correlation, and canonical exception telemetry.
+  Trigger: When implementing or reviewing API logging, middleware instrumentation,
+  incident diagnostics, or log safety controls.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.8"
-allowed-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
+  version: "2.9"
+allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
 ## When to Use
 
-- Configuring Serilog in a new or existing API
-- Implementing the global exception handling middleware
-- Adding Correlation ID tracking
-- Deciding log levels for different scenarios
-- Diagnosing incidents with correlationId
-
----
+- Adding or refactoring API logging middleware.
+- Defining severity rules for domain and HTTP outcomes.
+- Investigating incidents using correlation IDs.
+- Reviewing logs for security, privacy, and compliance.
+- Aligning logging behavior with `responses`, `security`, and `general` skills.
 
 ## Critical Patterns
 
-### Serilog — Canonical Library
+1) **Do** use Serilog structured fields; **Don’t** emit unstructured free-text logs.
+Why: queryable fields are required for fast incident reconstruction.
 
-Always use **Serilog** for structured logging. Never `Console.WriteLine` in production code.
+2) **Do** ensure every request has a `CorrelationId`; **Don’t** depend on client header quality.
+Why: caller-provided IDs may be missing or malicious.
 
-Required packages: `Serilog.AspNetCore`, `Serilog.Sinks.Console`, `Serilog.Sinks.File`, `Serilog.Enrichers.Environment`.
+3) **Do** sanitize incoming `X-Correlation-ID`; **Don’t** trust control characters or long payloads.
+Why: prevents log injection and parser breakage.
 
-### Log Levels — HTTP Status Mapping
+4) **Do** include minimum traceability fields on warnings/errors: `CorrelationId`, `Application`,
+`Environment`, `UserId`, `RequestPath`, `RequestMethod`, `StatusCode`, `ExceptionType`, `Duration`.
+**Don’t** omit context in high-severity events.
+Why: these are the minimum forensic chain.
 
-| HTTP Status | Log Level |
-|---|---|
-| `400` validation errors | `LogInformation` — expected flow, not a warning |
+5) **Do** return `ProblemDetails` with `Extensions["correlationId"]`; **Don’t** hide correlation from callers.
+Why: support needs the same identifier users receive.
 
-### Correlation ID Middleware — FIRST in the pipeline
+6) **Do** keep canonical exception handling in middleware (`ExceptionHandlingMiddleware`);
+**Don’t** duplicate try/catch policy across controllers.
+Why: centralized behavior prevents drift in status and log level mapping.
 
-```csharp
-public class CorrelationIdMiddleware
-{
-    private const string CorrelationIdHeader = "X-Correlation-ID";
-    private readonly RequestDelegate _next;
-    private readonly string _applicationName;
-    private readonly string _environment;
+7) **Do** map exceptions consistently: `ValidationException`→400 (Info),
+`ForbiddenException`/`NotFoundException`/`ConflictException`→Warn, unexpected exceptions→Error.
+**Don’t** over-escalate expected failures.
+Why: noisy error logs hide true incidents.
 
-    public CorrelationIdMiddleware(RequestDelegate next, IConfiguration configuration, IWebHostEnvironment env)
-    {
-        _next = next;
-        _applicationName = configuration["ApplicationName"] ?? "API";
-        _environment = env.EnvironmentName;
-    }
+8) **Do** enrich request logs once (`UseSerilogRequestLogging`); **Don’t** duplicate `StatusCode` and `Duration`.
+Why: duplicates increase volume without signal.
 
-    public async Task InvokeAsync(HttpContext context)
-    {
-        // Security: sanitize the caller-supplied header value to prevent log injection.
-        // Unsanitized values can contain newlines or structured payloads that forge log entries.
-        string rawId = context.Request.Headers.TryGetValue(CorrelationIdHeader, out var headerVal)
-            ? headerVal.ToString()
-            : Guid.NewGuid().ToString();
+9) **Do** keep user enrichment after authentication when needed; **Don’t** assume identity exists at pipeline start.
+Why: `UserId` before auth is unreliable.
 
-        // Strip non-printable/control characters and enforce a max length of 64 chars.
-        var sanitized = new string(rawId.Where(c => !char.IsControl(c)).ToArray());
-        if (sanitized.Length > 64) sanitized = sanitized[..64];
-        var correlationId = string.IsNullOrWhiteSpace(sanitized) ? Guid.NewGuid().ToString() : sanitized;
+10) **Do** redact sensitive values before logging; **Don’t** log secrets, tokens, credentials, full PII, or connection secrets.
+Why: logs are long-lived and broadly accessible.
 
-        context.Items["CorrelationId"] = correlationId;
-        context.Response.Headers[CorrelationIdHeader] = correlationId;
+11) **Do** keep logs English-only; **Don’t** mix languages in message templates.
+Why: consistent operations language is mandatory.
 
-        using (LogContext.PushProperty("CorrelationId", correlationId))
-        using (LogContext.PushProperty("Application", _applicationName))
-        using (LogContext.PushProperty("Environment", _environment))
-        {
-            await _next(context);
-        }
-    }
-}
-```
-
-> `UserId` is NOT enriched here — `Authentication` has not run yet. `UserId` is pushed in `ExceptionHandlingMiddleware` (error context) and optionally by `UserLogContextMiddleware` (when per-user log partitioning is active).
-
-### Exception Handling Middleware — Canonical
+12) **Do** prefer one stable message template per event type; **Don’t** create template variants for the same event.
+Why: stable templates improve analytics and alerting quality.
 
 ```csharp
-public class ExceptionHandlingMiddleware
-{
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
-        using (LogContext.PushProperty("UserId", userId))
-        {
-            try { await _next(context); }
-            catch (ValidationException ex) // FluentValidation.ValidationException
-            {
-                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
-                {
-                    _logger.LogInformation(ex, "Validation error for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                        userId, context.Request.Path, context.Items["CorrelationId"]);
-                    await WriteErrorResponse(context, StatusCodes.Status400BadRequest, "Validation Error", ex.Message);
-                }
-            }
-            catch (ForbiddenException ex)
-            {
-                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
-                {
-                    _logger.LogWarning(ex, "Forbidden access for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                        userId, context.Request.Path, context.Items["CorrelationId"]);
-                    await WriteErrorResponse(context, StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
-                }
-            }
-            catch (NotFoundException ex)
-            {
-                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
-                {
-                    _logger.LogWarning(ex, "Resource not found for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                        userId, context.Request.Path, context.Items["CorrelationId"]);
-                    await WriteErrorResponse(context, StatusCodes.Status404NotFound, "Not Found", ex.Message);
-                }
-            }
-            catch (ConflictException ex)
-            {
-                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
-                {
-                    _logger.LogWarning(ex, "Conflict for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                        userId, context.Request.Path, context.Items["CorrelationId"]);
-                    await WriteErrorResponse(context, StatusCodes.Status409Conflict, "Conflict", ex.Message);
-                }
-            }
-            catch (Exception ex)
-            {
-                using (LogContext.PushProperty("ExceptionType", ex.GetType().Name))
-                {
-                    _logger.LogError(ex, "Unhandled exception for {UserId} at {RequestPath}. CorrelationId: {CorrelationId}",
-                        userId, context.Request.Path, context.Items["CorrelationId"]);
-                    await WriteErrorResponse(context, StatusCodes.Status500InternalServerError,
-                        "Internal Server Error", "An unexpected error occurred.");
-                }
-            }
-        }
-    }
-
-    private static async Task WriteErrorResponse(HttpContext context, int statusCode, string title, string detail)
-    {
-        context.Response.StatusCode = statusCode;
-        context.Response.ContentType = "application/problem+json";
-        var problem = new ProblemDetails { Status = statusCode, Title = title, Detail = detail };
-        problem.Extensions["correlationId"] = context.Items["CorrelationId"] as string;
-        await context.Response.WriteAsJsonAsync(problem);
-    }
-}
+// Canonical API error response enrichment
+problem.Extensions["correlationId"] = context.Items["CorrelationId"] as string;
 ```
 
-> **Canonical Content-Type**: always `application/problem+json` (not `application/json`) for error responses.
+## Constraints & Tradeoffs
 
-For the exception → HTTP status mapping contract, see [`responses/SKILL.md`](../responses/SKILL.md).
+- Serilog is mandatory for structured logging in this project.
+- Correlation middleware must run first in the pipeline (`general/SKILL.md`).
+- Repositories and low-level data code must not own API exception logging policy.
+- Per-user file partitioning can help investigations but hurts scalability for high-cardinality traffic.
+- File sinks are acceptable for local/server diagnostics; centralized aggregators are preferred at scale.
+- Verbose payload logging increases supportability but raises compliance and storage risks.
+- Keep log schema stable over time; schema churn breaks dashboards and alert rules.
+- Avoid dynamic property names; prefer fixed keys for index efficiency.
+- Warn-level and above events must remain sparse enough to be actionable.
+- Correlation IDs must be echoed to response headers for client-side traceability.
 
-### 9 Mandatory Minimum Traceability Fields
+## Anti-Patterns
 
-Every `Warning` log or above MUST contain these fields:
+- Logging request/response bodies by default.
+- Logging access tokens, refresh tokens, API keys, passwords, or connection strings.
+- Using `Console.WriteLine` in runtime code.
+- Logging expected validation failures as errors.
+- Returning generic 500 responses without correlation ID.
+- Generating a new correlation ID mid-request.
+- Duplicating exception→HTTP mappings in controllers and middleware simultaneously.
+- Using localized/non-English log templates.
 
-| Field | Source | When enriched |
-|---|---|---|
-| `CorrelationId` | `HttpContext.Items["CorrelationId"]` | `CorrelationIdMiddleware` (start of pipeline) |
-| `Application` | `IConfiguration["ApplicationName"]` | `CorrelationIdMiddleware` |
-| `Environment` | `IWebHostEnvironment.EnvironmentName` | `CorrelationIdMiddleware` |
-| `UserId` | `HttpContext.User` claims | `ExceptionHandlingMiddleware` (after auth) |
-| `RequestPath` | `HttpContext.Request.Path` | `UseSerilogRequestLogging` |
-| `RequestMethod` | `HttpContext.Request.Method` | `UseSerilogRequestLogging` |
-| `StatusCode` | `HttpContext.Response.StatusCode` | `UseSerilogRequestLogging` (at request completion) |
-| `ExceptionType` | `exception.GetType().Name` | `ExceptionHandlingMiddleware` (in catch) |
-| `Duration` | Calculated by Serilog | `UseSerilogRequestLogging` (at request completion) |
+## Progressive Disclosure
 
-### Serilog Bootstrap
+- **Start here (minimum):** correlation middleware + request logging + exception middleware + redaction discipline.
+- **Then optimize:** tune level mapping and template consistency for alert quality.
+- **Then scale:** route events to centralized sinks and dashboards.
+- **Advanced optional:** per-user partitioning only for bounded-identity systems.
 
-```csharp
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("System", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console(outputTemplate:
-        "[{Timestamp:HH:mm:ss} {Level:u3}] [{CorrelationId}] [{Application}/{Environment}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File("logs/api-.log", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+Operational checklist for PR reviews:
+- Confirm `CorrelationId` is present end-to-end (header, log context, ProblemDetails extension).
+- Confirm exception classes map to intended status/log severity.
+- Confirm no forbidden fields appear in message templates or structured properties.
+- Confirm middleware order remains aligned with `general` skill.
 
-builder.Host.UseSerilog();
-```
-
-> **Non-obvious**: The `outputTemplate` above injects `CorrelationId`, `Application`, and `Environment` — these fields are pushed via `LogContext` by `CorrelationIdMiddleware`. The `rollingInterval: RollingInterval.Day` keeps log files manageable without configuration overhead.
->
-> **Production path note**: `"logs/api-.log"` is a relative path and resolves from the process working directory. In production, prefer an absolute path from configuration, for example `Path.Combine(builder.Configuration["Logging:BasePath"]!, "api-.log")`.
-
-### Request Logging with Serilog
-
-```csharp
-app.UseSerilogRequestLogging(options =>
-{
-    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-    {
-        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
-        diagnosticContext.Set("CorrelationId", httpContext.Items["CorrelationId"] as string);
-        diagnosticContext.Set("UserId", httpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous");
-    };
-});
-```
-
-> `StatusCode` and `Duration` are captured automatically by Serilog. Do not duplicate them.
-
-### Per-User Log Partitioning — `WriteTo.Map`
-
-For applications with distinct users (agents, customers, admins, tenants), partition log files by user identity using `WriteTo.Map`. This makes per-user debugging trivial — no log queries needed.
-
-```csharp
-// Install: Serilog.Sinks.Map
-// The property name ("UserId" in this example) must be pushed to LogContext
-// BEFORE WriteTo.Map is evaluated — use a middleware that runs after Authentication.
-
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .Enrich.FromLogContext()
-    .WriteTo.Map(
-        keyPropertyName: "UserId",       // LogContext property to partition by
-        defaultKey: "anonymous",         // file when UserId is not yet available
-        configure: (userId, writeTo) =>
-            writeTo.File(
-                path: $"logs/{userId}/log-.txt",
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 31,
-                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}"))
-    .CreateLogger();
-```
-
-**Middleware to push user identity into `LogContext`** (runs after `UseAuthentication`):
-
-```csharp
-public class UserLogContextMiddleware
-{
-    private readonly RequestDelegate _next;
-
-    public UserLogContextMiddleware(RequestDelegate next) => _next = next;
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        // Resolve the identity key from the claim appropriate to your domain:
-        // ClaimTypes.NameIdentifier for user ID, a custom claim for tenant/agent/etc.
-        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
-
-        using (LogContext.PushProperty("UserId", userId))
-        {
-            await _next(context);
-        }
-    }
-}
-```
-
-**Register after `UseAuthentication()` and before `UseRateLimiter()` in `Program.cs` (see pipeline order in [`../general/SKILL.md`](../general/SKILL.md)):**
-```csharp
-app.UseAuthentication();
-app.UseMiddleware<UserLogContextMiddleware>(); // must be AFTER auth — identity not available before
-app.UseRateLimiter();
-```
-
-> **When to use**: multi-tenant SaaS, agent/broker portals, admin panels with multiple operator roles — any scenario where isolating one user's activity in a dedicated file saves significant debugging time.
->
-> **When NOT to use**: public APIs with anonymous traffic or very high user counts (thousands of distinct files per day creates filesystem pressure). For high-cardinality user populations, use structured logging with a log aggregator (Seq, Grafana Loki) and query by `UserId` field instead.
->
-> **The partition key is your domain**: use whatever claim your domain uses — user ID, tenant code, agent code, organization ID. The pattern is identical; only the claim name and path template change.
->
-> **Production path note**: In production, use an absolute path from configuration (for example `Path.Combine(builder.Configuration["Logging:BasePath"]!, userId, "log-.txt")`) — relative paths resolve to the process working directory.
-
-### Sensitive Data — Fields Forbidden in Logs
-
-Sanitize BEFORE logging, never after:
-
-| Category | Forbidden fields |
-|---|---|
-| Credentials | `password`, `passwordHash`, `pin`, `secret` |
-| Tokens | `jwtToken`, `accessToken`, `refreshToken`, `apiKey`, `bearerToken` |
-| Financial data | `cardNumber`, `cvv`, `bankAccount`, `iban` |
-| PII | `email` (full), `phone`, `nationalId`, `ssn`, `dateOfBirth` |
-| Infrastructure | `connectionString`, `databasePassword`, `smtpPassword` |
-
-### Troubleshooting — Evidence Chain
-
-```
-1. User receives error → obtains correlationId from ProblemDetails.Extensions["correlationId"]
-2. Support searches: WHERE CorrelationId = '{value}'
-3. Reconstruction:
-   - Request log (Serilog): Method, Path, StatusCode, Duration, UserId
-   - Exception log (ExceptionHandlingMiddleware): ExceptionType, Message, StackTrace (internal)
-   - Service logs: Operation, parameters (without PII)
-```
-
----
-
-## Cross-References
-
-| Skill | Relationship |
-|---|---|
-| [`responses`](../responses/SKILL.md) | Defines the exception → HTTP contract. The middleware implementation lives here. |
-| [`general`](../general/SKILL.md) | Defines the pipeline order. `CorrelationIdMiddleware` goes at position 0. |
-| [`security`](../security/SKILL.md) | `ForbiddenException` and the prohibition on logging tokens. |
+For exception contract details see [`../responses/SKILL.md`](../responses/SKILL.md).
+For pipeline order see [`../general/SKILL.md`](../general/SKILL.md).
+For security logging boundaries see [`../security/SKILL.md`](../security/SKILL.md).
 
 ## Resources
 
-- Serilog — https://serilog.net/
-- Serilog.AspNetCore — https://github.com/serilog/serilog-aspnetcore
-- Serilog.Sinks.File — https://github.com/serilog/serilog-sinks-file
-- Serilog Enrichment and LogContext — https://github.com/serilog/serilog/wiki/Enrichment
-- Serilog Request Logging Middleware — https://github.com/serilog/serilog-aspnetcore#request-logging
-
----
+- Serilog overview: https://serilog.net/
+- Serilog ASP.NET Core: https://github.com/serilog/serilog-aspnetcore
+- Serilog enrichment (`LogContext`): https://github.com/serilog/serilog/wiki/Enrichment
+- ProblemDetails in ASP.NET Core: https://learn.microsoft.com/aspnet/core/web-api/handle-errors
 
 ## Changelog
 
-### v2.7 — 2026-04-09
-- **Fixed (Round 4)**: Added explicit production-path notes for both the bootstrap file sink and the per-user `WriteTo.Map` sink. Relative `logs/...` paths resolve from the process working directory, so production deployments should use absolute paths from configuration.
-
-### v2.6 — 2026-04-09
-- **Added**: Per-User Log Partitioning with `WriteTo.Map` — partition log files by any user identity claim (user ID, tenant, agent, organization). Includes `UserLogContextMiddleware`, bootstrap configuration, and guidance on when to use vs when a log aggregator is the better choice. Pattern derived from production multi-tenant microservices audit.
-
-### v2.5 — 2026-04-09
-- **Fixed (W-07)**: Added explanatory note to the Serilog bootstrap block. The `outputTemplate` and `rollingInterval` are non-obvious ZeshOne decisions (custom fields from `CorrelationIdMiddleware`, daily rotation as default). The rest of the bootstrap is standard Serilog configuration the agent already knows.
-
-### v2.4 — 2026-03-28
-- **Fixed (FIX-C)**: Changed `context.Items["CorrelationId"]?.ToString()` to `context.Items["CorrelationId"] as string` in two locations: `WriteErrorResponse` (`problem.Extensions["correlationId"]`) and `UseSerilogRequestLogging` enricher (`diagnosticContext.Set("CorrelationId", ...)`). `Items["CorrelationId"]` is typed `object?` but is always stored as `string` by `CorrelationIdMiddleware`; `as string` is explicit about the type and consistent with FIX-6's philosophy of removing redundant `.ToString()` calls.
-
-### v2.3 — 2026-03-28
-- **Fixed (FIX-6)**: Removed redundant `.ToString()` on `correlationId` in `LogContext.PushProperty(...)`. The variable is already typed as `string`; calling `.ToString()` implies type uncertainty and adds noise.
-
-### v2.2 — 2026-03-28
-- **Fixed (C-03)**: `CorrelationIdMiddleware` now sanitizes the caller-supplied `X-Correlation-ID` header before storing it. Non-printable/control characters are stripped and the value is capped at 64 characters to prevent log-injection attacks. A fallback to a fresh GUID is applied if the sanitized value is empty.
-
-### v2.1 — 2026-03-28
-- **Removed**: `IExceptionHandler` section as a non-canonical alternative (noise — if someone chooses it, they know how to use it)
-- **Removed**: `appsettings.json` Serilog config example (standard config, not a decision)
-- **Removed**: Duplicate NuGet commands at the end
-- **Removed**: Phase 2 scope boundary (out of scope section)
-- **Kept**: All canonical middleware, 9 fields, sensitive data list, Serilog bootstrap, request logging, troubleshooting chain
-
-### v2.0 — 2026-03-25
-- BREAKING: Error responses migrated to ProblemDetails; correlationId in Extensions; 9 traceability fields
+### v2.9 — 2026-04-21
+- Rewritten as concise operational guidance (P1 format).
+- Added mandatory section structure and atomic Do/Don’t rules with rationale.
+- Enforced explicit English-only and sensitive-data boundaries.
+- Preserved canonical references to responses, general, and security skills.
