@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
   inspired-by: gentleman-programming/tailwind-4, frontend-nextjs
 ---
 
@@ -32,7 +32,7 @@ Cross-reference:
 - DO use `style` only for truly runtime values (e.g., width from API/user input) — Why: static values belong in classes.
 - DON'T place `var(--token)` directly in `className` — Why: Tailwind cannot optimize arbitrary variable strings reliably.
 - DON'T use raw hex/rgb color literals in markup — Why: breaks semantic theming and dark mode consistency.
-- DON'T use `px` for spacing or font sizes — Why: reduces scalability; keep `px` for borders/outlines when needed.
+- DO follow this skill's current Tailwind 4 patterns; DON'T use legacy/deprecated Tailwind APIs from older versions; DO verify exact-version syntax/examples/definitions in Context7 before version-sensitive styling changes — Why: prevents config/syntax drift.
 
 ```tsx
 <div className={cn("rounded-md border p-4", isActive && "bg-primary text-primary-foreground")} style={{ width: `${progress}%` }} />
@@ -73,12 +73,13 @@ Quick decision checks:
 
 ## Progressive Disclosure
 
-1. Start with static utility classes.
-2. Add `cn()` only when conditions or variants appear.
-3. Add responsive prefixes for page-level shifts.
-4. Add container queries when component reuse demands local responsiveness.
-5. Add inline `style` only for true runtime values.
-6. Escalate to custom CSS only when utilities cannot express the requirement.
+1. Confirm installed Tailwind version and check Context7 exact-version docs before using syntax/config-sensitive features.
+2. Start with static utility classes.
+3. Add `cn()` only when conditions or variants appear.
+4. Add responsive prefixes for page-level shifts.
+5. Add container queries when component reuse demands local responsiveness.
+6. Add inline `style` only for true runtime values.
+7. Escalate to custom CSS only when utilities cannot express the requirement.
 
 If styling decisions affect generated primitives, align with `frontend/shadcn-ui` before changing shared tokens.
 
@@ -104,6 +105,9 @@ Definition of done for styling updates:
 - Cross-skill: `skills/frontend/shadcn-ui/SKILL.md`
 
 ## Changelog
+
+### v2.2 — 2026-04-22
+- Aligned versioning metadata and changelog with today's frontend skill updates.
 
 ### v2.1 — 2026-04-21
 - Reduced encyclopedic setup content and converted to operational rules with constraints, anti-patterns, and progressive disclosure.

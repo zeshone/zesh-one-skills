@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Edit Write Glob Grep
 metadata:
   author: Zesh-One
-  version: "1.2"
+  version: "1.3"
   inspired-by: gentleman-programming/react-19
 ---
 
@@ -26,7 +26,7 @@ Load this skill when creating React 19 UI units that require component boundary 
 7. **Do** use `use()` for promise reads within Suspense; **don't** re-implement loading orchestration manually. **Why:** native async read semantics.
 8. **Do** keep `use()` reads close to render usage; **don't** pass unresolved promises across deep trees without boundaries. **Why:** improves failure locality.
 9. **Do** model form actions as idempotent server mutations; **don't** rely only on client-side optimistic assumptions. **Why:** prevents divergence.
-10. **Do** re-check hook behavior after compiler/tooling upgrades; **don't** assume past heuristics still hold. **Why:** compiler/runtime contracts evolve.
+10. **Do** follow this skill's current React 19 patterns; **don't** use legacy/deprecated React APIs from older majors; **do** verify exact-version syntax/examples/definitions in Context7 before version-sensitive work. **Why:** avoids stale guidance and runtime mismatches.
 
 ```typescript
 import { useActionState } from "react";
@@ -69,11 +69,12 @@ Compiler activation hints:
 
 ## Progressive Disclosure
 
-1. Adopt server-vs-client boundary discipline first.
-2. Move forms to `useActionState` and explicit pending UX.
-3. Introduce `use()` for async reads where Suspense already exists.
-4. Enable and validate React Compiler before memo simplification passes.
-5. Cross-check app-level integration with [../nextjs-15/SKILL.md](../nextjs-15/SKILL.md).
+1. Confirm installed React version and check Context7 exact-version docs before API-sensitive refactors.
+2. Adopt server-vs-client boundary discipline first.
+3. Move forms to `useActionState` and explicit pending UX.
+4. Introduce `use()` for async reads where Suspense already exists.
+5. Enable and validate React Compiler before memo simplification passes.
+6. Cross-check app-level integration with [../nextjs-15/SKILL.md](../nextjs-15/SKILL.md).
 
 Team rollout pattern:
 - **Phase 1**: boundary rules + import hygiene.
@@ -101,6 +102,9 @@ Related operational pairings:
 - Keep boundary and data-fetching concerns separated during refactors.
 
 ## Changelog
+
+### v1.3 — 2026-04-22
+- Aligned versioning metadata and changelog with today's frontend skill updates.
 
 ### v1.2 — 2026-04-21
 - Standardized to operational format with exact required section set.
