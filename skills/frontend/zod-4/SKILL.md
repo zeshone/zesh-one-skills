@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "1.1"
+  version: "1.2"
   inspired-by: gentleman-programming/zod-4
 ---
 
@@ -26,7 +26,7 @@ Load this skill when defining runtime validation contracts, deriving static type
 7. **Do** centralize reusable schema fragments; **don't** copy-paste the same validators across features. **Why:** avoids drift.
 8. **Do** validate external input at boundaries (forms, query params, API payloads); **don't** trust TypeScript-only typing. **Why:** runtime safety.
 9. **Do** map `safeParse` issues to UX-friendly field errors; **don't** expose raw internal issue objects. **Why:** stable UI contracts.
-10. **Do** verify installed major version before applying v4 syntax; **don't** assume package defaults map to v4. **Why:** avoids silent incompatibility.
+10. **Do** follow this skill's current Zod 4 patterns; **don't** use legacy/deprecated APIs from older Zod versions; **do** verify exact-version syntax/examples/definitions in Context7 before version-sensitive schema changes. **Why:** prevents migration regressions.
 
 ```typescript
 const SignInSchema = z.object({
@@ -69,11 +69,12 @@ Schema maintenance notes:
 
 ## Progressive Disclosure
 
-1. Start with field-level validators and type inference.
-2. Move to `safeParse`-driven error handling in all form submits.
-3. Add `superRefine` for dependent field rules.
-4. Extract schema modules shared by forms, actions, and adapters.
-5. Integrate consistently with app form architecture (see [../react-19/SKILL.md](../react-19/SKILL.md)).
+1. Confirm installed Zod version and check Context7 exact-version docs before API-sensitive schema edits.
+2. Start with field-level validators and type inference.
+3. Move to `safeParse`-driven error handling in all form submits.
+4. Add `superRefine` for dependent field rules.
+5. Extract schema modules shared by forms, actions, and adapters.
+6. Integrate consistently with app form architecture (see [../react-19/SKILL.md](../react-19/SKILL.md)).
 
 Adoption by capability:
 - **Level 1**: basic field schemas + inferred types.
@@ -101,6 +102,9 @@ Related operational pairings:
 - Keep schema files versioned with API contract changes to prevent drift.
 
 ## Changelog
+
+### v1.2 — 2026-04-22
+- Aligned versioning metadata and changelog with today's frontend skill updates.
 
 ### v1.1 — 2026-04-21
 - Standardized to operational format with exact required section set.

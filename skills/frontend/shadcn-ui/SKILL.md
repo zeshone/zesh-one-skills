@@ -7,15 +7,35 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
   inspired-by: frontend-nextjs/components.md
 ---
 
+## Applicability / Opt-in Gate
+
+This skill is **optional** and applies **only when the developer explicitly requests shadcn/ui**.
+
+Use it when all of the following are true:
+- The work includes shadcn/ui primitives or forms.
+- The developer explicitly chose shadcn/ui for this task.
+- The goal is to accelerate UI delivery with composable primitives.
+
+Do **not** apply it when:
+- The project uses a different UI system/design system.
+- The developer did not request shadcn/ui.
+- The change is backend/non-UI and shadcn/ui adds no value.
+
+This guide is focused on **shadcn/ui best practices**: stable generation, composition-first customization, accessible forms, and token-driven theming.
+
 ## When to Use
 
-Load this skill when using shadcn/ui primitives in this repo.
+Use this skill only after the **Applicability / Opt-in Gate** passes.
 
-It defines how to keep generated UI code stable and how to customize safely through composition and shared tokens.
+Load it when you are implementing or reviewing:
+- shadcn/ui primitive composition,
+- shadcn-based forms and accessibility semantics,
+- theme/token customization for shadcn components,
+- version-sensitive shadcn component/pattern updates.
 
 Cross-reference:
 - `frontend/tailwind-4`: utility-first styling and token discipline.
@@ -23,16 +43,18 @@ Cross-reference:
 
 ## Critical Patterns
 
+- DO treat this skill as a non-default accelerator, not a mandatory baseline — Why: UI stack selection remains a developer decision.
 - DO add/update primitives using the `shadcn` CLI — Why: keeps generator output and registry metadata aligned.
 - DO treat `components/ui/*` as vendor-like generated base — Why: direct edits are brittle on regeneration.
 - DO customize behavior via wrappers/composition in feature components — Why: preserves upgrade path.
 - DO customize look through shared tokens and Tailwind utilities — Why: consistent theming across primitives.
 - DO keep form contracts explicit (`React Hook Form` + Zod schema + typed defaults) — Why: avoids runtime mismatch bugs.
 - DO keep dark mode class-based through a shared provider — Why: compatible with Tailwind dark variants.
+- DO review Context7 and prefer the latest documented shadcn/ui component/pattern versions before any version-sensitive change — Why: reduces drift and prevents applying outdated APIs.
 - DON'T fork generated primitive internals unless unavoidable — Why: difficult merges and drift from upstream.
 - DON'T place business logic inside generic primitives — Why: primitives should remain reusable and low coupling.
 - DON'T import heavy animation libraries in server-rendered paths by default — Why: unnecessary JS and hydration cost.
-- DON'T bypass accessibility slots (`Label`, `Message`, dialog semantics) — Why: regresses UX and compliance.
+- DON'T assume legacy template snippets are valid without checking current docs/context — Why: old patterns frequently break on newer releases.
 
 ```tsx
 <Card className="p-4">
@@ -76,12 +98,13 @@ Quick decision checks:
 
 ## Progressive Disclosure
 
-1. Start with generated primitives as-is.
-2. Compose primitives into feature components with domain labels/actions.
-3. Add validation and typed form state where input flows exist.
-4. Add token-level theming adjustments before touching primitive internals.
-5. Add dynamic imports only for genuinely heavy client-only visuals.
-6. Consider primitive internals changes only as a last resort and document the reason.
+1. Confirm installed shadcn/ui setup versions, review Context7, and prefer the most recent documented component/pattern approach before API-sensitive primitive changes.
+2. Start with generated primitives as-is.
+3. Compose primitives into feature components with domain labels/actions.
+4. Add validation and typed form state where input flows exist.
+5. Add token-level theming adjustments before touching primitive internals.
+6. Add dynamic imports only for genuinely heavy client-only visuals.
+7. Consider primitive internals changes only as a last resort and document the reason.
 
 If a styling rule conflicts with primitive composition, follow `frontend/tailwind-4` semantic utility rules first.
 
@@ -107,6 +130,11 @@ Definition of done for component updates:
 - Cross-skill: `skills/frontend/tailwind-4/SKILL.md`
 
 ## Changelog
+
+### v2.1 — 2026-04-22
+- Added mandatory **Applicability / Opt-in Gate** clarifying shadcn/ui is used only on explicit developer request.
+- Clarified this skill is optional (not default mandatory) and focused on shadcn/ui best-practice guidance.
+- Strengthened version-governance rule: review Context7 and prefer latest documented component/pattern versions before version-sensitive changes.
 
 ### v2.0 — 2026-04-21
 - Reduced encyclopedic setup material and converted to concise operational rules with constraints, anti-patterns, and progressive disclosure.

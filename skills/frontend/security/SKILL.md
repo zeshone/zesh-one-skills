@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
   inspired-by: frontend-nextjs/security.md
 ---
 
@@ -35,7 +35,8 @@ Atomic rules (Do/Don't + Why):
 7. **Do** keep secrets server-only environment variables. **Don't** place secrets in `NEXT_PUBLIC_*`. **Why:** public variables are bundled to client.
 8. **Do** prefer React escaped rendering for user content. **Don't** use `dangerouslySetInnerHTML` unless sanitized. **Why:** default escaping is your safest baseline.
 9. **Do** add rate limiting to auth and sensitive mutation endpoints. **Don't** assume upstream infra always protects you. **Why:** app-level controls are defense in depth.
-10. **Do** keep middleware matcher explicit and reviewed. **Don't** accidentally exclude protected routes with broad negative patterns. **Why:** matcher mistakes are common bypasses.
+10. **Do** treat endpoint hiding/embedding as architecture encapsulation only. **Don't** treat obfuscation as a security control by itself. **Why:** real security still requires backend authentication, authorization, and server-side validation on every request.
+11. **Do** follow this skill's current security patterns and framework-version guidance; **Don't** use legacy/deprecated security APIs from older versions; **Do** verify exact-version syntax/examples/definitions in Context7 before version-sensitive hardening changes. **Why:** reduces outdated-control gaps.
 
 Single reference snippet (nonce + guard + cookie policy context):
 
@@ -83,6 +84,7 @@ Operational verification before merge:
 - Protecting routes only in page components.
 - Copy-pasting different CSP/header policies across routes.
 - Returning raw backend error payloads directly to client.
+- Assuming hidden endpoints are "secure" without backend authz/validation enforcement.
 - Using `NEXT_PUBLIC_API_KEY` or similar secret exposure.
 - Storing auth token in localStorage "for convenience".
 - Sanitizing HTML with ad-hoc regex instead of vetted sanitizers.
@@ -95,15 +97,18 @@ Operational verification before merge:
 
 Apply only what the task needs, in this order:
 
-1. **Baseline hardening**
+1. **Version checkpoint**
+   - confirm installed framework/security package versions
+   - check Context7 exact-version docs before API-sensitive security edits
+2. **Baseline hardening**
    - global security headers
    - nonce generation and forwarding (`x-nonce`)
-2. **Access control**
+3. **Access control**
    - protect private/admin routes in middleware before render
-3. **Input and output safety**
+4. **Input and output safety**
    - Zod `safeParse` on all mutation inputs
    - escaped rendering by default, sanitize only when HTML is required
-4. **Session and abuse controls**
+5. **Session and abuse controls**
    - secure cookie flags
    - endpoint rate limiting
 
@@ -126,6 +131,9 @@ Task sizing guidance:
 - OWASP Session Management: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
 
 ## Changelog
+
+### v2.1 — 2026-04-22
+- Aligned versioning metadata and changelog with today's frontend skill updates.
 
 ### v2.0 — 2026-04-21
 - Rewritten into concise operational guidance with repository defaults and explicit constraints.
