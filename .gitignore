@@ -4,3 +4,6 @@ nul
 *.log
 dist/
 .env*
+
+# Generated skill-registry cache (the tracked skill-registry.md is the source of truth)
+.atl/*.cache.json
