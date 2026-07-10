@@ -5,5 +5,5 @@ nul
 dist/
 .env*
 
-# Generated skill-registry cache (the tracked skill-registry.md is the source of truth)
-.atl/*.cache.json
+# Local agent tooling: skill-registry index (machine-specific paths) and its cache — not versioned
+.atl/
