@@ -19,12 +19,13 @@ try {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 // Allow test injection via LINT_SKILLS_ROOTS env var (path.delimiter-separated absolute paths).
-// When unset the default four skill roots are used unchanged.
+// When unset the default skill roots are used unchanged.
 let SKILLS_ROOTS = [
   path.resolve(__dirname, '..', 'skills', 'backend'),
   path.resolve(__dirname, '..', 'skills', 'frontend'),
   path.resolve(__dirname, '..', 'skills', 'apps'),
   path.resolve(__dirname, '..', 'skills', 'shared'),
+  path.resolve(__dirname, '..', 'skills', 'dotnet-10'),
 ];
 if (process.env.LINT_SKILLS_ROOTS) {
   SKILLS_ROOTS = process.env.LINT_SKILLS_ROOTS.split(path.delimiter);
