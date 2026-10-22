@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
 allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
@@ -20,9 +20,15 @@ allowed-tools: Read Edit Write Bash Glob Grep
 
 ## Critical Patterns
 
+### Architecture and applicability gate
+
+Before new scaffolding or restructuring, use the [shared selection procedure](../../shared/architecture-selection.md): inspect application type, versions and existing decisions; recommend the minimum with alternatives/costs and wait for the user's choice. Preserve sound brownfield architecture. This does not import .NET 10 runtime, validation, mapping or testing rules into .NET 8.
+
+This skill's controller, middleware and URL rules apply only to HTTP APIs. A CLI/worker without those capabilities must not gain HTTP, database or login infrastructure to satisfy them. Keep the shared security baseline active for inputs, files, secrets and existing controls.
+
 ### Core Rules (Do/Don't + Why)
 
-- **Do**: Organize by vertical slice (`Features/{Feature}/...`), not by global technical layers. **Why**: keeps change scope local and reduces cross-feature coupling.
+- **Do**: Within an approved feature-slice layout, organize by vertical slice (`Features/{Feature}/...`), not by global technical layers. **Why**: keeps change scope local and reduces cross-feature coupling.
 - **Do**: Keep controllers thin (transport only) and move business rules to services. **Why**: improves testability and prevents HTTP concerns from leaking into domain logic.
 - **Do**: Keep repository scope focused on persistence concerns only. **Why**: avoids mixing query mechanics with business policy.
 - **Do**: Register stateless helpers as `Singleton`. **Why**: lower allocation churn and explicit lifecycle intent.
@@ -104,12 +110,17 @@ app.MapControllers();
 
 ## Resources
 
+- Shared architecture decision and approval gate: [selection procedure](../../shared/architecture-selection.md)
+- Always-active security constraints: [baseline](../../shared/security/baseline.md)
 - ASP.NET Core fundamentals (.NET 8): https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-8.0
 - ASP.NET Core configuration (.NET 8): https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-8.0
 - Dependency injection in ASP.NET Core: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0
 - Clean Architecture reference: https://jasontaylor.dev/clean-architecture-getting-started/
 
 ## Changelog
+
+### v2.1 — 2026-10-22
+- Routed structural choices through the shared contextual selector and scoped HTTP recipes without changing .NET 8 conventions.
 
 ### v2.0 — 2026-04-21
 - Reduced encyclopedic content to operational defaults and tradeoffs.

@@ -2,6 +2,13 @@
 
 All notable changes to this repository are documented in this file.
 
+## Unreleased
+
+### Changed
+- Integrated the shared everyday security guardrails while retaining distinct .NET 8/.NET 10 security rules and exceptions.
+- Added contextual, user-approved architecture selection to existing .NET guidance; removed automatic second-context assembly promotion and scoped HTTP/database recipes away from local CLIs.
+- Added pinned source attribution, six BEFORE scenarios and instruction regression checks (`npm run test:pilot`, included in `test` and `verify`). Model proposals are not execution or security guarantees.
+
 ## v2.6.0 — 2026-04-22
 
 ### Changed

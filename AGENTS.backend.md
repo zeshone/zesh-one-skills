@@ -1,7 +1,7 @@
 # Backend Domain Agent Guide (.NET 8 REST)
 
 ## Scope
-Use this file as the execution default for backend work in this repo. Keep outputs pragmatic and implementation-ready. If a domain skill conflicts with this file, the skill wins.
+Use this file for .NET 8 REST APIs after checking application type, installed versions and existing decisions. For a CLI or worker without HTTP, use the shared architecture-selection procedure and security baseline, not HTTP-specific controller/middleware/OpenAPI recipes. Do not add HTTP or auth infrastructure just to activate this profile. Keep outputs pragmatic; if a domain skill conflicts with this file, the skill wins.
 
 ## Always-on security baseline
 
@@ -26,7 +26,7 @@ When adopting this guide, include `skills/shared/security/` alongside `skills/ba
 | PR preparation/review | `github-pr` |
 
 ## Operational Defaults
-- Build features with Clean Architecture + Vertical Slice conventions from `net8-apirest-general`.
+- Use `net8-apirest-general` and its [shared architecture-selection procedure](skills/shared/architecture-selection.md) for new structural choices; recommend the minimum with alternatives and wait for the user's choice before scaffolding. Preserve a sound existing architecture. Within an approved feature-slice layout, keep the .NET 8 Clean Architecture + Vertical Slice conventions.
 - Prefer `Result<T>` contracts; treat `ResponseDTO<T>` as legacy compatibility only.
 - Validate external input at the edge with FluentValidation.
 - Keep API boundaries explicit: request DTO in, response contract out.

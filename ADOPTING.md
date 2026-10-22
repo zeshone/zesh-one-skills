@@ -17,7 +17,7 @@ En la raíz del repositorio encontrás los archivos de instrucciones de agente p
 | Archivo | Cuándo usarlo |
 |---------|---------------|
 | `AGENTS.backend.md` | Proyectos backend .NET 8 REST API (recomendado como punto de partida) |
-| `AGENTS.dotnet-10.md` | Proyectos backend .NET 10 / C# 14 Minimal API |
+| `AGENTS.dotnet-10.md` | .NET 10 / C# 14: API, CLI o worker; recetas HTTP solo para APIs |
 | `AGENTS.frontend.md` | Proyectos frontend (Next.js 15, React 19, etc.) |
 
 **Acción:** Copiá el archivo que aplique a la raíz de tu proyecto y renombralo a `AGENTS.md`.
@@ -44,6 +44,12 @@ Los skills están organizados en cinco dominios bajo `skills/`:
 
 **Acción:** Copiá el directorio del dominio que necesitás (más `skills/shared/`) a tu proyecto o referenciá este repositorio directamente desde tu `AGENTS.md`.
 
+### Selección de arquitectura según el contexto
+
+Incluye `skills/shared/architecture-selection.md` junto con el dominio. Las skills de arquitectura existentes usan esa referencia para inspeccionar tipo de aplicación, versiones y decisiones previas; recomendar la estructura mínima con alternativas y costos; y esperar tu elección antes de crear o reorganizar proyectos. Una decisión vigente no se vuelve a pedir en cada funcionalidad.
+
+Una CLI pequeña puede usar un proyecto de aplicación más pruebas, sin capas vacías, HTTP, base de datos ni autenticación inventados. Un segundo contexto no obliga a separar ensamblados. La arquitectura existente y consistente se conserva; Clean/Hexagonal, Vertical Slice y límites físicos son decisiones combinables, no escalones obligatorios por tamaño. Las convenciones de .NET 8 y .NET 10 permanecen separadas.
+
 ### Seguridad diaria en backend
 
 Conserva la estructura `skills/backend/` o `skills/dotnet-10/` junto con `skills/shared/security/`. Ambas guías backend indican cargar `skills/shared/security/baseline.md` al iniciar cada tarea; las referencias `application-checks.md` y `delivery-checks.md` se consultan solo según el cambio. Si usas una instalación externa, ajusta las rutas de la guía para que resuelvan al repositorio de skills.
@@ -59,7 +65,7 @@ npm install
 npm run verify
 ```
 
-Si todo pasa sin errores, la suite está lista. Si hay fallos, revisá los mensajes — suelen indicar skills con estructura inválida o fixtures rotos.
+Si todo pasa sin errores, las comprobaciones de estructura e instrucciones de la suite pasan. Si hay fallos, revisa los mensajes. `npm run test:pilot` ejecuta las regresiones de selección y aplicabilidad; también forma parte de `test` y `verify`. Estas comprobaciones no garantizan obediencia del modelo ni seguridad de una aplicación: consulta los [escenarios observados y sus límites](odd/evidence/architecture-adoption-pilot.md).
 
 ## Troubleshooting
 
