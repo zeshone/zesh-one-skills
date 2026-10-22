@@ -18,7 +18,8 @@ En la raíz del repositorio encontrás los archivos de instrucciones de agente p
 |---------|---------------|
 | `AGENTS.backend.md` | Proyectos backend .NET 8 REST API (recomendado como punto de partida) |
 | `AGENTS.dotnet-10.md` | .NET 10 / C# 14: API, CLI o worker; recetas HTTP solo para APIs |
-| `AGENTS.frontend.md` | Proyectos frontend (Next.js 15, React 19, etc.) |
+| `AGENTS.frontend.md` | React SPA o Next.js; conserva el runtime instalado y su flujo de datos |
+| `AGENTS.apps.md` | Angular/Ionic/Capacitor; verifica las versiones y convenciones del proyecto |
 
 **Acción:** Copiá el archivo que aplique a la raíz de tu proyecto y renombralo a `AGENTS.md`.
 
@@ -50,9 +51,13 @@ Incluye `skills/shared/architecture-selection.md` junto con el dominio. Las skil
 
 Una CLI pequeña puede usar un proyecto de aplicación más pruebas, sin capas vacías, HTTP, base de datos ni autenticación inventados. Un segundo contexto no obliga a separar ensamblados. La arquitectura existente y consistente se conserva; Clean/Hexagonal, Vertical Slice y límites físicos son decisiones combinables, no escalones obligatorios por tamaño. Las convenciones de .NET 8 y .NET 10 permanecen separadas.
 
-### Seguridad diaria en backend
+### Perfiles frontend y apps
 
-Conserva la estructura `skills/backend/` o `skills/dotnet-10/` junto con `skills/shared/security/`. Ambas guías backend indican cargar `skills/shared/security/baseline.md` al iniciar cada tarea; las referencias `application-checks.md` y `delivery-checks.md` se consultan solo según el cambio. Si usas una instalación externa, ajusta las rutas de la guía para que resuelvan al repositorio de skills.
+Una React SPA mantiene su cliente autenticado y su router: no necesita Next.js, Server Components, Server Actions ni SSR. En el perfil Next.js se conserva el límite Client → Server Action → .NET API y sus controles. En Angular/Ionic, verifica versiones instaladas y conserva formularios, HttpClient, navegación y ciclo de vida válidos; no copies reglas de otra integración o versión. No se instalan plugins ni se ejecuta sincronización nativa para una tarea solo de UI.
+
+### Seguridad diaria en todos los perfiles
+
+Conserva el dominio elegido junto con `skills/shared/security/`. Las cuatro guías indican cargar `skills/shared/security/baseline.md` al iniciar cada tarea; `application-checks.md` y `delivery-checks.md` se consultan solo según el cambio. La skill de seguridad frontend contiene recetas Next.js: una SPA o app móvil usa los controles compartidos y su diseño de autenticación existente, sin inventar infraestructura de servidor. Si usas una instalación externa, ajusta las rutas para que resuelvan al repositorio de skills.
 
 Esto conserva un núcleo común sin mezclar las convenciones de .NET 8 y .NET 10. No requiere instalar Cyber Neo, ejecutar sus scripts ni realizar una auditoría completa. La carga depende del runtime que use `AGENTS.md`; los enlaces no garantizan activación automática ni aislamiento técnico.
 

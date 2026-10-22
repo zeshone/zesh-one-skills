@@ -77,6 +77,44 @@ test('S4: integrated security retains sanitization, boundary scope and domain ex
     'Do not add a second store lookup']);
 });
 
+test('S5: SPA routes never require a Next runtime, Server Actions or server prefetch', () => {
+  requireText(read('AGENTS.frontend.md'), ['React SPA', 'Next.js profile', 'existing authenticated client']);
+  requireText(read('skills/frontend/react-19/SKILL.md'), ['RSC-capable runtime', 'A React SPA',
+    'existing client mutation']);
+  requireText(read('skills/frontend/tanstack-query/SKILL.md'), ['without SSR', 'not applicable',
+    'existing authenticated client']);
+});
+
+test('S5: Ionic uses installed versions and separates revisit lifecycle from change detection', () => {
+  const ionic = read('skills/apps/ionic-angular/SKILL.md');
+  requireText(read('AGENTS.apps.md'), ['installed versions', 'Reactive Forms', 'HttpClient']);
+  requireText(ionic, ['installed versions', 'Do not upgrade', 'Reactive Forms', 'HttpClient',
+    'ionViewWillEnter', 'presentational', 'OnPush', 'ion-router-outlet', 'markForCheck']);
+  requireText(read('skills/apps/capacitor/SKILL.md'), ['installed Capacitor', 'Do not install a plugin']);
+});
+
+test('S4: frontend and apps load shared security without importing Next infrastructure', () => {
+  for (const guide of ['AGENTS.frontend.md', 'AGENTS.apps.md']) {
+    requireText(read(guide), ['skills/shared/security/baseline.md', 'application-checks.md']);
+  }
+  requireText(read('AGENTS.frontend.md'), ['backend authorization']);
+  requireText(read('skills/frontend/security/SKILL.md'), ['../../shared/security/baseline.md',
+    'Non-Next', 'application-checks.md']);
+});
+
+test('S5: existing Next and native-app protections still apply to their profiles', () => {
+  requireText(read('AGENTS.frontend.md'), ['Client -> Server Action -> .NET API',
+    '`params`/`searchParams`', 'React Compiler', 'NEXT_PUBLIC_']);
+  requireText(read('skills/frontend/security/SKILL.md'), ['safeParse', 'httpOnly + secure + sameSite',
+    'middleware', 'backend authentication, authorization, and server-side validation']);
+  requireText(read('skills/frontend/tanstack-query/SKILL.md'), ['HydrationBoundary', 'rollback context',
+    'with `throw`', 'stable, serializable primitives']);
+  requireText(read('skills/apps/ionic-angular/SKILL.md'), ['ionViewWillEnter', 'NavController',
+    '@ionic/angular/standalone', 'idempotent']);
+  requireText(read('skills/apps/capacitor/SKILL.md'), ['ionic cap sync', 'Capacitor.getPlatform()',
+    'try/catch', 'cancellation', 'cleartext/mixed content']);
+});
+
 test('S5: fixed scenario inputs and adopted local links remain usable', () => {
   const fixture = JSON.parse(read('tools/fixtures/architecture-adoption-pilot.json'));
   assert.equal(fixture.mode, 'response-only');
@@ -88,7 +126,9 @@ test('S5: fixed scenario inputs and adopted local links remain usable', () => {
   }
   for (const file of ['skills/shared/architecture-selection.md', 'skills/dotnet-10/architecture/SKILL.md',
     'skills/backend/general/SKILL.md', 'skills/dotnet-10/testing/SKILL.md',
-    'AGENTS.backend.md', 'AGENTS.dotnet-10.md', 'ADOPTING.md']) {
+    'AGENTS.backend.md', 'AGENTS.dotnet-10.md', 'AGENTS.frontend.md', 'AGENTS.apps.md', 'ADOPTING.md',
+    'skills/frontend/react-19/SKILL.md', 'skills/frontend/tanstack-query/SKILL.md',
+    'skills/frontend/security/SKILL.md', 'skills/apps/ionic-angular/SKILL.md', 'skills/apps/capacitor/SKILL.md']) {
     const text = read(file);
     assert.ok(text.length > 0, file);
     for (const [, target] of text.matchAll(/\]\(([^)]+)\)/g)) {

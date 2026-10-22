@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
   inspired-by: frontend-nextjs/tanstack-query.md
 ---
 
@@ -16,7 +16,9 @@ metadata:
 Load this skill whenever state comes from an API, database proxy, or remote service.
 
 Use TanStack Query as the single source of truth for server state in React/Next.js.
-Combine with `nextjs-15` for Server Component prefetch flows and `zustand-5` for non-server global UI state only.
+Combine with `nextjs-15` only for an installed Next.js Server Component profile, and `zustand-5` only when applicable for non-server global UI state.
+
+**Runtime gate:** in a SPA without SSR, server prefetch, Server Components and hydration recipes below are not applicable. Reuse the existing authenticated client through query options/hooks and show loading/error/empty states. Do not add Next.js, Server Actions or an SSR host to satisfy the first-paint matrix. In an SSR/RSC-capable project, retain its established server data-access boundary.
 
 ## Critical Patterns
 
@@ -26,9 +28,9 @@ Atomic rules (Do/Don't + Why):
 2. **Do** centralize `QueryClient` defaults in one module. **Don't** instantiate ad-hoc clients in features. **Why:** inconsistent defaults produce unpredictable cache behavior.
 3. **Do** define query key factories per feature (`all/lists/list/details/detail`). **Don't** inline array keys repeatedly. **Why:** factories prevent key drift and invalidation bugs.
 4. **Do** wrap fetch definitions in `queryOptions`/`infiniteQueryOptions`. **Don't** duplicate `queryFn` + keys across hooks/prefetch calls. **Why:** one contract powers hooks, prefetch, and tests.
-5. **Do** prefetch in Server Components when first paint needs data. **Don't** force client-only cold starts for critical lists/details. **Why:** hydration with warm cache removes initial loading gaps.
+5. **Do** prefetch in Server Components when the runtime supports them and first paint needs data. **Don't** force client-only cold starts for critical lists/details. **Why:** hydration with warm cache removes initial loading gaps.
 6. **Do** make `queryFn` consume the project's single, consistent data-access layer. **Don't** mix direct endpoint calls with alternative access paths. **Why:** one read/write contract keeps auth, error mapping, tracing, and retries coherent.
-7. **Do** use `HydrationBoundary` with dehydrated state from the same query options. **Don't** hydrate a different key/options shape. **Why:** mismatch causes duplicate requests and stale UI.
+7. **Do** use `HydrationBoundary` for an SSR hydration flow with dehydrated state from the same query options. **Don't** hydrate a different key/options shape. **Why:** mismatch causes duplicate requests and stale UI.
 8. **Do** invalidate narrowly after mutations (detail + affected lists). **Don't** invalidate everything by default. **Why:** broad invalidation increases network churn and UI flicker.
 9. **Do** use optimistic updates only with rollback context. **Don't** mutate cache without recovery strategy. **Why:** failed mutations otherwise leave corrupted UI state.
 10. **Do** keep query functions pure and deterministic. **Don't** hide navigation/toast side effects inside `queryFn`. **Why:** side effects belong in mutation callbacks/effects.
@@ -37,7 +39,7 @@ Atomic rules (Do/Don't + Why):
 13. **Do** build query keys from stable, serializable primitives. **Don't** put mutable/non-serializable values (class instances, functions, unstable objects) in keys. **Why:** unstable keys fragment cache and break invalidation targeting.
 14. **Do** follow this skill's current TanStack Query patterns; **Don't** use legacy/deprecated APIs from older releases; **Do** verify exact-version syntax/examples/definitions in Context7 before version-sensitive query/hydration changes. **Why:** avoids cache/API drift.
 
-Single reference snippet (factory + options + server prefetch):
+Next.js/RSC reference snippet (not a required SPA access path):
 
 ```ts
 // feature-level contract reused by hooks + prefetch
@@ -58,7 +60,7 @@ export const postDetailOptions = (id: string) => queryOptions({ queryKey: postKe
 
 ## SSR Strategy Matrix (Prefetch Decision)
 
-Use this quick matrix before adding server prefetch:
+Use this matrix only after confirming an SSR-capable runtime. Server Component examples additionally require RSC support; otherwise use that framework's server loading API. For a browser-only SPA, every server-prefetch recommendation here is not applicable.
 
 | Scenario | Prefetch on Server? | Why |
 |---|---|---|
@@ -74,7 +76,7 @@ Operational verification before merge:
 
 - Confirm no API state lives in React Context providers.
 - Confirm each feature exposes key factory + options helper pair.
-- Confirm hooks and server prefetch both consume the same options helpers.
+- Confirm hooks and any applicable server prefetch consume the same options helpers.
 - Confirm mutation flows invalidate exactly the impacted detail/list keys.
 - Confirm SSR pages use `dehydrate` + `HydrationBoundary` when warm-first-render is required.
 
@@ -114,7 +116,7 @@ Adopt in this order to reduce risk:
 2. Replace `useEffect + fetch + useState` reads with `useQuery` using those helpers.
 3. Migrate writes to `useMutation` with scoped invalidation.
 4. Remove duplicated derived local state from query results (`select`/memo instead).
-5. Add SSR prefetch only for first-paint critical routes.
+5. Add SSR prefetch only in an existing SSR-capable runtime for first-paint critical routes.
 6. Repeat feature-by-feature; avoid big-bang rewrites.
 
 ## Progressive Disclosure
@@ -132,7 +134,7 @@ Implement only the next needed layer:
 4. **Mutation coherence**
    - scoped invalidation
    - optimistic update + rollback when UX requires it
-5. **SSR performance**
+5. **SSR performance (only for a supported runtime)**
    - prefetch in Server Component
    - `dehydrate` + `HydrationBoundary` reuse same options contract
 
@@ -162,6 +164,9 @@ Quick review checklist:
 - No server state persisted in Context or UI stores.
 
 ## Changelog
+
+### v2.2 — 2026-10-22
+- Added SPA/SSR/RSC applicability gates while retaining shared query contracts, failure semantics, invalidation and rollback rules.
 
 ### v2.1 — 2026-04-22
 - Reinforced best practices with explicit error semantics (`queryFn` must throw), derived-state discipline, and query-key stability rules.

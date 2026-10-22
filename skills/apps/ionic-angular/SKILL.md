@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
   inspired-by: capawesome-team/ionic-angular, ionic-capacitor/angular.md
 ---
 
@@ -21,7 +21,11 @@ Use this skill for APP-level Ionic Angular work, not for generic Angular tutoria
 - App state with Angular signals.
 - Standalone Ionic architecture decisions.
 
-If your task is mostly native plugin behavior, also load `../capacitor/SKILL.md`.
+Inspect installed versions of Angular, Ionic and Capacitor and the existing page/router/form setup before applying an example. Do not upgrade the stack to match latest documentation. Preserve valid Reactive Forms and HttpClient usage; signals for state do not require migrating forms or replacing the HTTP client. Verify version-sensitive APIs against the installed versions, not a newer Angular release.
+
+Keep the [shared security baseline](../../shared/security/baseline.md) active; load matching [application checks](../../shared/security/application-checks.md) for inputs, credentials or access-control changes. This does not import Next.js/server-only authentication infrastructure.
+
+If your task is mostly native plugin behavior, also load [the Capacitor skill](../capacitor/SKILL.md).
 
 ## Critical Patterns
 
@@ -31,9 +35,9 @@ Follow these as atomic rules. Each rule has intent (`Do/Don't`) and rationale (`
    **Don't** introduce new NgModule-only patterns.
    **Why:** Keeps architecture aligned with project standard and avoids mixed mental models.
 
-2. **Do** wrap every routed page template with `<ion-page>`.
-   **Don't** mount routed content directly under `<ion-content>`.
-   **Why:** Ionic transitions, safe-area handling, and lifecycle expectations depend on page shell semantics.
+2. **Do** preserve the valid page shell used by the installed Angular/Ionic integration.
+   **Don't** introduce a wrapper from another framework or rewrite valid page markup for a refresh-only task; verify template support first.
+   **Why:** Transitions and lifecycle depend on the actual integration, not a copied wrapper name.
 
 3. **Do** refresh page data in `ionViewWillEnter`.
    **Don't** rely on `ngOnInit` for revisits.
@@ -48,8 +52,8 @@ Follow these as atomic rules. Each rule has intent (`Do/Don't`) and rationale (`
    **Why:** Signals give explicit reactive dependencies and simpler change propagation.
 
 6. **Do** keep presentational components dumb and `OnPush`.
-   **Don't** make UI leaf components fetch or mutate domain state.
-   **Why:** Improves testability, composability, and rendering predictability.
+   **Don't** make UI leaf components fetch or mutate domain state, or blindly apply that change-detection rule to every routed page/outlet ancestor.
+   **Why:** Presentation, page-entry refresh and change detection are separate concerns. Inspect `ion-router-outlet`/app-shell ancestry, installed-version behavior and whether page state uses signals or `markForCheck`. Do not import newer Angular default-change-detection assumptions into Angular 19.
 
 7. **Do** lazy-load routed pages with `loadComponent`.
    **Don't** eagerly import page components into route roots.
@@ -86,7 +90,7 @@ Follow these as atomic rules. Each rule has intent (`Do/Don't`) and rationale (`
 
 ## Anti-Patterns
 
-- Missing `<ion-page>` in any routed page.
+- Copying page-shell markup without checking support in the installed Angular/Ionic integration.
 - Data load in constructor/`ngOnInit` expecting automatic revisit refresh.
 - Programmatic navigation everywhere via `Router.navigate` causing non-Ionic transitions.
 - Two-way mutable shared state without signal ownership boundaries.
@@ -100,7 +104,7 @@ Follow these as atomic rules. Each rule has intent (`Do/Don't`) and rationale (`
 
 Start minimal, then expand only if the task demands it.
 
-1. **Baseline (always):** page shell (`<ion-page>`), entry refresh (`ionViewWillEnter`), NavController for transitions.
+1. **Baseline:** installed-version gate, existing valid page shell, entry refresh (`ionViewWillEnter`), NavController for transitions.
 2. **State step:** add signals for page/app state ownership and derived values.
 3. **Architecture step:** split smart/presentational components and enforce OnPush at UI edges.
 4. **Performance step:** audit lazy routes, icon registration scope, and repeated entry fetch cost.
@@ -120,12 +124,17 @@ export class OrdersPage implements ViewWillEnter {
 
 ## Resources
 
+- Shared security: [baseline](../../shared/security/baseline.md) and [application checks](../../shared/security/application-checks.md)
 - Ionic Angular lifecycle: https://ionicframework.com/docs/angular/lifecycle
 - Ionic Angular navigation: https://ionicframework.com/docs/angular/navigation
 - Angular signals guide: https://angular.dev/guide/signals
 - Companion native guidance: ../capacitor/SKILL.md
 
 ## Changelog
+
+### v2.1 — 2026-10-22
+- Added installed-version/forms/HttpClient gates and shared security routing; preserved revisit hooks and native navigation conventions.
+- Kept page-shell and change-detection decisions specific to the installed Angular/Ionic integration rather than transplanting other-framework/newer-version rules.
 
 ### v2.0 — 2026-04-21
 - Rewritten into concise operational guidance for Ionic Angular application work.
