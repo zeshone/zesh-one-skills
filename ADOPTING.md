@@ -17,6 +17,7 @@ En la raíz del repositorio encontrás los archivos de instrucciones de agente p
 | Archivo | Cuándo usarlo |
 |---------|---------------|
 | `AGENTS.backend.md` | Proyectos backend .NET 8 REST API (recomendado como punto de partida) |
+| `AGENTS.dotnet-10.md` | Proyectos backend .NET 10 / C# 14 Minimal API |
 | `AGENTS.frontend.md` | Proyectos frontend (Next.js 15, React 19, etc.) |
 
 **Acción:** Copiá el archivo que aplique a la raíz de tu proyecto y renombralo a `AGENTS.md`.
@@ -33,14 +34,21 @@ cp AGENTS.frontend.md /ruta/a/tu-proyecto/AGENTS.md
 
 ## Paso 2: Copiá los skills relevantes
 
-Los skills están organizados en cuatro dominios bajo `skills/`:
+Los skills están organizados en cinco dominios bajo `skills/`:
 
 - `skills/backend/` — Arquitectura, data access, logging, responses, security, testing y más para .NET 8 REST API
+- `skills/dotnet-10/` — Minimal APIs, arquitectura, persistencia, seguridad y pruebas para .NET 10 / C# 14
 - `skills/frontend/` — Next.js 15, React 19, Tailwind 4, TypeScript, Zod 4, Zustand 5
 - `skills/apps/` — Mobile native layer (Ionic Angular, Capacitor)
 - `skills/shared/` — Skills cross-domain (github-pr, convenciones de Pull Request)
 
 **Acción:** Copiá el directorio del dominio que necesitás (más `skills/shared/`) a tu proyecto o referenciá este repositorio directamente desde tu `AGENTS.md`.
+
+### Seguridad diaria en backend
+
+Conserva la estructura `skills/backend/` o `skills/dotnet-10/` junto con `skills/shared/security/`. Ambas guías backend indican cargar `skills/shared/security/baseline.md` al iniciar cada tarea; las referencias `application-checks.md` y `delivery-checks.md` se consultan solo según el cambio. Si usas una instalación externa, ajusta las rutas de la guía para que resuelvan al repositorio de skills.
+
+Esto conserva un núcleo común sin mezclar las convenciones de .NET 8 y .NET 10. No requiere instalar Cyber Neo, ejecutar sus scripts ni realizar una auditoría completa. La carga depende del runtime que use `AGENTS.md`; los enlaces no garantizan activación automática ni aislamiento técnico.
 
 ## Paso 3: Validá que la suite esté funcional
 

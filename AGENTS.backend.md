@@ -3,13 +3,19 @@
 ## Scope
 Use this file as the execution default for backend work in this repo. Keep outputs pragmatic and implementation-ready. If a domain skill conflicts with this file, the skill wins.
 
+## Always-on security baseline
+
+At the start of every development task, load [the shared security baseline](skills/shared/security/baseline.md) and keep its constraints active. It routes specialized checks by the changed boundary, not by a mandatory audit. Load `skills/backend/security/SKILL.md` when a listed security boundary changes; retain the .NET 8 conventions.
+
+When adopting this guide, include `skills/shared/security/` alongside `skills/backend/` and adjust these paths if the suite lives elsewhere. A link or tool declaration is not automatic loading or technical isolation; the host must actually load the guide and referenced baseline.
+
 ## Mandatory Skill Routing (load first)
 
 | Work Type | Skill |
 |---|---|
 | Architecture, project structure, feature scaffolding | `net8-apirest-general` |
 | EF Core, DbContext, repositories, migrations, query optimization | `net8-apirest-dataaccess` |
-| JWT/OAuth, authorization, OWASP controls, rate limiting, BOLA mitigation | `net8-apirest-security` |
+| JWT/OAuth, authorization, OWASP controls, rate limiting, BOLA, secrets, dependency/infra/CI security | [`security`](skills/backend/security/SKILL.md) (.NET 8) |
 | Request DTOs, model binding, query params, file uploads | `net8-apirest-requests` |
 | Validation rules and validators | `net8-apirest-validations` |
 | API response contracts and status mapping | `net8-apirest-responses` |

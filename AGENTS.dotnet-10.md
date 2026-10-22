@@ -3,6 +3,12 @@
 ## Scope
 Execution default for backend work on **any** .NET 10 / C# 14 REST API. Keep outputs pragmatic and implementation-ready. The domain skills under `skills/dotnet-10/` are the normative source; **if a skill conflicts with this file, the skill wins.** This guide routes work to the right skill and states the cross-cutting defaults that hold regardless of the project's architecture.
 
+## Always-on security baseline
+
+At the start of every development task, load [the shared security baseline](skills/shared/security/baseline.md) and keep its constraints active. It routes specialized checks by the changed boundary, not by a mandatory audit. Load `skills/dotnet-10/security/SKILL.md` when a listed security boundary changes; retain the .NET 10 conventions.
+
+When adopting this guide, include `skills/shared/security/` alongside `skills/dotnet-10/` and adjust these paths if the suite lives elsewhere. A link or tool declaration is not automatic loading or technical isolation; the host must actually load the guide and referenced baseline.
+
 ## Mandatory Skill Routing (load first)
 
 | Work Type | Skill |
@@ -11,7 +17,7 @@ Execution default for backend work on **any** .NET 10 / C# 14 REST API. Keep out
 | Project structure, layering, architecture selection (Option A vs B), where logic lives, boundary/seam placement | `architecture` |
 | Minimal API endpoints, TypedResults, ProblemDetails, routing/versioning, OpenAPI/Scalar, middleware order | `api-rest-minimal-apis` |
 | EF Core, DbContext, migrations, raw SQL, `ISqlExecutor` ports | `data-access-persistence` |
-| Auth, JWT signing, password hashing, TOTP, CSRF, CORS, rate limiting, security headers, secrets | `security` |
+| Auth, JWT signing, password hashing, TOTP, CSRF, CORS, rate limiting, security headers, secrets, dependency/infra/CI security | [`security`](skills/dotnet-10/security/SKILL.md) (.NET 10) |
 | Tests, RealPg/Testcontainers, `FakeTimeProvider`, xUnit, test naming, coverage strategy | `testing` |
 | Performance, AOT/trimming posture, async I/O, query projections, allocations, pooling | `performance` |
 | Serilog logging, OpenTelemetry posture, health checks, `BackgroundService` lifecycle, deploy/migration ops | `observability-operations` |

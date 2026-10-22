@@ -5,11 +5,11 @@ description: >
   CSRF, CORS, rate limiting, and no-leakage error design.
   Trigger: security, authentication, authorization, password hashing, JWT, TOTP, 2FA,
   CORS, CSRF, rate limit, security headers, session revocation, key management, KEK, Argon2, ES256, secrets,
-  input validation, account enumeration, ProblemDetails error, token storage.
+  input validation, account enumeration, ProblemDetails error, token storage, dependencies, infrastructure, CI/CD.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
 allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
@@ -20,6 +20,15 @@ allowed-tools: Read Edit Write Bash Glob Grep
 - Touching `Domain/` entities with sensitive fields (`PasswordHash`, `TotpSecret`, `SessionId`, `KeyMaterial`).
 - Configuring middleware pipeline, CORS, CSRF, rate limiting, or security headers in `Program.cs`.
 - Writing integration tests against real Postgres (e.g., Testcontainers) that verify security-critical data paths.
+- Changing external inputs, sensitive outputs, secret handling, dependencies, infrastructure, or CI/CD.
+
+Load the [shared baseline](../../shared/security/baseline.md) first. Apply the rules below to the affected flow, including their documented conditions and exceptions; do not turn every task into a full audit or an auth-stack migration.
+
+| Changed boundary | Load on demand |
+|---|---|
+| Authentication, authorization, inputs, or secrets | Matching section of [application checks](../../shared/security/application-checks.md), then the applicable domain rules below |
+| Packages, restore sources, infrastructure, or CI/CD | Matching section of [delivery checks](../../shared/security/delivery-checks.md) |
+| Middleware, mapping, configuration, data access, or tests | Existing neighboring skill in Resources; preserve .NET 10-specific validation and test rules |
 
 ## Critical Patterns
 
@@ -115,19 +124,20 @@ Both gated behind an environment check. A committed `openapi.json` build artifac
 
 Declare policies using `AddAuthorizationBuilder()` with requirement-based policies. For example, a system might define:
 
-- `AdminOnly` — requires the admin role claim **and** validates session validity.
+- `AdminOnly` — requires the admin role claim **and** enforces the session/revocation policy from Rule 4.
 - `ReportsReader` — requires a role claim **and** a requirement scoping access to the caller's authorized data.
 
-Apply policies via `RequireAuthorization` on endpoint groups or individual endpoints in `Program.cs`. Role claims alone are insufficient — always validate session validity per Rule 4 (`sid` claim against the session store).
+Apply policies via `RequireAuthorization` on endpoint groups or individual endpoints in `Program.cs`. Role claims alone do not establish resource scope or revocation guarantees. Enforce resource/action requirements where applicable, and enforce session validity according to Rule 4: check `sid` against the session store on every request when immediate revocation is required; otherwise honor the explicitly documented, bounded revocation-delay window. Do not add a second store lookup when the authentication pipeline already enforces that same guarantee.
 
 ```csharp
-// Illustrative example — define policies matching your own authorization model.
+// Illustrative example for immediate revocation when not already enforced upstream.
+// Define policies matching your authorization model; Rule 4 owns revocation timing.
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", p => p.RequireRole("admin").AddRequirements(new SessionValidRequirement()))
     .AddPolicy("ReportsReader", p => p.RequireRole("reports-reader").AddRequirements(new DataScopeRequirement()));
 ```
 
-**Why**: A valid role claim in a revoked session still satisfies a role-only check. Session validation is the revocation enforcement point; skipping it creates a window where a revoked token retains elevated access.
+**Why**: A valid role claim in a revoked session still satisfies a role-only check. The effective session control must satisfy the selected revocation guarantee, and resource-scoping requirements must still be enforced. A documented bounded cache is not a violation of an immediate-revocation requirement that the project never adopted.
 
 ## Constraints & Tradeoffs
 
@@ -151,17 +161,21 @@ builder.Services.AddAuthorizationBuilder()
 - `ClockSkew = TimeSpan.Zero` in production JWT validation.
 - Scalar UI or raw OpenAPI endpoint served in production.
 - Exception messages or stack traces in ProblemDetails production responses.
-- Authorizing by role claim alone without session validity check (revoked tokens pass role assertions).
+- Treating role claims as proof of resource access or session validity; omitting the session control required by Rule 4 or accepting an undocumented revocation-delay window.
 
 ## Progressive Disclosure
 
-1. **First**: `Critical Patterns` — all security decisions are here; treat each rule as a hard constraint.
+1. **First**: shared baseline and the changed-boundary table, then applicable `Critical Patterns`; preserve each rule's explicit conditions and exceptions.
 2. **On architecture questions**: `Constraints & Tradeoffs` — Postgres error mapping and security logging.
 3. **On code review**: `Anti-Patterns` as a checklist.
-4. **On neighboring layers**: see `Resources` below.
+4. **On neighboring layers**: see `Resources` below; do not duplicate their rules.
+5. **On authorized fixes and closure**: follow the baseline's regression-test and evidence/output contract. Distinguish checked scope, pending hypotheses, areas not reviewed, and justified deeper-audit needs; never claim blanket security.
 
 ## Resources
 
+- Always-loaded development guardrails and evidence/output contract: [shared baseline](../../shared/security/baseline.md)
+- On authentication, authorization, inputs, or secret changes: [application checks](../../shared/security/application-checks.md)
+- On dependency, infrastructure, or CI/CD changes: [delivery checks](../../shared/security/delivery-checks.md)
 - Data access seams, transaction boundaries: [`../data-access-persistence/SKILL.md`](../data-access-persistence/SKILL.md)
 - Result pattern, Options, DI lifetimes: [`../dotnet-conventions/SKILL.md`](../dotnet-conventions/SKILL.md)
 - Architecture selection (vertical slice monolith, modular monolith) and dependency rules: [`../architecture/SKILL.md`](../architecture/SKILL.md)
@@ -170,6 +184,11 @@ builder.Services.AddAuthorizationBuilder()
 - Result discriminated union, Postgres error mapping, Options class shape: [`../design-patterns/SKILL.md`](../design-patterns/SKILL.md)
 
 ## Changelog
+
+### v2.2
+- Added shared everyday guardrails and change-triggered references while preserving the existing .NET 10 controls and exceptions.
+- Reconciled authorization policy examples with Rule 4's conditional immediate revocation and explicitly bounded cache option; avoid duplicate session-store checks.
+- Adopted contextual evidence, pre-model secret sanitization, regression verification, and bounded coverage reporting without a full-audit workflow.
 
 ### v2.1 — 2026-07-10
 - Removed all multi-tenant PostgreSQL RLS content — the RLS-authoritative-perimeter, RLS session-variable context-setting seam, privileged/`SET ROLE` seam, nested-context-scope, `NOSUPERUSER NOBYPASSRLS NOINHERIT` connection-role, and separate-DbContexts-per-tenant rules and their anti-patterns — neutralized the multi-tenant authorization-policy examples, and generalized the security data-test rule; renumbered the remaining rules. The auth stack (Argon2id, ES256 JWT, TOTP, CSRF, CORS, rate limiting, security headers, enumeration prevention) is unchanged. This collection no longer targets multi-tenant RLS.
