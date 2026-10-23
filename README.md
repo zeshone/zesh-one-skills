@@ -62,6 +62,7 @@ zesh-one-skills/
 │       ├── diagnosing-bugs/
 │       └── github-pr/
 ├── docs/
+│   ├── MAINTAINING.md
 │   ├── skills-review-rubric.md
 │   └── skills-sanitization-plan.md
 ├── tools/
@@ -75,6 +76,8 @@ zesh-one-skills/
 Use the onboarding guide:
 
 -> **[ADOPTING.md](./ADOPTING.md)**
+
+For repository changes, use the [maintainer workflow](docs/MAINTAINING.md).
 
 ## Validation
 

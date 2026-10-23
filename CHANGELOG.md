@@ -5,6 +5,7 @@ All notable changes to this repository are documented in this file.
 ## Unreleased
 
 ### Added
+- Added `docs/MAINTAINING.md`, the repository maintainer workflow (owner selection, gates, first-party frontmatter versus the vendor template, conditional routes, instruction contracts, pipeline registration, records, provenance and exact lint coverage), linked from README; recorded app-skill inspirations in CREDITS without inferred revisions or licenses. `npm run test:maintainer-instructions` also checks that every instruction script runs exactly once in both default pipelines.
 - Added shared web/hybrid accessibility guidance and frontend/apps routes with Node-only instruction checks; existing UI tooling stays optional and browser/assistive-technology verification remains explicit.
 - Added shared evidence-led bug diagnosis, conditional routes for all four profiles and Node-only instruction checks; proposal observations remain distinct from executed application verification.
 - Added an opt-in .NET10/xUnit capacity-rule trial with six public boundary/rejection cases, separately approved pinned local NuGet prerequisites and offline ordinary execution; default checks/CI remain Node-only.

@@ -49,6 +49,18 @@ Las revisiones consultadas, prácticas aceptadas/rechazadas y límites de eviden
 
 El enriquecimiento de las guías de testing .NET es propio del proyecto: escenarios de límites, efectos y tiempo/cancelación sobre sus reglas existentes. No importa otra colección ni unifica las convenciones de .NET 8 y .NET 10.
 
+## Inspiraciones de las skills de apps
+
+El metadato `inspired-by` de las skills de apps registra estas etiquetas. No se registró una URL de origen verificada, por lo que se conservan como identificadores sin enlace.
+
+| Referencia | Uso registrado | Revisión inspeccionada | Licencia upstream |
+|------------|----------------|------------------------|-------------------|
+| `capawesome-team/ionic-angular` | Inspiración nombrada en [ionic-angular](skills/apps/ionic-angular/SKILL.md) | not recorded | not recorded |
+| `ionic-capacitor/angular.md` | Etiqueta adicional en [ionic-angular](skills/apps/ionic-angular/SKILL.md) | not recorded | not recorded |
+| `capawesome-team/ionic-capacitor` | Inspiración nombrada en [capacitor](skills/apps/capacitor/SKILL.md) | not recorded | not recorded |
+
+El metadato no establece si el uso fue copiado o conceptual, ni la fuente exacta de `ionic-capacitor/angular.md`. Estas etiquetas y la declaración Apache-2.0 de las skills locales no permiten inferir una revisión upstream, una conclusión de licencia ni una inspección histórica.
+
 ## Dependencias del ensayo React DOM
 
 El espécimen propio de `tools/fixtures/frontend-dom/` utiliza React/react-dom, Testing Library (React/DOM) y jsdom solo en su proyecto de pruebas opcional. Sus versiones, dependencias transitivas, licencias declaradas e integridad de descarga quedan en su `package-lock.json`; no se incorporan sus fuentes a la colección ni se añaden al paquete raíz. Esto no modifica la atribución de las skills ni implica una auditoría de licencias o seguridad de dependencias.
