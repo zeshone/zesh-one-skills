@@ -58,7 +58,8 @@ test('instruction checks join both default pipelines without requiring .NET', ()
   const { scripts } = JSON.parse(read('package.json'));
   const added = 'node tools/test-cli-instructions.js';
   const previous = ['node tools/test-fixtures.js', 'node tools/spec-fixtures-logging.js',
-    'node tools/test-pilot-instructions.js', 'node tools/lint-skills.js',
+    'node tools/test-pilot-instructions.js', 'node tools/test-frontend-instructions.js',
+    'node tools/lint-skills.js',
     'node tools/test-release-readiness.js', 'node tools/test-lint-zero-skills.js'];
   assert.equal(scripts['test:cli-instructions'], added);
   for (const name of ['test', 'verify']) {

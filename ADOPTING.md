@@ -63,6 +63,10 @@ La [prueba ejecutable opcional](skills/shared/cli-design/assets/line-tally/READM
 
 Una React SPA mantiene su cliente autenticado y su router: no necesita Next.js, Server Components, Server Actions ni SSR. En el perfil Next.js se conserva el límite Client → Server Action → .NET API y sus controles. En Angular/Ionic, verifica versiones instaladas y conserva formularios, HttpClient, navegación y ciclo de vida válidos; no copies reglas de otra integración o versión. No se instalan plugins ni se ejecuta sincronización nativa para una tarea solo de UI.
 
+Para seleccionar o escribir pruebas de una React SPA, carga [testing frontend](skills/frontend/testing/SKILL.md) mediante la ruta condicional de la guía. Conserva el runner instalado, el cliente autenticado y el flujo de formularios; no migres a Next ni a otro sistema de formularios por una tarea de testing. La guía distingue pruebas unitarias, de componente, de integración y E2E, con estados de UI y efectos observables.
+
+`npm run test:frontend-instructions` comprueba instrucciones y rutas, no ejecuta React ni un navegador; forma parte de la suite habitual solo Node. Si faltan herramientas para una prueba ejecutable, informa la evidencia que no se puede obtener y solicita autorización antes de instalar. Los enlaces explícitos no garantizan descubrimiento en un índice externo.
+
 ### Seguridad diaria en todos los perfiles
 
 Conserva el dominio elegido junto con `skills/shared/security/`. Las cuatro guías indican cargar `skills/shared/security/baseline.md` al iniciar cada tarea; `application-checks.md` y `delivery-checks.md` se consultan solo según el cambio. La skill de seguridad frontend contiene recetas Next.js: una SPA o app móvil usa los controles compartidos y su diseño de autenticación existente, sin inventar infraestructura de servidor. Si usas una instalación externa, ajusta las rutas para que resuelvan al repositorio de skills.

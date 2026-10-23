@@ -24,6 +24,8 @@ Los siguientes skills son de autoría propia del proyecto `zesh-one`:
 
 Los skills de `skills/frontend/` tienen inspiración conceptual en los originales de `gentleman-programming` pero son obras derivadas con modificaciones sustanciales — arquitectura, convenciones, ejemplos y reglas propias de Zesh-One.
 
+La guía `frontend/testing` es de autoría del proyecto: criterios de evidencia y comportamiento observable adaptados a sus rutas SPA, seguridad y convenciones existentes; no importa una colección externa ni obliga a instalar un runner.
+
 La guía `cli-design` es de autoría del proyecto y reutiliza sus límites de arquitectura, seguridad y pruebas. No incorpora contenido, scripts ni paquetes de una colección CLI externa.
 
 ## Referencias conceptuales del piloto de adopción
