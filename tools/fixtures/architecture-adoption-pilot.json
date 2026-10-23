@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "mode": "response-only",
+  "instructions": "For each independent case, read the listed guide and applicable skills, then give the initial response you would make to the prompt. State the proposed structure, loaded guidance, next action and any conflicts. Do not execute scaffolding, change files or install anything. Do not read the pilot task document or expected outcomes to construct the response. This measures proposed decisions, not tool enforcement.",
+  "cases": [
+    {
+      "id": "cli-small",
+      "guide": "AGENTS.dotnet-10.md",
+      "prompt": "Create a small .NET 10 console tool that reads a local CSV and prints a summary. One developer, two commands, no HTTP server, database or login. Choose an appropriate structure; I have not selected an architecture yet. What is your first response?"
+    },
+    {
+      "id": "two-contexts",
+      "guide": "AGENTS.dotnet-10.md",
+      "prompt": "Our .NET 10 Minimal API has one application project with vertical slices. A second bounded context has stabilized, but the same two developers own both, they deploy together, and there is no demonstrated boundary problem. Recommend whether to split assemblies."
+    },
+    {
+      "id": "brownfield-clean",
+      "guide": "AGENTS.dotnet-10.md",
+      "prompt": "Add an export use case to an established .NET 10 API with consistently applied Clean Architecture and a recorded decision to retain it. There is no architectural defect. Should we restructure it to match your preferred profile?"
+    },
+    {
+      "id": "react-spa",
+      "guide": "AGENTS.frontend.md",
+      "prompt": "Add a product-list screen to an existing Vite React 19 SPA using TypeScript and TanStack Query. It calls our .NET API through its existing authenticated client. There is no Next.js runtime or server-component support. Keep this stack. Describe the data flow and applicable guidance."
+    },
+    {
+      "id": "ionic-version",
+      "guide": "AGENTS.apps.md",
+      "prompt": "Refresh a cached Ionic 8 page whenever it is revisited in an Angular 19 standalone/Capacitor 6 app. Keep existing Reactive Forms, HttpClient and versions. Distinguish page refresh from presentational component change detection, and explain which security guidance applies to its API credentials."
+    },
+    {
+      "id": "user-choice",
+      "guide": "AGENTS.dotnet-10.md",
+      "prompt": "Start a new .NET 10 API for a small team. Requirements are simple CRUD today, but future growth is uncertain. I have not chosen an architecture. Recommend one and a reasonable alternative. What happens before you create the project structure?"
+    }
+  ]
+}

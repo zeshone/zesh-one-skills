@@ -2,11 +2,11 @@
 name: security
 description: >
   Operational security defaults for backend APIs with OWASP API focus: ownership checks (BOLA), JWT/policy boundaries, CORS/rate limits, and secret handling.
-  Trigger: When implementing or reviewing authn/authz, resource access controls, API hardening, or any endpoint handling user-owned data.
+  Trigger: When implementing or reviewing authn/authz, resource access controls, API hardening, user-owned data, external inputs, secrets, dependencies, infrastructure, or CI/CD.
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
 allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
@@ -17,13 +17,22 @@ allowed-tools: Read Edit Write Bash Glob Grep
 - Defining JWT claim boundaries between controller, service, and policy layers
 - Hardening API surface with CORS and rate limiting
 - Validating security behavior in service-level tests
+- Changing external inputs, sensitive outputs, secret handling, dependencies, infrastructure, or CI/CD
+
+Load the [shared baseline](../../shared/security/baseline.md) first. Apply the domain rules below to the affected flow; they are not a mandate to audit every endpoint or migrate an existing application.
+
+| Changed boundary | Load on demand |
+|---|---|
+| Authentication, authorization, inputs, or secrets | Matching section of [application checks](../../shared/security/application-checks.md), then the relevant local rules |
+| Packages, restore sources, infrastructure, or CI/CD | Matching section of [delivery checks](../../shared/security/delivery-checks.md) |
+| Validation, error mapping, or tests | Existing neighboring skill in Resources; do not duplicate its rules |
 
 ---
 
 ## Critical Patterns
 
 1) **DO** use non-enumerable public IDs (GUID/ULID) for externally addressable resources; **DON'T** expose sequential `int` IDs.  
-Why: predictable IDs make BOLA exploitation trivial.
+Why: unpredictable IDs reduce enumeration opportunities; this is a project convention and defense-in-depth, not authorization. Sequential IDs alone do not prove BOLA, and GUIDs do not prevent it. Rule 2 remains the enforcement boundary.
 
 2) **DO** enforce ownership in the service layer for every `Get/Update/Delete by Id`; **DON'T** leave it only in controllers.  
 Why: services are the real policy boundary reused across entry points.
@@ -75,7 +84,7 @@ return Ok(await _orders.GetByIdAsync(id, userId)); // service enforces ownership
 
 - Ownership check implemented only in controller actions.
 - `401`/`403` semantics inverted for missing identity claims.
-- Public endpoints exposing sequential identifiers.
+- Treating unpredictable public IDs as authorization, or labeling sequential IDs alone as a confirmed BOLA vulnerability (rule 1 remains the public-ID convention).
 - CORS `AllowAnyOrigin` in production APIs.
 - Secrets in `appsettings.json`, `.env` committed, or docs examples with real values.
 - Security controls explained as tutorial/setup instead of repository defaults and constraints.
@@ -85,15 +94,19 @@ return Ok(await _orders.GetByIdAsync(id, userId)); // service enforces ownership
 
 ## Progressive Disclosure
 
-1. **Start here (minimum safe baseline):** rules 1, 2, 3, 5, 7, 8.
+1. **Start here:** shared baseline and the changed-boundary table; apply rules 1, 2, 3, 5, 7, 8 where relevant.
 2. **Then harden abuse controls:** rule 6 + per-route limiter strategy.
 3. **Then tighten policy boundaries:** rule 4 + reusable policy requirements.
-4. **Then validate behavior:** rule 10 with focused unit tests on service branches.
+4. **Then validate behavior:** rule 10 with focused unit tests on service branches; follow the baseline's regression-test and evidence contract for authorized fixes.
+5. **Close security-relevant work:** distinguish checked scope, pending hypotheses, areas not reviewed, and any justified deeper-audit need as defined in the baseline. No security score or blanket assurance.
 
 ---
 
 ## Resources
 
+- Always-loaded development guardrails and evidence/output contract: [shared baseline](../../shared/security/baseline.md)
+- On authentication, authorization, inputs, or secret changes: [application checks](../../shared/security/application-checks.md)
+- On dependency, infrastructure, or CI/CD changes: [delivery checks](../../shared/security/delivery-checks.md)
 - API response contract and exception mapping: [`../responses/SKILL.md`](../responses/SKILL.md)
 - Middleware order and base backend conventions: [`../general/SKILL.md`](../general/SKILL.md)
 - Validation boundaries: [`../validations/SKILL.md`](../validations/SKILL.md)
@@ -103,6 +116,10 @@ return Ok(await _orders.GetByIdAsync(id, userId)); // service enforces ownership
 ---
 
 ## Changelog
+
+### v2.1
+- Added shared everyday guardrails and change-triggered references without replacing .NET 8 controls or validation/testing conventions.
+- Distinguished public-ID hardening from proven BOLA; adopted contextual evidence, pre-model secret sanitization, regression verification, and bounded coverage reporting.
 
 ### v2.0 — 2026-04-21
 - P2 trim: reduced encyclopedic setup content and kept an operational default set.

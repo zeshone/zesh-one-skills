@@ -7,13 +7,17 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
   inspired-by: frontend-nextjs/security.md
 ---
 
 ## When to Use
 
-Load this skill when you touch security-sensitive code in frontend projects:
+Load the [shared security baseline](../../shared/security/baseline.md) first. This skill's middleware, Server Action, cookie and server-environment recipes target Next.js projects, not arbitrary frontend runtimes.
+
+**Non-Next gate:** for a SPA or mobile client, use matching [application checks](../../shared/security/application-checks.md) and the existing authentication/data-access design. Do not introduce a Next.js server to apply these recipes. Preserve backend authorization, safe rendering, input validation and secret protection; client bundles cannot hold private credentials. For package/deployment changes, use [delivery checks](../../shared/security/delivery-checks.md).
+
+Load the Next.js-specific rules below when you touch:
 - `middleware.ts` / request pipeline
 - route access control
 - Server Actions and Route Handlers
@@ -122,6 +126,9 @@ Task sizing guidance:
 
 ## Resources
 
+- All runtimes: [shared security baseline](../../shared/security/baseline.md)
+- Changed inputs/credentials/authorization: [application checks](../../shared/security/application-checks.md)
+- Changed packages/deployment: [delivery checks](../../shared/security/delivery-checks.md)
 - Next.js middleware docs: https://nextjs.org/docs/app/building-your-application/routing/middleware
 - Next.js CSP guide: https://nextjs.org/docs/app/guides/content-security-policy
 - Cross-reference: `skills/frontend/nextjs-15/SKILL.md`
@@ -131,6 +138,9 @@ Task sizing guidance:
 - OWASP Session Management: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
 
 ## Changelog
+
+### v2.2 — 2026-10-22
+- Added shared-baseline routing and a Non-Next applicability gate without weakening the existing Next.js controls.
 
 ### v2.1 — 2026-04-22
 - Aligned versioning metadata and changelog with today's frontend skill updates.

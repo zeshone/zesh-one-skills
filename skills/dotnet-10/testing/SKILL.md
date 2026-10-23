@@ -2,7 +2,8 @@
 name: testing
 description: >
   Testing conventions, tier strategy, library choices, and real-database (Testcontainers)
-  integration rules for .NET 10 Minimal API projects. Trigger: writing a test, adding a test,
+  integration rules for .NET 10 APIs, CLIs and workers, scoped to existing capabilities.
+  Trigger: writing a test, adding a test, CLI/file I/O tests,
   WebApplicationFactory, Testcontainers, real database integration test, database integration
   tier, Testcontainers PostgreSQL, xUnit, integration test, unit test, mocking, assertion
   library, FluentAssertions, InMemory database for tests, FakeTimeProvider, SkippableFact,
@@ -10,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
 allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
@@ -23,11 +24,23 @@ allowed-tools: Read Edit Write Bash Glob Grep
 
 ## Critical Patterns
 
+### Applicability gate — test the capabilities that exist
+
+Identify the application type and actual external seams before selecting tiers or packages. Apply each tier only when its capability exists; the API/real-database recipes below do not authorize adding a server or database.
+
+| Existing capability | Applicable verification |
+|---|---|
+| CLI/file I/O without HTTP or persistence | Pure logic unit tests plus local integration tests with temporary fixture files. Exercise commands through their public entry point; assert exit code, stdout, stderr, malformed input and unchanged files on rejection. No WAF or database is required. |
+| HTTP | Add WAF coverage for real endpoint contracts, middleware and DI. |
+| SQL/database-backed infrastructure | Add the real production-engine tier; preserve transaction, security-seam and CI/Docker obligations. |
+
+For file I/O or another non-database adapter, use isolated fixtures matching that adapter, not a database surrogate. Keep existing security/input/secret protections active. Choose only the packages for these applicable tiers; do not install Mvc.Testing, Testcontainers or Docker for a file-only CLI.
+
 ### Rule 1 — Do: xUnit 2.9.x with native `Assert` only; Don't: add FluentAssertions or Moq
 
 **Why**: FluentAssertions v8+ carries the proprietary Xceed Community License — verify license compatibility before adding it to any codebase. v7 (last Apache 2.0 release) is unmaintained and creates a silent upgrade trap. Moq 4.20.x contained a SponsorLink telemetry/supply-chain incident and is banned regardless of version. The three-tier strategy makes a mocking library architecturally redundant. If mock-generation ever becomes genuinely necessary, prefer NSubstitute (MIT); never Moq. Teams that accept the license-ceiling burden may pin FluentAssertions v7 as a documented exception, but do not use `.Should()` syntax alongside native `Assert` — it creates assertion-style inconsistency and introduces a dependency that must be managed for license compliance.
 
-### Rule 2 — Do: real database (Testcontainers) for any test touching SQL or infrastructure seams; Don't: use EF InMemory as a behavioral substitute
+### Rule 2 — Do: real database (Testcontainers) for SQL or database-backed infrastructure seams; Don't: use EF InMemory as a behavioral substitute
 
 **Why**: InMemory cannot model provider-specific behavior — SQL semantics, constraints, transactions, or session state. A passing InMemory integration test proves nothing about real database behavior and produces false CI green while defects silently rot.
 **Permitted InMemory uses (WAF tier only, narrow exception):**
@@ -41,7 +54,9 @@ Never issue SQL from these tests; when in doubt, use the real-database tier.
 
 **Why**: if the project has a transaction or data-access seam, it IS the transaction perimeter. A mocked seam never exercises the real transactional behavior, making the test structurally blind to a critical class of regressions. Test it only against the real-database tier.
 
-### Rule 4 — Do: three-tier strategy; Don't: collapse tiers or substitute a lower tier for a higher one
+### Rule 4 — Do: select applicable tiers; Don't: substitute a lower tier for a required higher one
+
+An API with a database uses all three tiers below. HTTP-only, file-only and database-backed workers select the capabilities they actually exercise, as defined in the applicability gate.
 
 | Tier | Tool | Use for |
 |---|---|---|
@@ -63,7 +78,7 @@ The real-database tier name is per-project (e.g., `RealPg` is a common choice fo
 
 ### Rule 7 — Do: FakeTimeProvider for all time-dependent logic; Don't: use `DateTime.UtcNow` or `DateTimeOffset.UtcNow` in production code or tests
 
-**Why**: production code must inject `TimeProvider` as a singleton so the test host can substitute `FakeTimeProvider` (package: `Microsoft.Extensions.TimeProvider.Testing 10.x`) via the DI override in `WithWebHostBuilder`. This applies to token expiry, JWT key rotation, TOTP windows, and rate-limit boundaries.
+**Why**: production code accepts `TimeProvider` so tests can substitute `FakeTimeProvider` (package: `Microsoft.Extensions.TimeProvider.Testing 10.x`). In HTTP hosts, register singleton DI and use the override in `WithWebHostBuilder`. For CLI/worker tests, inject the clock directly without building a web host. This preserves deterministic token expiry, JWT key rotation, TOTP windows and rate-limit boundaries where those capabilities exist.
 
 ### Rule 8 — Do: serial execution when integration tests share a container; Don't: enable parallelism against shared state
 
@@ -83,7 +98,7 @@ The real-database tier name is per-project (e.g., `RealPg` is a common choice fo
 
 ## Constraints & Tradeoffs
 
-- Recommended baseline test `.csproj` packages: `xunit 2.9.x`, `xunit.runner.visualstudio 3.x` (use current 3.x), `Microsoft.NET.Test.Sdk 17.x`, `Microsoft.AspNetCore.Mvc.Testing 10.0.x`, `Testcontainers.PostgreSql 4.4.x` for Postgres — or the Testcontainers module matching your production engine — `Microsoft.Extensions.TimeProvider.Testing 10.x`, `Xunit.SkippableFact`, `coverlet.collector`. Add `Microsoft.EntityFrameworkCore.InMemory` only if the narrow WAF-tier DI-wiring exception (Rule 2) genuinely requires it — adding the package reference creates drift risk even with limited intent.
+- Core test `.csproj` packages: `xunit 2.9.x`, `xunit.runner.visualstudio 3.x` (use current 3.x), `Microsoft.NET.Test.Sdk 17.x`. Add `Microsoft.AspNetCore.Mvc.Testing 10.0.x` for HTTP tests only; `Testcontainers.PostgreSql 4.4.x` (or the production-engine module) and `Xunit.SkippableFact` for the real-database tier only; `Microsoft.Extensions.TimeProvider.Testing 10.x` for clock-dependent tests; `coverlet.collector` when collecting coverage. Add `Microsoft.EntityFrameworkCore.InMemory` only if the narrow WAF-tier DI-wiring exception (Rule 2) genuinely requires it — adding the package reference creates drift risk even with limited intent.
 - Coverage targets are integration-weighted, not line-level. Every Minimal API endpoint needs at least one WAF test for HTTP contract. Every security-critical path (auth, TOTP, session revocation) needs at least one real-database test at the real security seam. If the domain layer consists of behavior-free persistence POCOs, do not enforce line-coverage targets (e.g., the generic 85%) on it — that produces coverage noise, not confidence. If domain entities carry behavior, domain coverage targets apply normally.
 - Serial execution is the default WHEN integration tests share one container (Rule 8). Any switch to parallelism must be documented together with the per-test isolation strategy that makes it safe.
 - Applicability: the no-mocking-library and no-EF-InMemory rules are strongest when the database enforces security-relevant invariants (constraints, checks, triggers) — there, real-database testing is non-negotiable. In projects without database-enforced security, these defaults still reflect this skill's style but may be relaxed via explicit architectural review.
@@ -122,6 +137,10 @@ The real-database tier name is per-project (e.g., `RealPg` is a common choice fo
 - Endpoint contracts, TypedResults, ProblemDetails (WAF-tier assertions): [`../api-rest-minimal-apis/SKILL.md`](../api-rest-minimal-apis/SKILL.md)
 
 ## Changelog
+
+### v2.2 — 2026-10-22
+- Scoped test tiers/packages to existing CLI, HTTP and database capabilities; added file-I/O fixtures and direct clock injection without a web host.
+- Preserved real-engine requirements, WAF coverage, transaction-seam rules and CI failure behavior for applicable tiers.
 
 ### v2.1 — 2026-07-10
 - Removed the multi-tenant RLS isolation-testing references from the real-database, seam-mocking, three-tier, coverage, and applicability rules; the general RealPg/Testcontainers-over-InMemory and no-seam-mocking guidance is retained; this collection no longer targets multi-tenant RLS.

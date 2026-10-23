@@ -23,6 +23,19 @@ Los siguientes skills son de autoría propia del proyecto `zesh-one`:
 
 Los skills de `skills/frontend/` tienen inspiración conceptual en los originales de `gentleman-programming` pero son obras derivadas con modificaciones sustanciales — arquitectura, convenciones, ejemplos y reglas propias de Zesh-One.
 
+## Referencias conceptuales del piloto de adopción
+
+El piloto adapta ideas puntuales a las reglas existentes; no importa colecciones, scripts ni dependencias de estas fuentes.
+
+| Referencia | Uso acotado | Licencia declarada |
+|------------|-------------|--------------------|
+| [dotnet-claude-kit / architecture-advisor](https://github.com/codewithmukesh/dotnet-claude-kit) — Mukesh Murugan | Contexto, alternativas y costos antes de elegir arquitectura; sin umbrales rígidos | MIT |
+| [mattpocock/skills](https://github.com/mattpocock/skills) — Matt Pocock | Abstracciones justificadas y referencias de instrucciones según contexto | MIT |
+| [Cyber Neo](https://github.com/Hainrixz/cyber-neo) — Hainrixz | Inspiración del enriquecimiento de seguridad ya integrado; sin importar código ni flujo de auditoría | Sin nueva conclusión de licencia en este piloto |
+| [midudev/autoskills](https://github.com/midudev/autoskills) | Descubrimiento de candidatos, sin incorporar contenido | CC BY-NC 4.0 en la raíz; las fuentes registradas varían |
+
+Las revisiones consultadas, prácticas aceptadas/rechazadas y límites de evidencia están en el [registro del piloto](odd/evidence/architecture-adoption-pilot.md).
+
 ## Herramientas del ecosistema
 
 | Herramienta | Autor | Uso en este repo |

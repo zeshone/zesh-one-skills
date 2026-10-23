@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
   inspired-by: capawesome-team/ionic-capacitor
 ---
 
@@ -21,7 +21,11 @@ Use this skill when the task crosses from web app code into native runtime behav
 - Native listener lifecycle and cleanup.
 - Syncing web/native layers after dependency changes.
 
-For Ionic page architecture and lifecycle integration, pair with `../ionic-angular/SKILL.md`.
+Confirm installed Capacitor core/platform/plugin versions and supported APIs before changing native integration; the guide's Capacitor 6 baseline does not authorize an upgrade. Do not install a plugin or run native sync for a UI-only task. Install/update only for an authorized native requirement; then retain the sync and device-verification rules below.
+
+Keep [shared security](../../shared/security/baseline.md) active, and load [delivery checks](../../shared/security/delivery-checks.md) when dependencies or native configuration change.
+
+For Ionic page architecture and lifecycle integration, pair with [the Ionic Angular skill](../ionic-angular/SKILL.md).
 
 ## Critical Patterns
 
@@ -100,7 +104,7 @@ Apply these as rules, not suggestions.
 
 Implement only the layer you need.
 
-1. **Baseline (always):** install plugin, sync native projects, add runtime guard (`isNativePlatform`).
+1. **Baseline:** confirm installed versions and runtime capability (`isNativePlatform`); install/change a plugin only when required and authorized, then sync native projects.
 2. **Error layer:** add `try/catch` and explicit cancel-vs-error mapping.
 3. **Lifecycle layer:** register listeners once, keep handles, remove on teardown.
 4. **Security/config layer:** review `capacitor.config.*` flags for target environment.
@@ -117,12 +121,16 @@ const isNative = Capacitor.isNativePlatform();
 
 ## Resources
 
+- Shared security: [baseline](../../shared/security/baseline.md) and [delivery checks](../../shared/security/delivery-checks.md)
 - Capacitor docs: https://capacitorjs.com/docs
 - Capacitor config reference: https://capacitorjs.com/docs/config
 - Capacitor plugin APIs index: https://capacitorjs.com/docs/apis
 - Companion Ionic app guidance: ../ionic-angular/SKILL.md
 
 ## Changelog
+
+### v2.1 — 2026-10-22
+- Added installed-version and native-change gates, avoiding plugin installation/sync for UI-only work while preserving native protections.
 
 ### v2.0 — 2026-04-21
 - Rewritten into concise operational guidance with explicit sync, platform, error, and lifecycle defaults.

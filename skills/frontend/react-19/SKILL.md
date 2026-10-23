@@ -7,25 +7,27 @@ license: Apache-2.0
 allowed-tools: Read Edit Write Glob Grep
 metadata:
   author: Zesh-One
-  version: "1.3"
+  version: "1.4"
   inspired-by: gentleman-programming/react-19
 ---
 
 ## When to Use
 
-Load this skill when creating React 19 UI units that require component boundary decisions (`server` vs `client`), form actions, async reads, or ref forwarding replacements.
+Load this skill for React 19 components, hooks, forms and refs. First identify the installed version, bundler/framework, React Compiler status and existing data/mutation approach. Do not upgrade or introduce a framework merely to use an example.
+
+**Runtime gate:** server/client directives and Server Components apply only to an RSC-capable runtime (for example the selected Next.js App Router profile). A React SPA such as Vite uses ordinary client components: no Server Components, Server Actions or `"use client"` scaffolding is required. Preserve TanStack Query and the existing client mutation path; React 19 alone does not supply server infrastructure.
 
 ## Critical Patterns
 
-1. **Do** default to Server Components; **don't** add `"use client"` by habit. **Why:** keeps bundles smaller.
-2. **Do** add `"use client"` only for state, events, refs, or browser APIs; **don't** use it for static render-only views. **Why:** client boundaries are expensive.
+1. **Do** default to Server Components in an RSC-capable runtime; **don't** add `"use client"` by habit in that profile. **Why:** keeps bundles smaller.
+2. **Do** add `"use client"` at an RSC client boundary only for state, events, refs, or browser APIs; **don't** use it for static render-only views. **Why:** client boundaries are expensive.
 3. **Do** verify React Compiler activation before removing memoization; **don't** strip `useMemo`/`useCallback` blindly. **Why:** non-compiled apps can regress.
 4. **Do** use named React imports; **don't** use default `React` import. **Why:** aligns with modern JSX runtime and linting.
 5. **Do** use `useActionState` for form action status; **don't** use removed `useFormState`. **Why:** React 19 API compatibility.
 6. **Do** treat `ref` as a prop in new components; **don't** introduce `forwardRef` for React 19-first code. **Why:** simpler component signatures.
-7. **Do** use `use()` for promise reads within Suspense; **don't** re-implement loading orchestration manually. **Why:** native async read semantics.
+7. **Do** use `use()` for supported promise reads where Suspense is already the chosen approach; **don't** replace a working Query/cache flow merely to adopt this API. **Why:** native async read semantics.
 8. **Do** keep `use()` reads close to render usage; **don't** pass unresolved promises across deep trees without boundaries. **Why:** improves failure locality.
-9. **Do** model form actions as idempotent server mutations; **don't** rely only on client-side optimistic assumptions. **Why:** prevents divergence.
+9. **Do** model writes as explicit mutations with server-side validation and suitable idempotency; use Server Actions only when supported by the chosen runtime, otherwise the existing client mutation path. **Don't** rely only on client-side optimistic assumptions. **Why:** prevents divergence.
 10. **Do** follow this skill's current React 19 patterns; **don't** use legacy/deprecated React APIs from older majors; **do** verify exact-version syntax/examples/definitions in Context7 before version-sensitive work. **Why:** avoids stale guidance and runtime mismatches.
 
 ```typescript
@@ -46,7 +48,7 @@ export function ProfileForm() {
 - Form action flows centralize mutation handling, but can feel indirect versus inline handlers.
 
 Boundary decision checklist:
-- Mark as server by default, then justify each client boundary.
+- In an RSC-capable runtime, mark as server by default and justify each client boundary; this distinction is not required for a browser-only SPA.
 - Confirm compiler status before deleting memoization primitives.
 - Ensure every `use()` path has surrounding Suspense and error boundaries.
 - Keep form pending and result handling colocated with action usage.
@@ -70,11 +72,11 @@ Compiler activation hints:
 ## Progressive Disclosure
 
 1. Confirm installed React version and check Context7 exact-version docs before API-sensitive refactors.
-2. Adopt server-vs-client boundary discipline first.
+2. Apply the runtime gate; adopt server-vs-client boundaries only where supported.
 3. Move forms to `useActionState` and explicit pending UX.
 4. Introduce `use()` for async reads where Suspense already exists.
 5. Enable and validate React Compiler before memo simplification passes.
-6. Cross-check app-level integration with [../nextjs-15/SKILL.md](../nextjs-15/SKILL.md).
+6. Only in the matching Next.js profile, cross-check [../nextjs-15/SKILL.md](../nextjs-15/SKILL.md); do not load it as generic React routing guidance.
 
 Team rollout pattern:
 - **Phase 1**: boundary rules + import hygiene.
@@ -93,15 +95,19 @@ Execution guardrails:
 - [React `useActionState`](https://react.dev/reference/react/useActionState)
 - [React `use`](https://react.dev/reference/react/use)
 - [React Server Components Reference](https://react.dev/reference/rsc/server-components)
-- [Next.js 15 baseline conventions](../nextjs-15/SKILL.md)
+- Only for a Next.js 15 runtime: [Next.js 15 conventions](../nextjs-15/SKILL.md)
+- Every runtime: [shared security baseline](../../shared/security/baseline.md)
 
 Related operational pairings:
 - Use with [../typescript/SKILL.md](../typescript/SKILL.md) for typed component contracts.
-- Use with [../security/SKILL.md](../security/SKILL.md) when forms mutate sensitive data.
+- For sensitive mutations, load shared [application checks](../../shared/security/application-checks.md); add [../security/SKILL.md](../security/SKILL.md) only for its Next.js profile.
 - Use with [../tanstack-query/SKILL.md](../tanstack-query/SKILL.md) for client cache orchestration.
 - Keep boundary and data-fetching concerns separated during refactors.
 
 ## Changelog
+
+### v1.4 — 2026-10-22
+- Scoped RSC/directive/server-action guidance to supported runtimes; preserved SPA clients and existing query/mutation flows.
 
 ### v1.3 — 2026-04-22
 - Aligned versioning metadata and changelog with today's frontend skill updates.
