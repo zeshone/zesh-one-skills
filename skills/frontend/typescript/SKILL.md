@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Edit Write Glob Grep
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
   inspired-by: gentleman-programming/typescript
 ---
 
@@ -29,9 +29,11 @@ Use this skill as the default contract when writing or reviewing frontend TypeSc
 
    - **PR-blocking rule**: new `any` blocks merge unless there is a documented temporary waiver (reason, owner, expiration date).
 
-3) **DO prefer schema-first inference (`z.infer`) when a Zod schema exists; DON'T duplicate parallel interfaces/types.** Why: one source of truth.
+3) **DO prefer schema-first inference when a Zod schema exists; DON'T duplicate parallel interfaces/types.** Why: one source of truth.
 
    - **Single-source rule**: if a Zod schema exists, that schema is the single source of truth for that contract's types.
+   - Use `z.input<typeof Schema>` for raw input/form defaults and `z.output<typeof Schema>` (`z.infer` is output) for parsed values. With coercions/transforms, these can differ; preserve that distinction in form adapters.
+   - Await `safeParseAsync` for async refinements/transforms before consuming parsed output; static typing does not perform runtime validation.
 
 4) **DO use utility types (`Pick`, `Omit`, `Partial`, `Readonly`, `Record`) for derivations; DON'T copy/paste near-identical models.** Why: reduces drift.
 
@@ -78,7 +80,7 @@ type Status = (typeof STATUS)[keyof typeof STATUS];
 ## Pre-merge Checklist
 
 - [ ] No new `any` was introduced, or there is a complete temporary waiver with expiration.
-- [ ] Every Zod-backed contract uses schema-first typing (`z.infer`) as the single source of truth.
+- [ ] Every Zod-backed contract uses schema-first input/output typing as the single source of truth; form defaults match input and parsed consumers use output.
 - [ ] Finite domains are modeled with const maps/const types (`as const`) and derived unions.
 - [ ] Exported APIs have explicit signatures (including `Promise<T>` for async functions).
 - [ ] Untrusted inputs use `unknown` + narrowing, with no unsafe casts.
@@ -113,6 +115,9 @@ type Status = (typeof STATUS)[keyof typeof STATUS];
 - [Zod 4 schema guidance](../zod-4/SKILL.md)
 
 ## Changelog
+
+### v2.2 — 2026-10-23
+- Distinguished schema-derived raw input from parsed output and required awaiting async validation.
 
 ### v2.1 — 2026-04-22
 - Consolidated governance defaults: strict TypeScript by default, no new `any` without expiring waiver, and schema-first as canonical source when Zod exists.

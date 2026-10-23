@@ -2,20 +2,20 @@
 name: tanstack-query
 description: >
   ZeshOne TanStack Query defaults for server/API state management.
-  Trigger: When implementing async data fetching, caching, mutations, invalidation, SSR prefetch, or hydration.
+  Trigger: When TanStack Query is installed or explicitly selected for remote fetching, caching, mutations, invalidation, SSR prefetch, or hydration.
 license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.2"
+  version: "2.3"
   inspired-by: frontend-nextjs/tanstack-query.md
 ---
 
 ## When to Use
 
-Load this skill whenever state comes from an API, database proxy, or remote service.
+Load this skill only when TanStack Query is installed or explicitly selected for the affected remote state. Preserve other established solutions; adoption requires an approved migration, not just the presence of API data.
 
-Use TanStack Query as the single source of truth for server state in React/Next.js.
+Use TanStack Query as the single source of truth for remote state managed in its client cache. This does not require moving server-only RSC reads or another established cache into Query.
 Combine with `nextjs-15` only for an installed Next.js Server Component profile, and `zustand-5` only when applicable for non-server global UI state.
 
 **Runtime gate:** in a SPA without SSR, server prefetch, Server Components and hydration recipes below are not applicable. Reuse the existing authenticated client through query options/hooks and show loading/error/empty states. Do not add Next.js, Server Actions or an SSR host to satisfy the first-paint matrix. In an SSR/RSC-capable project, retain its established server data-access boundary.
@@ -24,19 +24,19 @@ Combine with `nextjs-15` only for an installed Next.js Server Component profile,
 
 Atomic rules (Do/Don't + Why):
 
-1. **Do** use TanStack Query for ALL server/API state. **Don't** use React Context for fetch/cache state. **Why:** Context does not provide cache lifecycle, dedupe, or invalidation semantics.
-2. **Do** centralize `QueryClient` defaults in one module. **Don't** instantiate ad-hoc clients in features. **Why:** inconsistent defaults produce unpredictable cache behavior.
+1. **Do** let Query own the remote state selected for its cache. **Don't** duplicate that fetch/cache state in React Context or replace another established solution without approval. **Why:** one cache owner avoids divergent lifecycle and invalidation.
+2. **Do** centralize `QueryClient` defaults in one module while scoping instances by runtime lifetime. **Don't** instantiate ad-hoc clients in features or share a server client globally. **Why:** consistent defaults must not leak request data.
 3. **Do** define query key factories per feature (`all/lists/list/details/detail`). **Don't** inline array keys repeatedly. **Why:** factories prevent key drift and invalidation bugs.
 4. **Do** wrap fetch definitions in `queryOptions`/`infiniteQueryOptions`. **Don't** duplicate `queryFn` + keys across hooks/prefetch calls. **Why:** one contract powers hooks, prefetch, and tests.
 5. **Do** prefetch in Server Components when the runtime supports them and first paint needs data. **Don't** force client-only cold starts for critical lists/details. **Why:** hydration with warm cache removes initial loading gaps.
 6. **Do** make `queryFn` consume the project's single, consistent data-access layer. **Don't** mix direct endpoint calls with alternative access paths. **Why:** one read/write contract keeps auth, error mapping, tracing, and retries coherent.
 7. **Do** use `HydrationBoundary` for an SSR hydration flow with dehydrated state from the same query options. **Don't** hydrate a different key/options shape. **Why:** mismatch causes duplicate requests and stale UI.
-8. **Do** invalidate narrowly after mutations (detail + affected lists). **Don't** invalidate everything by default. **Why:** broad invalidation increases network churn and UI flicker.
+8. **Do** invalidate narrowly after mutations (detail + affected lists) with `invalidateQueries` for Query's browser cache. **Don't** assume Next.js `revalidatePath`/`revalidateTag` invalidates it: those own Next server caches only. **Why:** each cache needs its own coherence plan.
 9. **Do** use optimistic updates only with rollback context. **Don't** mutate cache without recovery strategy. **Why:** failed mutations otherwise leave corrupted UI state.
 10. **Do** keep query functions pure and deterministic. **Don't** hide navigation/toast side effects inside `queryFn`. **Why:** side effects belong in mutation callbacks/effects.
 11. **Do** propagate domain/HTTP failures from `queryFn` with `throw`. **Don't** swallow errors or return fake success shapes. **Why:** `isError`, `retry`, and error boundaries depend on real rejected promises.
 12. **Do** derive UI data from `query.data` via `select` or memoized transforms. **Don't** copy query data into local state just to "sync" it. **Why:** duplicated state drifts, causes stale bugs, and adds unnecessary effects.
-13. **Do** build query keys from stable, serializable primitives. **Don't** put mutable/non-serializable values (class instances, functions, unstable objects) in keys. **Why:** unstable keys fragment cache and break invalidation targeting.
+13. **Do** use stable, serializable primitives or JSON-serializable objects in query keys; include every variable the `queryFn` uses. **Don't** use functions, unsuitable class instances or mutate key contents in place. **Why:** keys are hashed deterministically; object key order does not matter and fresh objects with equivalent contents share a cache entry, regardless of reference identity.
 14. **Do** follow this skill's current TanStack Query patterns; **Don't** use legacy/deprecated APIs from older releases; **Do** verify exact-version syntax/examples/definitions in Context7 before version-sensitive query/hydration changes. **Why:** avoids cache/API drift.
 
 Next.js/RSC reference snippet (not a required SPA access path):
@@ -56,7 +56,7 @@ export const postDetailOptions = (id: string) => queryOptions({ queryKey: postKe
 - Server prefetch improves first render but can increase server latency if overused.
 - Optimistic updates improve perceived speed but require careful rollback paths.
 - Hydration payload size grows with over-prefetching; prefetch only what first paint needs.
-- Query key inputs must be stable and serializable; unstable references create hidden cache misses.
+- Query key contents, not object reference identity, define cache identity; changing filter values must change the key.
 
 ## SSR Strategy Matrix (Prefetch Decision)
 
@@ -72,9 +72,14 @@ Use this matrix only after confirming an SSR-capable runtime. Server Component e
 
 Rule of thumb: prefetch only what the user must see immediately.
 
+Instance lifecycle (only SSR rules require an SSR runtime):
+- Create a new `QueryClient` per request on the server; never share a server client across requests, especially with authenticated data. Centralized defaults are not a server singleton.
+- Keep one stable browser instance across renders/suspensions for the application lifetime; do not recreate it on every render.
+- Hydrate with matching initial snapshots, keys and options from the server prefetch. For provider placement and framework-specific recipes, verify against the installed version; do not introduce SSR into a SPA.
+
 Operational verification before merge:
 
-- Confirm no API state lives in React Context providers.
+- Confirm Query-managed API state is not duplicated in React Context providers.
 - Confirm each feature exposes key factory + options helper pair.
 - Confirm hooks and any applicable server prefetch consume the same options helpers.
 - Confirm mutation flows invalidate exactly the impacted detail/list keys.
@@ -82,16 +87,16 @@ Operational verification before merge:
 
 ## Anti-Patterns
 
-- React Context provider storing API payloads and loading flags.
+- React Context provider duplicating Query-managed API payloads and loading flags.
 - `useEffect + fetch + useState` for endpoints already managed by Query.
-- Query keys constructed inline with changing object literals in components.
-- Query keys containing mutable/non-serializable values (functions, class instances, unstable object/array references).
+- Query keys omitting a query dependency or changing filter contents without changing the key.
+- Query keys containing non-serializable values (functions or unsuitable class instances), or unnecessary memoization solely to stabilize equivalent key objects.
 - Query functions that bypass the project's defined data-access layer.
 - Different key shapes for read and invalidation paths.
 - Mutation success handlers that never invalidate dependent caches.
 - One giant "global query file" instead of feature-level contracts.
 - Prefetching everything "just in case" without first-render need.
-- Calling `new QueryClient()` inside render paths.
+- Recreating the browser `QueryClient` on each render, or sharing one server client across requests.
 - Mixing UI-only state (modals, theme toggles) into query caches.
 - Manually duplicating optimistic cache writes in multiple components.
 - Chaining `invalidateQueries` + manual `refetch` + `setTimeout` to force UI sync.
@@ -102,15 +107,16 @@ Keep mutation design explicit and repeatable:
 
 1. `mutationFn`: call the project's data-access layer; throw on failure.
 2. Invalidation plan: scope invalidation to exact detail/list keys impacted.
-3. Optimistic path (only if UX requires instant feedback):
-   - `onMutate`: snapshot + optimistic write
-   - `onError`: rollback snapshot
-   - `onSettled`: final scoped invalidation
+3. Optimistic path (only if UX requires instant feedback; verify against the installed version for callback signatures):
+   - `onMutate`: `await queryClient.cancelQueries({ queryKey })` for affected reads, snapshot with `getQueryData`, write optimistic data with `setQueryData`, then return context containing the snapshot.
+   - `onError`: restore from context if a snapshot exists.
+   - `onSettled`: invalidate the affected keys for final reconciliation.
+   - Bound concurrency: allow one in-flight optimistic mutation per entity (disable or queue subsequent submissions), and serialize writes to any shared snapshot/cache key, including whole-list snapshots. If overlapping writes are required, use mutation-specific rollback/reconciliation so an older failure cannot roll back newer work; cancellation of reads alone does not solve write races.
 4. Side effects (toast, navigation, analytics): keep in mutation callbacks/effects, never in `queryFn`.
 
 ## Legacy Migration Playbook (Incremental)
 
-Adopt in this order to reduce risk:
+Only within an installed/selected Query scope or an approved migration, adopt in this order to reduce risk:
 
 1. Pick one feature and introduce key factory + `queryOptions` helpers.
 2. Replace `useEffect + fetch + useState` reads with `useQuery` using those helpers.
@@ -161,9 +167,12 @@ Quick review checklist:
 - Every query uses a factory-generated key.
 - Every query/mutation is declared via options helper.
 - Every mutation has a defined invalidation plan.
-- No server state persisted in Context or UI stores.
+- No Query-managed server state duplicated in Context or UI stores.
 
 ## Changelog
+
+### v2.3 — 2026-10-23
+- Scoped Query adoption, corrected key hashing, and clarified SSR lifetimes, cache ownership and concurrency-safe optimism.
 
 ### v2.2 — 2026-10-22
 - Added SPA/SSR/RSC applicability gates while retaining shared query contracts, failure semantics, invalidation and rollback rules.

@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "1.2"
+  version: "1.3"
   inspired-by: gentleman-programming/zod-4
 ---
 
@@ -17,12 +17,12 @@ Load this skill when defining runtime validation contracts, deriving static type
 
 ## Critical Patterns
 
-1. **Do** use Zod 4 top-level validators (`z.email()`, `z.uuid()`, `z.url()`); **don't** rely on deprecated chained string validators. **Why:** aligns with v4 API.
-2. **Do** use `{ error: ... }` for custom messages; **don't** use `{ message: ... }`. **Why:** v4 error customization contract.
-3. **Do** prefer `safeParse` in user-facing flows; **don't** let `parse` throw into UI control flow. **Why:** predictable error handling.
-4. **Do** derive types with `z.infer<typeof Schema>`; **don't** duplicate interface definitions. **Why:** schema and type stay synchronized.
-5. **Do** encode required strings with `.min(1)`; **don't** use removed `.nonempty()`. **Why:** v4-compatible required semantics.
-6. **Do** use `superRefine` for cross-field rules; **don't** split dependent validation across disconnected checks. **Why:** one coherent error surface.
+1. **Do** prefer Zod 4 top-level format validators (`z.email()`, `z.uuid()`, `z.url()`) in new schemas; chained forms such as `z.string().email()` are deprecated but still work. **Don't** migrate working schemas solely for syntax. **Why:** aligns with the v4 API without forced churn.
+2. **Do** prefer `{ error: ... }` for custom messages; `message` is a deprecated alias of `error` and throws if both are given. `required_error`, `invalid_type_error` and `errorMap` parameters are removed. **Don't** conflate deprecated aliases with removed parameters. **Why:** precise v4 migration rules.
+3. **Do** prefer `safeParse` in user-facing flows; await `safeParseAsync` for async refinements/transforms. **Don't** let `parse` throw into UI control flow. **Why:** predictable error handling.
+4. **Do** derive raw input with `z.input<typeof Schema>` and parsed output with `z.output<typeof Schema>` (`z.infer` is output); **don't** duplicate interface definitions. **Why:** coercions/transforms can change types; form defaults and adapters must match the input side.
+5. **Do** prefer `.min(1)` for required strings; `.nonempty()` remains an alias of `.min(1)`. **Don't** describe this convention as API removal. **Why:** distinguishes preference from compatibility.
+6. **Do** keep cross-field rules in the schema; verify refinement APIs against the installed version. **Don't** split dependent validation across disconnected checks. **Why:** one coherent error surface.
 7. **Do** centralize reusable schema fragments; **don't** copy-paste the same validators across features. **Why:** avoids drift.
 8. **Do** validate external input at boundaries (forms, query params, API payloads); **don't** trust TypeScript-only typing. **Why:** runtime safety.
 9. **Do** map `safeParse` issues to UX-friendly field errors; **don't** expose raw internal issue objects. **Why:** stable UI contracts.
@@ -59,7 +59,7 @@ Schema maintenance notes:
 
 ## Anti-Patterns
 
-1. Mixing v3 and v4 APIs (`message`, `.nonempty()`, chained email validators).
+1. Using removed v3 error parameters or passing both `message` and `error`; treating supported aliases as removed APIs.
 2. Creating separate TypeScript interfaces not derived from the schema.
 3. Throwing `parse` errors directly into UI event handlers.
 4. Duplicating schema literals per form instead of extracting shared parts.
@@ -71,8 +71,8 @@ Schema maintenance notes:
 
 1. Confirm installed Zod version and check Context7 exact-version docs before API-sensitive schema edits.
 2. Start with field-level validators and type inference.
-3. Move to `safeParse`-driven error handling in all form submits.
-4. Add `superRefine` for dependent field rules.
+3. Use `safeParse`-driven error handling within the existing form flow; await `safeParseAsync` for async refinements/transforms.
+4. Add dependent field rules using refinement APIs verified against the installed version.
 5. Extract schema modules shared by forms, actions, and adapters.
 6. Integrate consistently with app form architecture (see [../react-19/SKILL.md](../react-19/SKILL.md)).
 
@@ -102,6 +102,9 @@ Related operational pairings:
 - Keep schema files versioned with API contract changes to prevent drift.
 
 ## Changelog
+
+### v1.3 — 2026-10-23
+- Distinguished supported/deprecated/removed APIs and schema input/output types, including async validation.
 
 ### v1.2 — 2026-04-22
 - Aligned versioning metadata and changelog with today's frontend skill updates.

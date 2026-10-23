@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.2"
+  version: "2.3"
   inspired-by: gentleman-programming/tailwind-4, frontend-nextjs
 ---
 
@@ -18,27 +18,31 @@ Load this skill when styling with Tailwind CSS 4 in this repo.
 Use it to enforce utility-first classes, semantic defaults, and safe handling of truly dynamic values.
 
 Cross-reference:
-- `frontend/shadcn-ui`: composition and primitives strategy.
-- `frontend/nextjs-15`: server/client boundaries that affect where styles execute.
+- `frontend/shadcn-ui`: composition and primitives strategy; load shadcn/ui only when opted in.
+- `frontend/nextjs-15`: server/client boundaries only for the matching installed Next.js profile.
 
 ## Critical Patterns
 
-- DO use semantic utility classes (`bg-background`, `text-foreground`, `border-border`) — Why: keeps token mapping centralized and theme-safe.
+- DO use existing semantic utility classes (`bg-background`, `text-foreground`, `border-border`) only if the project theme defines them; inspect token mappings first — Why: these names are not universal Tailwind defaults.
 - DO use utility-first `className` as default — Why: consistent with project styling standards and easy to review.
 - DO use `cn()` only when classes are conditional or merged — Why: reduces noise in static components.
 - DO keep mobile as the base and layer up with breakpoints (`md:`, `lg:`) — Why: predictable responsive behavior.
 - DO use container queries for component-level adaptation (`@container`, `@sm:`) — Why: reusable components should respond to parent width, not page width.
 - DO prefer `rem` and `clamp()` for typography/spacing tokens — Why: accessibility and stable zoom behavior.
 - DO use `style` only for truly runtime values (e.g., width from API/user input) — Why: static values belong in classes.
-- DON'T place `var(--token)` directly in `className` — Why: Tailwind cannot optimize arbitrary variable strings reliably.
+- DO use static CSS-variable utilities such as `bg-(--brand)` (v4 shorthand) or `bg-[var(--brand)]` — Why: complete static class strings are detectable even when variable values change.
+- DON'T interpolate class names such as `bg-${color}-500`; they are not detected — use a lookup map of complete class strings instead.
 - DON'T use raw hex/rgb color literals in markup — Why: breaks semantic theming and dark mode consistency.
 - DO follow this skill's current Tailwind 4 patterns; DON'T use legacy/deprecated Tailwind APIs from older versions; DO verify exact-version syntax/examples/definitions in Context7 before version-sensitive styling changes — Why: prevents config/syntax drift.
 
 ```tsx
-<div className={cn("rounded-md border p-4", isActive && "bg-primary text-primary-foreground")} style={{ width: `${progress}%` }} />
+const tones = { success: "bg-green-500", danger: "bg-red-500" } as const;
+// Prefer project semantic mappings when defined; these complete classes demonstrate detection.
+<div className={cn("rounded-md border p-4", tones[tone])} style={{ width: `${progress}%` }} />
+<div className="bg-(--brand)" />
 ```
 
-Use the snippet pattern as a hard boundary: classes for static/conditional styling, `style` only for real runtime numbers.
+Use classes for static/conditional styling, including static variable references; use `style` only for genuinely runtime values not already represented by a utility or token.
 
 ## Constraints & Tradeoffs
 
@@ -62,7 +66,7 @@ Operational constraints:
 - Using `style={{ padding: "16px" }}` for static spacing that should be `p-4`.
 - Defining responsiveness only with page breakpoints when a component-level container rule is more correct.
 - Adding custom CSS for patterns already covered by Tailwind utilities.
-- Using arbitrary values as the first option (`w-[237px]`) when a scale token exists.
+- Using arbitrary values as the first option (`w-[237px]`) when a scale token exists, or interpolating partial utility names instead of selecting complete classes.
 - Shipping components without reduced-motion handling for meaningful animation.
 - Styling form controls below accessible mobile size thresholds.
 
@@ -81,7 +85,7 @@ Quick decision checks:
 6. Add inline `style` only for true runtime values.
 7. Escalate to custom CSS only when utilities cannot express the requirement.
 
-If styling decisions affect generated primitives, align with `frontend/shadcn-ui` before changing shared tokens.
+If styling decisions affect opted-in shadcn primitives, align with `frontend/shadcn-ui` before changing shared tokens; preserve other installed UI systems.
 
 Review checklist before merge:
 - Utilities are semantic and token-aligned.
@@ -94,7 +98,7 @@ Definition of done for styling updates:
 - New classes follow utility-first defaults and remain readable.
 - Any runtime style usage is justified by non-static input.
 - Any token changes are documented where shared theming is defined.
-- Cross-skill impact on shadcn primitives has been considered.
+- Cross-skill impact on the installed UI system's primitives has been considered (shadcn only when opted in).
 
 ## Resources
 
@@ -105,6 +109,9 @@ Definition of done for styling updates:
 - Cross-skill: `skills/frontend/shadcn-ui/SKILL.md`
 
 ## Changelog
+
+### v2.3 — 2026-10-23
+- Required existing token mappings, allowed static CSS-variable utilities, and replaced interpolated classes with complete-class maps.
 
 ### v2.2 — 2026-04-22
 - Aligned versioning metadata and changelog with today's frontend skill updates.

@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
   inspired-by: frontend-nextjs/components.md
 ---
 
@@ -44,17 +44,19 @@ Cross-reference:
 ## Critical Patterns
 
 - DO treat this skill as a non-default accelerator, not a mandatory baseline — Why: UI stack selection remains a developer decision.
-- DO add/update primitives using the `shadcn` CLI — Why: keeps generator output and registry metadata aligned.
-- DO treat `components/ui/*` as vendor-like generated base — Why: direct edits are brittle on regeneration.
-- DO customize behavior via wrappers/composition in feature components — Why: preserves upgrade path.
+- DO use the project's established generation workflow only for authorized primitive changes; verify against the installed version before any CLI operation — Why: generation can overwrite owned files; do not upgrade or install tools implicitly.
+- DO treat `components/ui/*` as owned source — Why: shared variants and reusable primitive fixes may belong there, with intentional upstream/regeneration diff review.
+- DO use wrappers/composition for feature-specific behavior — Why: generic primitives should not acquire business coupling.
 - DO customize look through shared tokens and Tailwind utilities — Why: consistent theming across primitives.
-- DO keep form contracts explicit (`React Hook Form` + Zod schema + typed defaults) — Why: avoids runtime mismatch bugs.
+- DO preserve the existing form architecture with one owner for submission, pending state and errors — Why: React Actions, Query mutations and form libraries need not replace each other. Use React Hook Form + Zod only when that is the selected flow, with schema-aligned typed defaults.
 - DO keep dark mode class-based through a shared provider — Why: compatible with Tailwind dark variants.
-- DO review Context7 and prefer the latest documented shadcn/ui component/pattern versions before any version-sensitive change — Why: reduces drift and prevents applying outdated APIs.
-- DON'T fork generated primitive internals unless unavoidable — Why: difficult merges and drift from upstream.
+- DO review Context7 documentation matching the installed setup and underlying primitive implementation; verify against the installed version — Why: current online examples may target a different variant.
+- DON'T regenerate owned primitives blindly; review intentional shared-source changes against upstream output — Why: preserves local fixes without treating source as immutable.
 - DON'T place business logic inside generic primitives — Why: primitives should remain reusable and low coupling.
 - DON'T import heavy animation libraries in server-rendered paths by default — Why: unnecessary JS and hydration cost.
 - DON'T assume legacy template snippets are valid without checking current docs/context — Why: old patterns frequently break on newer releases.
+
+Radix-based example: `asChild` comes from the Radix Slot primitive; follow the primitive actually installed, not this prop by assumption.
 
 ```tsx
 <Card className="p-4">
@@ -63,11 +65,11 @@ Cross-reference:
 </Card>
 ```
 
-The snippet shows the default strategy: compose primitives into feature-level UI instead of editing primitive source.
+The snippet shows feature-level composition for a compatible installed variant; it does not require replacing another primitive implementation.
 
 ## Constraints & Tradeoffs
 
-- Generated primitives are fast to adopt but opinionated; prefer wrappers when behavior diverges.
+- Owned primitives are fast to adopt but opinionated; use feature wrappers for local behavior and shared-source fixes for reusable behavior.
 - Composition improves maintainability but may add extra small components; this is acceptable for long-term safety.
 - Theme/token customization scales globally but can be slower for one-off visual experiments.
 - Dynamic import for heavy animated widgets reduces SSR cost but can delay first interactive paint for that widget.
@@ -76,7 +78,7 @@ The snippet shows the default strategy: compose primitives into feature-level UI
 Operational constraints:
 - Keep primitive APIs predictable; wrapper components should expose focused domain props, not every underlying prop by default.
 - Avoid deep prop-drilling through primitive wrappers; co-locate composition near the feature boundary.
-- If a primitive needs repeated visual overrides, prefer a variant/composition layer before touching generated source.
+- If a primitive needs repeated visual overrides, choose a shared variant or composition layer; intentional owned-source edits are valid with an upstream/regeneration diff review.
 - For form fields, keep label/help/error semantics intact even when custom layouts are introduced.
 - Dark mode changes should be token/class driven, not conditional hardcoded class forks per component.
 
@@ -94,22 +96,22 @@ Operational constraints:
 Quick decision checks:
 - If the change is domain-specific, do it in composition layer, not primitive source.
 - If the change is visual-system wide, do it in tokens/theme.
-- If the change is behavior-core to the primitive and reusable, document why direct primitive edit is unavoidable.
+- If the change is behavior-core to the primitive and reusable, change owned source intentionally and review the upstream/regeneration diff.
 
 ## Progressive Disclosure
 
-1. Confirm installed shadcn/ui setup versions, review Context7, and prefer the most recent documented component/pattern approach before API-sensitive primitive changes.
+1. Confirm installed shadcn/ui setup and underlying primitive versions; use documentation matching the installed setup before API-sensitive changes, not a newer variant by default.
 2. Start with generated primitives as-is.
 3. Compose primitives into feature components with domain labels/actions.
 4. Add validation and typed form state where input flows exist.
 5. Add token-level theming adjustments before touching primitive internals.
 6. Add dynamic imports only for genuinely heavy client-only visuals.
-7. Consider primitive internals changes only as a last resort and document the reason.
+7. Make intentional shared-source fixes/variants where reusable; document the reason and review regeneration differences.
 
 If a styling rule conflicts with primitive composition, follow `frontend/tailwind-4` semantic utility rules first.
 
 Review checklist before merge:
-- Generated primitive files remain untouched unless explicitly justified.
+- Owned primitive changes are intentional shared fixes/variants with an upstream/regeneration diff review; feature-specific behavior stays in wrappers.
 - Domain behavior lives in feature composition, not in `components/ui/*`.
 - Form semantics (`Label`, error messaging, focus behavior) are preserved.
 - Theme behavior remains token/class-based and consistent with dark mode strategy.
@@ -130,6 +132,9 @@ Definition of done for component updates:
 - Cross-skill: `skills/frontend/tailwind-4/SKILL.md`
 
 ## Changelog
+
+### v2.2 — 2026-10-23
+- Preserved form ownership, matched installed primitive variants, and allowed intentional shared fixes in owned component source.
 
 ### v2.1 — 2026-04-22
 - Added mandatory **Applicability / Opt-in Gate** clarifying shadcn/ui is used only on explicit developer request.
