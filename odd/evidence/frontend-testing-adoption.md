@@ -23,7 +23,7 @@ Scope: [S1–S4/T1–T2](../tasks/frontend-testing-adoption.md). Baseline `a19a3
 | T2 full suite | 13fixture/16logging/12pilot/9CLI/9frontend/15readiness/1guard;33skills/0lint;verify/cleanup exit0 |
 | Dependency structure/preservation | 58locked packages/766generated lockfile lines,officialregistry/version/integrity present,no install-script declarations; baseline rootlock/CI/backend/apps/security/pilot inputs unchanged |
 | Independent verifier | Fresh `mvl9uh04-e-uemv`: PASS S1–S4; `npm test` and `npm run test:frontend-dom` once each,exit0/stderr0;same suite counts and6/6DOM;diff checks clean,verifier cleanup0,no unexpected changes/leftovers |
-| Native assessment/review | T1medium,reviewDue=false; T2high (`process_boundary`),reviewDue=true,16paths/1201changed lines (766generated lockfile); review pending. Earlier burned reviews/exact-target refusals do not cover this candidate |
+| Native assessment/review | T1medium,reviewDue=false; T2high (`process_boundary`). Four-lens `review-d6db3ef49b68c57e` approved; exact acknowledgement completed,authority burned. Frozen scope16paths/1202changed lines (766generated lockfile);max2concurrent reviewers. No old approval/refusal reused |
 
 The three runner-interface tests were added after the runner implementation; they are observed regression checks, not a separately claimed RED/GREEN cycle. The six component rules did observe RED before implementation, with the test-harness precondition correction attributed above.
 
@@ -35,3 +35,11 @@ The three runner-interface tests were added after the runner implementation; the
 - jsdom is simulated DOM: no layout, navigation/focus fidelity, native browser events/form validation, accessibility audit or real-browser/E2E proof. Semantic queries alone are not accessibility compliance. No model-compliance or application-security guarantee.
 - The runner creates/removes only its owned project-local working/temp directory; tests unmount React roots, check DOM/storage cleanup, close jsdom and restore globals. Host environment and downloaded modules remain trusted; this is not sandboxing or proof of no ambient effects. Forced interruption/timeouts may leave descendants or cleanup incomplete.
 - No consumer framework/form/client migration is required by the skill or specimen. Existing SPA/Next/Ionic boundaries and shared architecture/security owners remain intact. Direct guide links are explicit loading routes, not proof of external registry discovery.
+
+## Non-blocking native advisory
+
+Native approval lists `R3-001` (reliability), `tools/fixtures/frontend-dom/NotesPanel.mjs:37`, severity WARNING, disposition informational. No explanatory text was exposed in the closure envelope; no cause is inferred here. Native explicitly retains approval, opens no correction and treats this as separate later work, not grounds to reopen/re-run this candidate.
+
+## Local delivery
+
+T1: `4da572bb950b1c45c2873784a58bb8d528d6a0be`. T2: `cc98088e599f25e1e276f32bad3dfedfbe6722c3`,preserving approved tree `a78cf2a31e228aa7da0981a662cf09a5b748ce56`. All required functional/independent/native checks complete. This final documentary update records outcomes only. No publishing or later phase started.
