@@ -15,6 +15,7 @@ All notable changes to this repository are documented in this file.
 - Added the shared `cli-design` interaction contract, conditional .NET routes and focused instruction checks (`npm run test:cli-instructions`). Default `test`/`verify` pipelines remain Node-only; architecture selection and security stay with their existing owners.
 
 ### Changed
+- Scoped Ionic/Angular guidance to the existing standalone or NgModule/RxJS architecture, freshness-aware page entry with leave cleanup, Router/NavController/tab escape hatches and version-gated template/DI idioms; Capacitor now separates platform, plugin availability and plugin-specific permissions. Checked by `npm run test:apps-instructions` (Node-only).
 - Integrated the shared everyday security guardrails while retaining distinct .NET 8/.NET 10 security rules and exceptions.
 - Added contextual, user-approved architecture selection to existing .NET guidance; removed automatic second-context assembly promotion and scoped HTTP/database recipes away from local CLIs.
 - Scoped React/Query/Next guidance by runtime and Ionic/Capacitor guidance by installed capabilities; extended shared security to SPA and mobile without importing server-only infrastructure.

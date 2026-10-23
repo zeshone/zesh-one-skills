@@ -63,6 +63,8 @@ La [prueba ejecutable opcional](skills/shared/cli-design/assets/line-tally/READM
 
 Una React SPA mantiene su cliente autenticado y su router: no necesita Next.js, Server Components, Server Actions ni SSR. En el perfil Next.js se conserva el límite Client → Server Action → .NET API y sus controles. En Angular/Ionic, verifica versiones instaladas y conserva formularios, HttpClient, navegación y ciclo de vida válidos; no copies reglas de otra integración o versión. No se instalan plugins ni se ejecuta sincronización nativa para una tarea solo de UI.
 
+En apps existentes con NgModule o RxJS no se exige migrar a standalone ni a signals. Al reingresar a una página, los datos se refrescan según su vigencia, y el trabajo de una página oculta se detiene al salir de ella. Capacitor distingue plataforma, disponibilidad del plugin y permisos propios de cada plugin. `npm run test:apps-instructions` comprueba estas instrucciones, no el comportamiento en un dispositivo.
+
 Para seleccionar o escribir pruebas de una React SPA, carga [testing frontend](skills/frontend/testing/SKILL.md) mediante la ruta condicional de la guía. Conserva el runner instalado, el cliente autenticado y el flujo de formularios; no migres a Next ni a otro sistema de formularios por una tarea de testing. La guía distingue pruebas unitarias, de componente, de integración y E2E, con estados de UI y efectos observables.
 
 `npm run test:frontend-instructions` comprueba instrucciones y rutas, no ejecuta React ni un navegador; forma parte de la suite habitual solo Node. Si faltan herramientas para una prueba ejecutable, informa la evidencia que no se puede obtener y solicita autorización antes de instalar. Los enlaces explícitos no garantizan descubrimiento en un índice externo.
