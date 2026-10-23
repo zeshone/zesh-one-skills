@@ -40,3 +40,4 @@ Before implementation, state the bounded command contract and use synthetic inpu
 - For new structure or boundary decisions, load [architecture selection](../architecture-selection.md); reuse an applicable recorded choice or wait for the user's selection.
 - Always retain the [security baseline](../security/baseline.md); load its specialized checks only for affected capabilities.
 - For .NET 10 testing details, use the existing [testing skill](../../dotnet-10/testing/SKILL.md); other stacks keep their own testing guidance.
+- For an opt-in .NET 10 interaction trial, see the [executable acceptance specimen](assets/line-tally/README.md); it is not a project template or a security/model-compliance guarantee.

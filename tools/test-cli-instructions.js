@@ -5,6 +5,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const skillPath = 'skills/shared/cli-design/SKILL.md';
 const read = (file) => fs.existsSync(path.join(root, file))
@@ -68,7 +69,8 @@ test('instruction checks join both default pipelines without requiring .NET', ()
 });
 
 test('CLI skill and touched guide/document links resolve locally', () => {
-  for (const file of [skillPath, ...guides, 'README.md', 'ADOPTING.md', 'CREDITS.md']) {
+  for (const file of [skillPath, ...guides, 'README.md', 'ADOPTING.md', 'CREDITS.md',
+    'skills/shared/cli-design/assets/line-tally/README.md']) {
     assert.ok(fs.existsSync(path.join(root, file)), `Missing ${file}`);
     for (const [, target] of read(file).matchAll(/\[[^\]]*\]\(([^\s)]+)\)/g)) {
       if (/^(https?:|mailto:|#)/.test(target)) continue;
@@ -77,3 +79,29 @@ test('CLI skill and touched guide/document links resolve locally', () => {
     }
   }
 });
+
+for (const spec of [
+  { name: 'help', args: ['--help'], code: 0,
+    stdout: 'Usage: npm run test:cli [-- --help]\nRuns the opt-in .NET 10 CLI acceptance specimen in disposable project-local state.\nRequires an installed .NET 10 SDK/reference packs. No SDK/package installation or external feeds.\n', stderr: '' },
+  { name: 'unknown option', args: ['--unknown'], code: 2, stdout: '',
+    stderr: 'cli-contract: unknown option. Use --help.\n' },
+]) {
+  test(`CLI runner ${spec.name} requires no SDK or trial state`, () => {
+    const env = Object.fromEntries(Object.entries(process.env)
+      .filter(([key]) => key.toUpperCase() !== 'PATH'));
+    env.PATH = '';
+    env.NODE_DISABLE_COMPILE_CACHE = '1';
+    const scratch = () => fs.readdirSync(root).filter((name) => name.startsWith('.cli-design-trial-')).sort();
+    const before = scratch();
+
+    const result = spawnSync(process.execPath, [path.join(root, 'tools/test-cli-contract.js'), ...spec.args],
+      { cwd: root, env, encoding: 'utf8', timeout: 10000, shell: false });
+
+    assert.deepEqual(scratch(), before, 'Trial state left behind');
+    assert.equal(result.error, undefined);
+    assert.equal(result.signal, null);
+    assert.equal(result.status, spec.code);
+    assert.equal(result.stdout, spec.stdout);
+    assert.equal(result.stderr, spec.stderr);
+  });
+}

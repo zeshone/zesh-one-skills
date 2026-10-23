@@ -5,5 +5,8 @@ nul
 dist/
 .env*
 
+# Unique, disposable workspaces owned by the optional CLI acceptance runner
+/.cli-design-trial-*/
+
 # Local agent tooling: skill-registry index (machine-specific paths) and its cache — not versioned
 .atl/

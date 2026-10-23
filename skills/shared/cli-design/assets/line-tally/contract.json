@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    { "id": "help-with-open-stdin", "args": ["--help"], "stdin": null, "files": {}, "code": 0, "stdout": "Usage: line-tally [--json] [--] <file|->\nCount text lines without changing input.\n\nOptions:\n  --help  Show help and exit.\n  --json  Emit {\"lines\":N} instead of a decimal count.\n  --      Treat remaining arguments as operands.\n\nInput: use - to read stdin; exactly one input is required.\nExit codes: 0 success/help, 2 invalid arguments, 1 input read failure.\nExample: line-tally --json input.txt\n", "stderr": "" },
+    { "id": "file-crlf", "args": ["input.txt"], "stdin": null, "files": { "input.txt": "one\r\ntwo\r\n" }, "code": 0, "stdout": "2\n", "stderr": "" },
+    { "id": "stdin-lf", "args": ["-"], "stdin": "one\ntwo\n", "files": {}, "code": 0, "stdout": "2\n", "stderr": "" },
+    { "id": "json-stdin", "args": ["--json", "-"], "stdin": "one\ntwo\n", "files": {}, "code": 0, "stdout": "{\"lines\":2}\n", "stderr": "" },
+    { "id": "option-like-filename", "args": ["--", "--input.txt"], "stdin": null, "files": { "--input.txt": "one" }, "code": 0, "stdout": "1\n", "stderr": "" },
+    { "id": "spaces-blank-and-final-line", "args": ["space name.txt"], "stdin": null, "files": { "space name.txt": "one\n\nthree" }, "code": 0, "stdout": "3\n", "stderr": "" },
+    { "id": "empty-file", "args": ["empty.txt"], "stdin": null, "files": { "empty.txt": "" }, "code": 0, "stdout": "0\n", "stderr": "" },
+    { "id": "empty-stdin", "args": ["-"], "stdin": "", "files": {}, "code": 0, "stdout": "0\n", "stderr": "" },
+    { "id": "missing-operand", "args": [], "stdin": null, "files": {}, "code": 2, "stdout": "", "stderr": "line-tally: invalid arguments. See --help.\n" },
+    { "id": "unknown-flag-no-echo", "args": ["--unknown=synthetic-only"], "stdin": null, "files": {}, "code": 2, "stdout": "", "stderr": "line-tally: invalid arguments. See --help.\n" },
+    { "id": "extra-operand", "args": ["one.txt", "two.txt"], "stdin": null, "files": { "one.txt": "one", "two.txt": "two" }, "code": 2, "stdout": "", "stderr": "line-tally: invalid arguments. See --help.\n" },
+    { "id": "missing-file-no-echo", "args": ["missing-private-name.txt"], "stdin": null, "files": {}, "code": 1, "stdout": "", "stderr": "line-tally: unable to read input.\n" },
+    { "id": "duplicate-switch", "args": ["--json", "--json", "-"], "stdin": null, "files": {}, "code": 2, "stdout": "", "stderr": "line-tally: invalid arguments. See --help.\n" }
+  ]
+}

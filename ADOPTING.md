@@ -57,6 +57,8 @@ Cuando diseñes o cambies comandos, argumentos, ayuda, códigos de salida o modo
 
 `npm run test:cli-instructions` comprueba el contrato de instrucciones y sus rutas; forma parte de `test` y `verify`. La suite habitual sigue requiriendo solo Node y no ejecuta una aplicación consumidora.
 
+La [prueba ejecutable opcional](skills/shared/cli-design/assets/line-tally/README.md) se ejecuta con `npm run test:cli` y requiere un SDK .NET 10 con sus paquetes de referencia ya instalado. Compila una copia desechable local, sin fuentes NuGet externas ni instalaciones, y comprueba el proceso público con datos sintéticos. Es aceptación de ese espécimen, no cobertura xUnit ni garantía de obediencia del modelo. Si el índice no muestra `cli-design`, utiliza la ruta explícita de la guía; no asumas descubrimiento automático.
+
 ### Perfiles frontend y apps
 
 Una React SPA mantiene su cliente autenticado y su router: no necesita Next.js, Server Components, Server Actions ni SSR. En el perfil Next.js se conserva el límite Client → Server Action → .NET API y sus controles. En Angular/Ionic, verifica versiones instaladas y conserva formularios, HttpClient, navegación y ciclo de vida válidos; no copies reglas de otra integración o versión. No se instalan plugins ni se ejecuta sincronización nativa para una tarea solo de UI.
