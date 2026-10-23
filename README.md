@@ -89,7 +89,7 @@ With a .NET 10 SDK/reference packs already installed, `npm run test:cli` runs th
 
 For React SPA test selection and observable UI/form/API behavior, load [frontend testing](skills/frontend/testing/SKILL.md). `npm run test:frontend-instructions` checks its instruction contract and conditional route; these Node-only checks do not render React or prove browser behavior. Reuse consumer tooling; missing prerequisites require explicit approval, not automatic installation. The optional [React DOM trial](tools/fixtures/frontend-dom/README.md) runs with `npm run test:frontend-dom` after its separately authorized isolated prerequisite setup; it is not part of default verification or actual-browser proof.
 
-The existing [.NET 8 unit-testing](skills/backend/testing-unit/SKILL.md) and [.NET 10 testing](skills/dotnet-10/testing/SKILL.md) profiles cover applicable rule boundaries, rejection effects and deterministic time/cancellation without unifying their libraries or adding infrastructure. `npm run test:dotnet-instructions` checks these instruction contracts; it does not execute xUnit.
+The existing [.NET 8 unit-testing](skills/backend/testing-unit/SKILL.md) and [.NET 10 testing](skills/dotnet-10/testing/SKILL.md) profiles cover applicable rule boundaries, rejection effects and deterministic time/cancellation without unifying their libraries or adding infrastructure. `npm run test:dotnet-instructions` checks these instruction contracts; it does not execute xUnit. The optional [isolated xUnit trial](tools/fixtures/dotnet-testing/README.md) runs with `npm run test:dotnet-unit` after explicitly authorized local NuGet setup; ordinary execution never downloads packages.
 
 ## Changelog
 

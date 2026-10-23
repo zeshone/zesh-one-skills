@@ -13,5 +13,9 @@ dist/
 /.frontend-dom-npm/
 /tools/fixtures/frontend-dom/node_modules/
 
+# Optional xUnit trial: approved package cache and owned disposable execution state
+/.dotnet-testing-nuget/
+/.dotnet-unit-trial-*/
+
 # Local agent tooling: skill-registry index (machine-specific paths) and its cache — not versioned
 .atl/

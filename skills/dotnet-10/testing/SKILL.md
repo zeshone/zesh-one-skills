@@ -145,6 +145,7 @@ For APIs supporting cancellation, verify token forwarding and the documented can
 - Architecture selection framework (vertical-slice monolith / modular monolith) and domain model guidance: [`../architecture/SKILL.md`](../architecture/SKILL.md)
 - Result discriminated-union assertion conventions: [`../design-patterns/SKILL.md`](../design-patterns/SKILL.md)
 - Endpoint contracts, TypedResults, ProblemDetails (WAF-tier assertions): [`../api-rest-minimal-apis/SKILL.md`](../api-rest-minimal-apis/SKILL.md)
+- Optional pure-rule xUnit specimen: [isolated trial](../../../tools/fixtures/dotnet-testing/README.md); read its prerequisite approval and evidence limits before execution. This is not a WAF/real-database substitute.
 
 ## Changelog
 
