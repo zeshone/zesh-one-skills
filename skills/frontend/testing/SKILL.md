@@ -73,3 +73,4 @@ Snapshot-only confidence; asserting implementation details; schema-only claims f
 - For actual Query wiring/cache tests, retain [TanStack Query](../tanstack-query/SKILL.md); no SSR hydration is required in a non-SSR SPA.
 - Keep the [shared security baseline](../../shared/security/baseline.md) and its capability-specific references.
 - For new structure, reuse [architecture selection](../../shared/architecture-selection.md); this skill does not choose an architecture.
+- The optional [React DOM trial](../../../tools/fixtures/frontend-dom/README.md) demonstrates component acceptance only; read its prerequisite authorization and evidence limits before executing.

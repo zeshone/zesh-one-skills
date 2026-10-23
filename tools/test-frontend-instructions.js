@@ -5,6 +5,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const load = file => fs.existsSync(path.join(root, file)) ? fs.readFileSync(path.join(root, file), 'utf8') : '';
 const skillPath = 'skills/frontend/testing/SKILL.md';
@@ -48,7 +49,8 @@ test('collection test pipelines keep current checks and do not install frontend 
 });
 
 test('frontend skill and touched documents resolve their local links', () => {
-  for (const file of [skillPath, 'AGENTS.frontend.md', 'README.md', 'ADOPTING.md', 'CREDITS.md']) {
+  for (const file of [skillPath, 'AGENTS.frontend.md', 'README.md', 'ADOPTING.md', 'CREDITS.md',
+    'tools/fixtures/frontend-dom/README.md']) {
     const text = load(file);
     assert.ok(text.length, file);
     for (const [, target] of text.matchAll(/\]\(([^)]+)\)/g)) {
@@ -57,3 +59,36 @@ test('frontend skill and touched documents resolve their local links', () => {
     }
   }
 });
+
+for (const spec of [
+  { name: 'help', args: ['--help'], code: 0,
+    stdout: 'Usage: npm run test:frontend-dom [-- --help]\nRuns the optional React SPA component trial in jsdom, not a browser.\nInstall its isolated prerequisites only with approval; see tools/fixtures/frontend-dom/README.md.\n', stderr: '' },
+  { name: 'unknown option', args: ['--unknown'], code: 2, stdout: '',
+    stderr: 'frontend-dom: unknown option. Use --help.\n' },
+  { name: 'missing prerequisites', args: [], code: 2, stdout: '',
+    stderr: 'frontend-dom: isolated prerequisites missing. See tools/fixtures/frontend-dom/README.md; no installation was attempted.\n' },
+]) {
+  test(`DOM runner ${spec.name} does not install or mutate stored state`, () => {
+    const scratch = fs.mkdtempSync(path.join(root, '.frontend-dom-trial-runner-'));
+    try {
+      fs.mkdirSync(path.join(scratch, 'tools'));
+      fs.copyFileSync(path.join(root, 'tools/test-frontend-dom.js'), path.join(scratch, 'tools/test-frontend-dom.js'));
+      fs.writeFileSync(path.join(scratch, 'untouched.txt'), 'synthetic-only');
+      const env = Object.fromEntries(Object.entries(process.env)
+        .filter(([key]) => key.toUpperCase() !== 'PATH'));
+      Object.assign(env, { PATH: '', NODE_DISABLE_COMPILE_CACHE: '1', TEMP: scratch, TMP: scratch, TMPDIR: scratch });
+
+      const result = spawnSync(process.execPath, ['tools/test-frontend-dom.js', ...spec.args],
+        { cwd: scratch, env, encoding: 'utf8', timeout: 10000, shell: false });
+
+      assert.equal(result.error, undefined);
+      assert.equal(result.signal, null);
+      assert.equal(result.status, spec.code);
+      assert.equal(result.stdout, spec.stdout);
+      assert.equal(result.stderr, spec.stderr);
+      assert.deepEqual(fs.readdirSync(scratch).sort(), ['tools', 'untouched.txt']);
+      assert.deepEqual(fs.readdirSync(path.join(scratch, 'tools')), ['test-frontend-dom.js']);
+      assert.equal(fs.readFileSync(path.join(scratch, 'untouched.txt'), 'utf8'), 'synthetic-only');
+    } finally { fs.rmSync(scratch, { recursive: true }); }
+  });
+}

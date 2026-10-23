@@ -87,7 +87,7 @@ For CLI interface work, load [cli-design](skills/shared/cli-design/SKILL.md) alo
 
 With a .NET 10 SDK/reference packs already installed, `npm run test:cli` runs the separate [executable CLI acceptance specimen](skills/shared/cli-design/assets/line-tally/README.md). It uses project-local disposable state and no external package feeds; it is not part of default verification and does not install an SDK or packages.
 
-For React SPA test selection and observable UI/form/API behavior, load [frontend testing](skills/frontend/testing/SKILL.md). `npm run test:frontend-instructions` checks its instruction contract and conditional route; these Node-only checks do not render React or prove browser behavior. Reuse consumer tooling; missing prerequisites require explicit approval, not automatic installation.
+For React SPA test selection and observable UI/form/API behavior, load [frontend testing](skills/frontend/testing/SKILL.md). `npm run test:frontend-instructions` checks its instruction contract and conditional route; these Node-only checks do not render React or prove browser behavior. Reuse consumer tooling; missing prerequisites require explicit approval, not automatic installation. The optional [React DOM trial](tools/fixtures/frontend-dom/README.md) runs with `npm run test:frontend-dom` after its separately authorized isolated prerequisite setup; it is not part of default verification or actual-browser proof.
 
 ## Changelog
 

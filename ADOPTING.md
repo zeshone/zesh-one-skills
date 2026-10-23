@@ -67,6 +67,8 @@ Para seleccionar o escribir pruebas de una React SPA, carga [testing frontend](s
 
 `npm run test:frontend-instructions` comprueba instrucciones y rutas, no ejecuta React ni un navegador; forma parte de la suite habitual solo Node. Si faltan herramientas para una prueba ejecutable, informa la evidencia que no se puede obtener y solicita autorización antes de instalar. Los enlaces explícitos no garantizan descubrimiento en un índice externo.
 
+La [prueba React DOM opcional](tools/fixtures/frontend-dom/README.md) usa dependencias propias fijadas y datos sintéticos. Solo instala sus requisitos con autorización explícita, dentro de su proyecto/caché local y con scripts de instalación desactivados; después ejecuta `npm run test:frontend-dom`. La suite habitual no necesita esas dependencias. jsdom valida un DOM simulado: no demuestra comportamiento de navegador, E2E, accesibilidad completa ni integración con una API real.
+
 ### Seguridad diaria en todos los perfiles
 
 Conserva el dominio elegido junto con `skills/shared/security/`. Las cuatro guías indican cargar `skills/shared/security/baseline.md` al iniciar cada tarea; `application-checks.md` y `delivery-checks.md` se consultan solo según el cambio. La skill de seguridad frontend contiene recetas Next.js: una SPA o app móvil usa los controles compartidos y su diseño de autenticación existente, sin inventar infraestructura de servidor. Si usas una instalación externa, ajusta las rutas para que resuelvan al repositorio de skills.

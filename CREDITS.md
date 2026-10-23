@@ -41,6 +41,10 @@ El piloto adapta ideas puntuales a las reglas existentes; no importa colecciones
 
 Las revisiones consultadas, prácticas aceptadas/rechazadas y límites de evidencia están en el [registro del piloto](odd/evidence/architecture-adoption-pilot.md).
 
+## Dependencias del ensayo React DOM
+
+El espécimen propio de `tools/fixtures/frontend-dom/` utiliza React/react-dom, Testing Library (React/DOM) y jsdom solo en su proyecto de pruebas opcional. Sus versiones, dependencias transitivas, licencias declaradas e integridad de descarga quedan en su `package-lock.json`; no se incorporan sus fuentes a la colección ni se añaden al paquete raíz. Esto no modifica la atribución de las skills ni implica una auditoría de licencias o seguridad de dependencias.
+
 ## Herramientas del ecosistema
 
 | Herramienta | Autor | Uso en este repo |
