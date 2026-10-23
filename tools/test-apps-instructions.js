@@ -30,6 +30,7 @@ test('A2: entry refresh is conditional and cached-page work stops before destruc
 });
 
 test('A3: Ionic navigation supports Router integration and independent tab stacks', () => {
+  assert.match(ionic, /^\d+\. \*\*Do\*\* keep each tab's own navigation stack\./m);
   for (const text of [ionic, guide]) {
     includes(text, ['NavController', 'navigateForward', 'navigateBack', 'navigateRoot',
       'Router', 'routerLink', 'routerDirection', 'Each tab keeps its own stack',
@@ -39,6 +40,7 @@ test('A3: Ionic navigation supports Router integration and independent tab stack
 });
 
 test('A4: Capacitor checks plugin capability, permissions and native configuration without excluding web', () => {
+  assert.match(capacitor, /^11\. \*\*Do\*\*[^\n]*Info\.plist[^\n]*Android manifest[^\n]*settings-based recovery only when supported/m);
   includes(capacitor, ['installed plugin', 'Capacitor.isNativePlatform()', 'Capacitor.getPlatform()',
     "Capacitor.isPluginAvailable('<Name>')", 'web implementations', 'Do not blanket-disable web',
     'checkPermissions()', 'requestPermissions()', 'granted', 'denied', 'prompt', 'prompt-with-rationale',

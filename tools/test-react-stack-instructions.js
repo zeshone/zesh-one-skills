@@ -57,6 +57,9 @@ test('R06: Query and Zustand require selection and preserve established alternat
 test('R07: Tailwind requires theme mappings and statically detectable classes', () => {
   includes(skill('tailwind-4'), ['only if the project theme defines them', 'bg-(--brand)', 'bg-[var(--brand)]',
     'bg-${color}-500', 'not detected', 'lookup map of complete class strings', 'shadcn/ui only when opted in']);
+  const snippet = skill('tailwind-4').match(/```tsx\n([\s\S]*?)```/)?.[1] || '';
+  assert.match(snippet, /^const tones = /);
+  assert.match(snippet, /export function \w+\([\s\S]*?return \(\s*<>[\s\S]*?<div[^\n]*tones\[tone\][^\n]*\/>\s*<div className="bg-\(--brand\)" \/>\s*<\/>\s*\);\s*\}/);
   assert.doesNotMatch(skill('tailwind-4'), /DON'T place `var\(--token\)` directly in `className`/);
 });
 

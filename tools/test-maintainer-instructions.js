@@ -35,7 +35,9 @@ test('instruction tests use RED GREEN and positive negative preservation route c
 });
 test('registration retains existing checks in both default pipelines', () => {
   includes(guide, ['package.json', '`test` and `verify`', 'exactly once', 'retain existing checks',
-    'npm run verify', 'git diff --check', 'tools/test-cli-instructions.js', 'exact default pipeline list']);
+    'npm run verify', 'git diff --check', 'tools/test-cli-instructions.js', 'non-instruction baseline checks',
+    'instruction-script parity', 'tools/test-maintainer-instructions.js']);
+  assert.doesNotMatch(guide, /exact default pipeline list/);
 });
 test('default checks stay Node-only and isolated trials require opt-in authorization', () => {
   includes(guide, ['Node-only', 'opt-in', 'isolated', 'explicit approval', 'test:cli',

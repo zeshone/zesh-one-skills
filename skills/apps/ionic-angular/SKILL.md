@@ -45,7 +45,7 @@ Follow these as atomic rules. Each rule has intent (`Do/Don't`) and rationale (`
 
 4. **Do** prefer `NavController` (`navigateForward`, `navigateBack`, `navigateRoot`) when controlling Ionic direction and stack animation.
    **Don't** treat Angular `Router` or `routerLink` with `routerDirection` as invalid alternatives.
-   **Why:** Navigation intent determines direction/stack handling. Each tab keeps its own stack: do not push another tab's child pages into the current tab's history. Intentionally selecting a tab root from a notification or deep link is valid.
+   **Why:** Navigation intent determines direction/stack handling.
 
 5. **Do** prefer Angular signals (`signal`, `computed`, readonly exposure) where appropriate for app/session state.
    **Don't** spread mutable state across unrelated services and components or migrate working RxJS state just for consistency.
@@ -63,19 +63,23 @@ Follow these as atomic rules. Each rule has intent (`Do/Don't`) and rationale (`
    **Don't** depend on aliases or mismatched names.
    **Why:** Tab router outlets resolve by exact key/path matching.
 
-9. **Do** register only needed Ionicons explicitly in standalone pages/components.
-   **Don't** assume global icon availability.
-   **Why:** Standalone usage requires explicit registration and avoids accidental bundle growth.
+9. **Do** keep each tab's own navigation stack. Intentionally selecting a tab root from a notification or deep link is valid.
+   **Don't** push another tab's child pages into the current tab's history.
+   **Why:** Each tab keeps its own stack so back navigation preserves that tab's history.
 
-10. **Do** place page-entry fetch logic behind idempotent methods (safe on every enter).
+10. **Do** register only needed Ionicons explicitly in standalone pages/components.
+    **Don't** assume global icon availability.
+    **Why:** Standalone usage requires explicit registration and avoids accidental bundle growth.
+
+11. **Do** place page-entry fetch logic behind idempotent methods (safe on every enter).
     **Don't** couple data load to constructor side effects.
     **Why:** Entry hooks may run many times; deterministic loaders avoid stale/multi-subscribe bugs.
 
-11. **Do** follow supported project template conventions; built-in control flow (`@if`, `@for`, `@switch`) is stable since Angular 17 and `@for` requires `track` by stable entity identity.
+12. **Do** follow supported project template conventions; built-in control flow (`@if`, `@for`, `@switch`) is stable since Angular 17 and `@for` requires `track` by stable entity identity.
     **Don't** migrate working structural directives merely for consistency or track mutable lists by unstable positions.
     **Why:** Existing structural directives still work; stable identity preserves row state during updates. For other version-sensitive template APIs, verify against the installed version.
 
-12. **Do** use `inject()` only in an injection context (constructor, field initializer, provider factory) or through `runInInjectionContext`.
+13. **Do** use `inject()` only in an injection context (constructor, field initializer, provider factory) or through `runInInjectionContext`.
     **Don't** call it directly from lifecycle/event methods or replace valid constructor injection merely for consistency.
     **Why:** Dependency resolution requires an injection context; for version-specific DI APIs, verify against the installed version.
 

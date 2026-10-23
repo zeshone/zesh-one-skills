@@ -38,8 +38,14 @@ Cross-reference:
 ```tsx
 const tones = { success: "bg-green-500", danger: "bg-red-500" } as const;
 // Prefer project semantic mappings when defined; these complete classes demonstrate detection.
-<div className={cn("rounded-md border p-4", tones[tone])} style={{ width: `${progress}%` }} />
-<div className="bg-(--brand)" />
+export function ToneExample({ tone, progress }: { tone: keyof typeof tones; progress: number }) {
+  return (
+    <>
+      <div className={`rounded-md border p-4 ${tones[tone]}`} style={{ width: `${progress}%` }} />
+      <div className="bg-(--brand)" />
+    </>
+  );
+}
 ```
 
 Use classes for static/conditional styling, including static variable references; use `style` only for genuinely runtime values not already represented by a utility or token.

@@ -71,9 +71,9 @@ Apply these as rules, not suggestions.
     **Don't** enable permissive flags (cleartext/mixed content) outside controlled dev scenarios.
     **Why:** Misconfigured transport/security flags can silently ship high-risk builds.
 
-11. **Do** follow each permission-based plugin's own docs: use `checkPermissions()`/`requestPermissions()` where exposed, with states such as `granted`, `denied`, `prompt`, `prompt-with-rationale`.
+11. **Do** follow each permission-based plugin's own docs: use `checkPermissions()`/`requestPermissions()` where exposed, with states such as `granted`, `denied`, `prompt`, `prompt-with-rationale`. Add required iOS Info.plist usage descriptions and Android manifest permissions according to that plugin's own docs. Explain any settings-based recovery only when supported by the target platform/plugin.
     **Don't** assume all plugins share permission aliases, request timing or recovery paths; verify against the installed version. Request only permissions needed for the user action and handle denial without repeated prompt loops.
-    **Why:** Runtime permission handling does not replace native configuration: add required iOS Info.plist usage descriptions and Android manifest permissions according to that plugin's own docs. Explain any settings-based recovery only when supported by the target platform/plugin.
+    **Why:** Runtime permission handling does not replace native configuration.
 
 ## Constraints & Tradeoffs
 

@@ -57,7 +57,7 @@ metadata:
 
 ## 8. Register and run checks
 - In [package.json](../package.json), register the focused script and add it exactly once to both `test` and `verify`; retain existing checks.
-- `tools/test-cli-instructions.js` pins the exact default pipeline list in its `previous` array; add the new command there too, in pipeline order.
+- `tools/test-cli-instructions.js` pins the non-instruction baseline checks in pipeline order; instruction-script parity is checked dynamically by `tools/test-maintainer-instructions.js`.
 - Run the focused contract, then `npm run verify`: fixtures, logging semantics, instruction contracts, skill lint, release readiness and the zero-skills guard.
 - Run `git diff --check`; inspect changed files and local links. Keep pipeline membership aligned as scripts are added.
 
