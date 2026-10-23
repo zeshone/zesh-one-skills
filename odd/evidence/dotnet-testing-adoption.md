@@ -23,7 +23,7 @@ Scope: [S1–S4/T1–T2](../tasks/dotnet-testing-adoption.md). Baseline `b1e94f7
 | T2 suite | 13fixture/16logging/12pilot/9CLI/9frontend/9.NET/15readiness/1guard;33skills/0lint;verify/cleanup0 |
 | Independent verifier | Fresh `mvlbkslw-g-n0ys`:S1–S3 PASS,no code blockers;both public commands once,exit0/stderr0,84suite checks/33skills0lint,6xUnit. S4 initially cleanup-only NEEDSREVISION after child-safety block;resolved below without retests |
 | Authorized cleanup | Human explicitly allowed only `.dotnet-unit-trial-verifier-TcHnwA/`;parent removed it,cleanup0/absence confirmed;Git status/index/worktree byte-identical to verifier snapshots,package cache untouched |
-| Native assessment/review | T1medium,reviewDue=false;T2high (`process_boundary`),reviewDue=true. Review pending;earlier consumed reviews/aggregate human dispositions do not apply to a new target |
+| Native assessment/review | T1medium,reviewDue=false;T2high (`process_boundary`). Four-lens `review-df6f69699af0c2af` approved;exact acknowledgement completed,authority burned. Frozen scope18paths/406changed lines (98lock),max2concurrent reviewers;no old approval/refusal reused |
 
 Runner-interface regression tests were added after its implementation,not claimed as a separate RED cycle. The capacity cases did observe RED before implementing the rule. The guard compares the positive amount to remaining capacity before addition,so `int.MaxValue` cannot wrap and bypass rejection.
 
@@ -34,3 +34,11 @@ Runner-interface regression tests were added after its implementation,not claime
 - Runner/TRX checking requires exactly six passed cases with no failures;empty discovery cannot count as success. Temporary copy cleanup is reported separately;forced interruption/timeouts can prevent complete cleanup or process-tree termination. The approved ignored package cache remains a reusable prerequisite,not leftover test state.
 - The pure rule has no persistence,clock,cancellation,network,HTTP,DB,publication or authorization seam. It checks result and in-memory total,not fabricated collaborator behavior. Time/cancellation improvements are instruction checks only;existing .NET8 library style is preserved,not executed by this .NET10 specimen.
 - No WAF/real-engine/transaction/security behavior,all-platform compatibility,coverage percentage,model compliance or application-security guarantee is established. Earlier CLI/React acceptance proofs remain separate.
+
+## Non-blocking native advisory
+
+Native approval lists `R3-stateful-capacity` (reliability),`tools/fixtures/dotnet-testing/CapacityCounterTests.cs:12`,severity WARNING,disposition informational. No explanatory text was exposed in the closure envelope;no cause is inferred here. Native explicitly retains approval and opens no correction;this is separate later work,not grounds to reopen/re-run this candidate.
+
+## Local delivery
+
+T1:`78cfd95ba8a579417a7d58647a0274a7ee52555b`. T2:`1fa8180d443e25f4de37159532abedf5f70186aa`,preserving approved tree `ab6159459c1361907815d8fce87bad0fbbc5b447`. Required functional/independent/native gates and authorized cleanup are complete. This final documentary update records outcomes only;no publishing or later phase started.
