@@ -77,6 +77,10 @@ Conserva [testing-unit de backend .NET 8](skills/backend/testing-unit/SKILL.md) 
 
 El [ensayo xUnit opcional](tools/fixtures/dotnet-testing/README.md) verifica una regla pura de capacidad y sus efectos públicos con `npm run test:dotnet-unit`. Sus requisitos NuGet se restauran por separado solo con autorización, dentro del repositorio; la ejecución normal usa fuentes vacías y paquetes locales fijados. No añade WAF, base de datos ni paquetes de reloj a una regla que no los necesita; tampoco valida por ejecución las nuevas instrucciones de tiempo/cancelación.
 
+### Diagnóstico de errores
+
+Para investigar un defecto, carga [diagnosing-bugs](skills/shared/diagnosing-bugs/SKILL.md) mediante las rutas condicionales de las cuatro guías. Reproduce con datos sintéticos, contrasta hipótesis y verifica la corrección mínima con el perfil de pruebas existente. No instala herramientas ni autoriza repetir datos de producción. `npm run test:debugging-instructions` comprueba instrucciones y rutas, no ejecuta un defecto de una aplicación ni demuestra obediencia del modelo.
+
 ### Seguridad diaria en todos los perfiles
 
 Conserva el dominio elegido junto con `skills/shared/security/`. Las cuatro guías indican cargar `skills/shared/security/baseline.md` al iniciar cada tarea; `application-checks.md` y `delivery-checks.md` se consultan solo según el cambio. La skill de seguridad frontend contiene recetas Next.js: una SPA o app móvil usa los controles compartidos y su diseño de autenticación existente, sin inventar infraestructura de servidor. Si usas una instalación externa, ajusta las rutas para que resuelvan al repositorio de skills.

@@ -1,0 +1,19 @@
+# Debugging and accessibility adoption — phase 3
+Objective: fill the two shared guidance gaps with conditional routes and bounded proposal evidence, not introduce another workflow.
+Branch: `feat/debugging-accessibility-adoption`, based on `e50ea92`; local commits only, no publishing. Delivery: ask-on-risk; forecast about 380 authored changed lines across two reviewable units; default checks stay Node-only.
+
+## Specs
+- **S1 — Scope:** User: "Continua!!", accepting "Lo siguiente propuesto: fase 3, **depuración y accesibilidad**. Todavía no está iniciada ni autorizada." Original plan: "este repositorio es un conjunto de skills que he recopilado y ajustado a mis formas de trabajar, los stack en los que me desempeño son .Net, React y un poco de Angular (apps)".
+- **S2 — Context:** User: "No la tengo, se perdio en algun respaldo o movimiento de datos" and selected "Continuar sin doc-agent-ai (recomendado)": "Autorizar el uso directo de skills, guías y pruebas versionadas como contexto de la fase 3, sin exigir el contexto SDD perdido ni reconstruirlo."
+- **S3 — Constraints:** Preserve "recuerda que puedes levantar maximo 2 instancias adicionales de Pi", "Incluye los cambios previos de seguridad", "integralos y contemplalos en este proceso" and "Sí, cambios y commits locales". No publishing or automatic installation; preserve the separate existing runtime profiles.
+
+## Tasks
+- **T1** | S1–S3 | inline + bounded response-only BEFORE/AFTER observer; assess actual candidate | **in_progress** | Shared debugging guidance, four conditional routes, focused regression checks and evidence; commit: pending.
+- **T2** | S1–S3 | inline + bounded response-only AFTER observer; assess actual candidate | **pending** | Shared accessibility guidance, frontend/apps routes, focused regression checks and evidence; commit: pending.
+
+## Log
+- **L1 — Original request:** "Continua!!".
+- **L2 — Context decision:** Missing doc-agent node blocked initial exploration; user selected S2 explicitly. Exact eight external guide reads were separately authorized; no external writes or broader file access granted.
+- **L3 — Reconciliation/map:** Prior .NET task file and full mirror agree; clean `e50ea92`. Read-only explorer `mvlj7p88-1-els6` mapped fragmented existing diagnostics/a11y guidance. Create original shared skills, not imported collections. Repository style guide absent; use current first-party MIT/Zesh-One conventions and concise inline authoring rules; bundled external fallback unavailable within exact read grant.
+- **L4 — Route/check design:** Units share distribution/docs/package surfaces, so no disjoint parallel writer opportunity; inline writes avoid overlap. BEFORE/AFTER observers are response-only, no application execution or causal model benchmark. Freeze synthetic prompts before skill edits; evaluate reproducibility/hypotheses/smallest correction and keyboard/focus/semantic evidence respectively. Applicable instruction contracts get observed RED/GREEN; passive prose gets structural readback. Do not install browsers, scanners, dependencies or reconstruct SDD. RDD confirmed on; only actual high-risk candidate reviewDue invokes native consent/review, never the accumulated feature branch.
+- **L5 — T1 observed checks:** Frozen three response-only cases; BEFORE `mvljbl33-2-y9lm` strong baseline on all cases. Debugging RED0/7 exit1 → GREEN7/7 exit0; full verify91 assertions/34skills/0lint exit0; diff check PASS. AFTER `mvljfdil-3-ew1n` made predicted discriminating trace explicit, no execution/causal proof. Observer inadvertently read Log, disclosed limited blinding. First ASSESS unassessable (new paths undeclared); exact15paths staged, independent `mvljhrve-4-zuez` S1–S3 PASS/full91checks with unchanged status/index/HEAD. Declared-candidate ASSESS medium,179lines,reviewDue=false; no START. Commit pending.

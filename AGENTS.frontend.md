@@ -13,6 +13,7 @@ Copy `skills/shared/security/` with the domain and adjust paths when installed e
 | Work Type | Skill |
 |---|---|
 | Type modeling, strict typing, interface strategy | `typescript` |
+| Bug reproduction, diagnosis, regression investigation | [diagnosing-bugs](skills/shared/diagnosing-bugs/SKILL.md) |
 | React component behavior and modern APIs | `react-19` for the installed React 19 runtime |
 | Test selection, UI states, forms and API interactions | [testing](skills/frontend/testing/SKILL.md), currently React SPA only; preserve installed tooling and form/client flow |
 | Next.js routing, App Router, Server Actions | `nextjs-15` only for the matching Next.js profile |

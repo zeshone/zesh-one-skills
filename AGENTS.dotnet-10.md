@@ -16,6 +16,7 @@ When adopting this guide, include `skills/shared/security/` alongside `skills/do
 | Work Type | Skill |
 |---|---|
 | C# 14 language style, async/cancellation, nullable, naming, SOLID, XML docs, timestamps | `dotnet-conventions` |
+| Bug reproduction, diagnosis, regression investigation | [diagnosing-bugs](skills/shared/diagnosing-bugs/SKILL.md) |
 | Project structure, contextual architecture choice, CLI/worker applicability, layering, boundary/seam placement | `architecture` |
 | CLI commands, flags, help, exit codes, stdin/stdout/stderr, non-interactive use | [`cli-design`](skills/shared/cli-design/SKILL.md) |
 | Minimal API endpoints, TypedResults, ProblemDetails, routing/versioning, OpenAPI/Scalar, middleware order | `api-rest-minimal-apis` |
