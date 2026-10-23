@@ -41,7 +41,7 @@ Los skills están organizados en cinco dominios bajo `skills/`:
 - `skills/dotnet-10/` — Minimal APIs, arquitectura, persistencia, seguridad y pruebas para .NET 10 / C# 14
 - `skills/frontend/` — Next.js 15, React 19, Tailwind 4, TypeScript, Zod 4, Zustand 5
 - `skills/apps/` — Mobile native layer (Ionic Angular, Capacitor)
-- `skills/shared/` — Skills cross-domain (github-pr, convenciones de Pull Request)
+- `skills/shared/` — Skills cross-domain (`cli-design`, `github-pr`) y referencias compartidas de arquitectura y seguridad
 
 **Acción:** Copiá el directorio del dominio que necesitás (más `skills/shared/`) a tu proyecto o referenciá este repositorio directamente desde tu `AGENTS.md`.
 
@@ -50,6 +50,12 @@ Los skills están organizados en cinco dominios bajo `skills/`:
 Incluye `skills/shared/architecture-selection.md` junto con el dominio. Las skills de arquitectura existentes usan esa referencia para inspeccionar tipo de aplicación, versiones y decisiones previas; recomendar la estructura mínima con alternativas y costos; y esperar tu elección antes de crear o reorganizar proyectos. Una decisión vigente no se vuelve a pedir en cada funcionalidad.
 
 Una CLI pequeña puede usar un proyecto de aplicación más pruebas, sin capas vacías, HTTP, base de datos ni autenticación inventados. Un segundo contexto no obliga a separar ensamblados. La arquitectura existente y consistente se conserva; Clean/Hexagonal, Vertical Slice y límites físicos son decisiones combinables, no escalones obligatorios por tamaño. Las convenciones de .NET 8 y .NET 10 permanecen separadas.
+
+### Interfaces CLI
+
+Cuando diseñes o cambies comandos, argumentos, ayuda, códigos de salida o modos de automatización, carga [cli-design](skills/shared/cli-design/SKILL.md). Las guías .NET incluyen esa ruta condicional; en otros lenguajes, añádela al punto de entrada equivalente. Conserva el selector arquitectónico, la seguridad compartida y las convenciones del lenguaje. La skill no obliga a instalar un parser, incorporar infraestructura ni rediseñar comandos existentes.
+
+`npm run test:cli-instructions` comprueba el contrato de instrucciones y sus rutas; forma parte de `test` y `verify`. La suite habitual sigue requiriendo solo Node y no ejecuta una aplicación consumidora.
 
 ### Perfiles frontend y apps
 
