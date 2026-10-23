@@ -20,7 +20,7 @@ Scope: [S1–S4 and T1–T2](../tasks/cli-design-adoption.md). Baseline `81ff3cf
 | Parent full verification | `npm run verify`:13fixture/16logging/12pilot/9CLI/15readiness/1guard;32skills;0lint errors/warnings;verification/cleanup exit0 |
 | Post-refactor focused check | 9/9,exit0; test-runtime import deferred until executable mode |
 | Final independent verifier | `mvklcr7p-c-wwf8`: PASS S1–S4 within scope; `npm test` and `npm run test:cli` each once,exit0; same suite counts and13/13 executable cases; both diff checks passed;trial/verifier cleanup removed,exit0 |
-| Native assessment/review | T1medium,reviewDue=false. T2high (`process_boundary`),reviewDue=true; review pending; previous aggregate dispositions do not cover it |
+| Native assessment/review | T1medium,reviewDue=false. T2high (`process_boundary`); four-lens `review-efe1b9d6878a9a50` approved, exact acknowledgement completed, authority burned. Scope:14paths/361changed lines; at most2 concurrent reviewers. No old aggregate disposition reused |
 
 Every executable case checks status, exact stdout and stderr, lack of a signal/timeout, and a shallow name/type/content-hash snapshot of its fixture directory. Synthetic input covers file/stdin, plain/JSON output, LF/CRLF, empty/blank/final lines, option-like/spaced filenames and rejected arguments/input-read failure. Stdin remains open for help, file and error cases to expose unintended prompting/consumption. There are no stored application counters.
 
@@ -40,3 +40,7 @@ User selected **"Continuar con rutas explícitas y registrar el límite"**. Use 
 - Other operating systems/Node versions, broken pipes, interrupt mapping, huge input and arbitrary hostile manifests were not established by this local trial. The manifest is repository-owned test data, not an external input API.
 - Existing architecture/security/testing owners, .NET8/.NET10 distinctions, pilot scenarios and default Node-only CI remain applicable. The specimen's inline compiler settings are an explicit fixture-only exception to shared Directory.Build.props because the runner copies the isolated project without ancestor imports.
 - External skill metadata indexing permission and native review consent are separate; no user delivery authorization extends beyond local work-unit commits.
+
+## Local delivery
+
+T1: `d6ac394933d40ac85164408cc9ee08a8154e6db6`. T2: `164a03abbb78b95e073ae9c87f43fa6cf696bf56`, preserving the exact approved tree `cedc4ed445e2fa00d302bb5744ed703fbe358ea5`. Functional and native checks are complete; this documentary status update is separate bookkeeping. No push, PR or merge occurred.
