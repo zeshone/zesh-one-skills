@@ -57,6 +57,7 @@ zesh-one-skills/
 │   │   ├── capacitor/
 │   │   └── ionic-angular/
 │   └── shared/
+│       ├── accessibility/
 │       ├── cli-design/
 │       ├── diagnosing-bugs/
 │       └── github-pr/
@@ -93,6 +94,8 @@ For React SPA test selection and observable UI/form/API behavior, load [frontend
 The existing [.NET 8 unit-testing](skills/backend/testing-unit/SKILL.md) and [.NET 10 testing](skills/dotnet-10/testing/SKILL.md) profiles cover applicable rule boundaries, rejection effects and deterministic time/cancellation without unifying their libraries or adding infrastructure. `npm run test:dotnet-instructions` checks these instruction contracts; it does not execute xUnit. The optional [isolated xUnit trial](tools/fixtures/dotnet-testing/README.md) runs with `npm run test:dotnet-unit` after explicitly authorized local NuGet setup; ordinary execution never downloads packages.
 
 For defect investigation across profiles, load [diagnosing-bugs](skills/shared/diagnosing-bugs/SKILL.md): reproduce, separate hypotheses from observations, and verify the smallest correction. `npm run test:debugging-instructions` checks its instructions/routes, not a consumer bug or agent compliance; see the [bounded proposal evidence](odd/evidence/debugging-accessibility-adoption.md).
+
+For changed web/hybrid interactions, load [accessibility](skills/shared/accessibility/SKILL.md) through the frontend/apps guide. `npm run test:accessibility-instructions` checks semantic, keyboard/focus and feedback instructions and routing; it does not run a browser, assistive technology or compliance audit. Preserve existing UI libraries and use real consumer journeys for those checks; no tool installation is automatic.
 
 ## Changelog
 

@@ -22,6 +22,7 @@ Los siguientes skills son de autoría propia del proyecto `zesh-one`:
 | Apps móviles (Ionic Angular, Capacitor) | `skills/apps/` |
 | Contratos de interacción CLI | `skills/shared/cli-design/` |
 | Diagnóstico de errores | `skills/shared/diagnosing-bugs/` |
+| Accesibilidad web e híbrida | `skills/shared/accessibility/` |
 
 Los skills de `skills/frontend/` tienen inspiración conceptual en los originales de `gentleman-programming` pero son obras derivadas con modificaciones sustanciales — arquitectura, convenciones, ejemplos y reglas propias de Zesh-One.
 
@@ -30,6 +31,8 @@ La guía `frontend/testing` es de autoría del proyecto: criterios de evidencia 
 La guía `cli-design` es de autoría del proyecto y reutiliza sus límites de arquitectura, seguridad y pruebas. No incorpora contenido, scripts ni paquetes de una colección CLI externa.
 
 La guía `diagnosing-bugs` es propia del proyecto y articula sus reglas existentes de seguridad, diagnóstico y regresión. No se importó una skill externa ni se inspeccionaron nuevas fuentes externas en esta fase.
+
+La guía `accessibility` también es propia del proyecto: reúne criterios de interacción y límites de evidencia ya presentes en sus guías UI/testing, sin importar contenido externo, añadir herramientas ni certificar conformidad.
 
 ## Referencias conceptuales del piloto de adopción
 

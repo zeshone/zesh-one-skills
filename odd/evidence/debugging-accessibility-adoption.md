@@ -24,4 +24,10 @@ Independent verifier `mvljhrve-4-zuez`: T1/S1–S3 PASS, full verify91/34skills/
 Rollback boundary: new debugging skill, its four route rows, focused script and test, discovery/provenance additions and this unit's fixture/evidence. Existing tests and profile/security owners remain intact. No consumer runtime boundary was changed; functional bug execution is N/A for this instruction-only unit.
 
 ## T2 — accessibility instructions
-Pending. No browser, screen reader, native runtime or application audit has been performed.
+Observed RED: `node tools/test-accessibility-instructions.js`, exit1, 0/8. GREEN: `npm run test:accessibility-instructions`, exit0, 8/8. Full `npm run verify`, exit0: 99 assertions, 35 skills, zero lint errors/warnings. No browser, screen reader, native runtime or application audit has been performed.
+
+AFTER `mvljn2c0-5-intq`, `functions.read`, model unknown, loaded each UI case's base guides plus `accessibility`. React retained the library, semantic button/label, modal focus/close and separate browser/assistive-technology checks. Ionic retained its shell/forms/client/navigation and added explicit transition-ready restoration, non-color associated feedback, browser versus WebView/device evidence and no page-wide focus trap. Both BEFORE proposals already met most criteria; no measurable causal gain is established. The observer also inadvertently read Log despite instructions, limiting blinding; no re-run or independent-proof claim.
+
+Declared-candidate native ASSESS: medium, 12paths/132changed lines, reviewDue=false/under_budget, large writer; self-verification sufficient, no independent verifier or native START required for T2. Both staged/unstaged diff checks passed. No existing consumed contract was broken: routes/checks are additive and profile/security owners are retained.
+
+Rollback boundary: accessibility skill, frontend/apps route rows, focused script/test and related discovery/provenance docs; T1 remains independently usable. Functional browser execution is N/A for this instruction-only change; actual consumer verification is explicitly left to consumer adoption, not marked passed.

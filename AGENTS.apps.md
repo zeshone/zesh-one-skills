@@ -15,6 +15,7 @@ Include `skills/shared/security/` with the app skills and adjust paths when inst
 |---|---|
 | Ionic page/component architecture, routing, lifecycle, forms, signals | `ionic-angular` |
 | Bug reproduction, diagnosis, regression investigation | [diagnosing-bugs](skills/shared/diagnosing-bugs/SKILL.md) |
+| UI accessibility, keyboard/focus, labels and feedback | [accessibility](skills/shared/accessibility/SKILL.md) |
 | Native runtime, plugins, platform behavior, Capacitor config/build | `capacitor` |
 
 ## Operational Defaults

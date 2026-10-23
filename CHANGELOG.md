@@ -5,6 +5,7 @@ All notable changes to this repository are documented in this file.
 ## Unreleased
 
 ### Added
+- Added shared web/hybrid accessibility guidance and frontend/apps routes with Node-only instruction checks; existing UI tooling stays optional and browser/assistive-technology verification remains explicit.
 - Added shared evidence-led bug diagnosis, conditional routes for all four profiles and Node-only instruction checks; proposal observations remain distinct from executed application verification.
 - Added an opt-in .NET10/xUnit capacity-rule trial with six public boundary/rejection cases, separately approved pinned local NuGet prerequisites and offline ordinary execution; default checks/CI remain Node-only.
 - Added .NET testing instruction checks for applicable boundaries, rejected-operation effects and time/cancellation scenarios; preserved separate .NET 8/.NET 10 conventions and existing CLI/WAF/real-database obligations.
