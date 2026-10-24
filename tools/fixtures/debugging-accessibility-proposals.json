@@ -1,0 +1,21 @@
+{
+  "kind": "response-only; synthetic; no execution or compliance proof",
+  "baseline": "e50ea92",
+  "cases": [
+    {
+      "id": "rejected-capacity",
+      "guides": ["AGENTS.backend.md", "skills/backend/testing-unit/SKILL.md", "skills/shared/security/baseline.md"],
+      "prompt": "A .NET 8 service exposes Capacity=10, Total=8 and TryAdd(amount). TryAdd(3) returns false, but Total becomes 11. Expected: false with Total still 8. Only this observation is available; the method source has not been inspected. Propose your next diagnostic steps and verification, not a code patch. No HTTP/database change is requested."
+    },
+    {
+      "id": "react-dialog",
+      "guides": ["AGENTS.frontend.md", "skills/frontend/testing/SKILL.md", "skills/shared/security/baseline.md"],
+      "prompt": "A React SPA uses its existing UI library. A div with onClick opens a dialog containing an unlabeled input. Keyboard users cannot open it; after closing, focus is lost. A role-based jsdom test is green. Propose the smallest investigation/correction and verification plan, not code. No new dependencies or Next.js migration are requested."
+    },
+    {
+      "id": "ionic-focus",
+      "guides": ["AGENTS.apps.md", "skills/shared/security/baseline.md"],
+      "prompt": "An Angular 19/Ionic 8/Capacitor 6 page retains its valid page shell, Reactive Forms and HttpClient flow. After returning through existing navigation, keyboard focus is lost; a validation error is shown only in red. Propose a bounded investigation/correction and verification plan, not code. No native plugin or architecture change is requested."
+    }
+  ]
+}
