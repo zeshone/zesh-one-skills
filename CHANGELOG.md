@@ -4,6 +4,10 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Added
+- Added an opt-in .NET 10 `line-tally` acceptance specimen and `npm run test:cli` public-process checks, with project-local disposable state and explicit execution limits; default verification still requires only Node.
+- Added the shared `cli-design` interaction contract, conditional .NET routes and focused instruction checks (`npm run test:cli-instructions`). Default `test`/`verify` pipelines remain Node-only; architecture selection and security stay with their existing owners.
+
 ### Changed
 - Integrated the shared everyday security guardrails while retaining distinct .NET 8/.NET 10 security rules and exceptions.
 - Added contextual, user-approved architecture selection to existing .NET guidance; removed automatic second-context assembly promotion and scoped HTTP/database recipes away from local CLIs.

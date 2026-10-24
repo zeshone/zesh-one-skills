@@ -56,6 +56,7 @@ zesh-one-skills/
 │   │   ├── capacitor/
 │   │   └── ionic-angular/
 │   └── shared/
+│       ├── cli-design/
 │       └── github-pr/
 ├── docs/
 │   ├── skills-review-rubric.md
@@ -79,7 +80,11 @@ npm install
 npm run verify
 ```
 
-`verify` runs fixture tests, semantic checks, skill lint, and release-readiness checks.
+`verify` runs fixture tests, semantic checks, skill lint, and release-readiness checks. It remains Node-only and does not execute a consumer application.
+
+For CLI interface work, load [cli-design](skills/shared/cli-design/SKILL.md) alongside the applicable domain. `npm run test:cli-instructions` runs its focused instruction/routing checks, also included in `test` and `verify`; passing them does not establish model compliance or executable CLI behavior.
+
+With a .NET 10 SDK/reference packs already installed, `npm run test:cli` runs the separate [executable CLI acceptance specimen](skills/shared/cli-design/assets/line-tally/README.md). It uses project-local disposable state and no external package feeds; it is not part of default verification and does not install an SDK or packages.
 
 ## Changelog
 

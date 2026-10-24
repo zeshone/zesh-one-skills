@@ -14,6 +14,7 @@ When adopting this guide, include `skills/shared/security/` alongside `skills/ba
 | Work Type | Skill |
 |---|---|
 | Architecture, project structure, feature scaffolding | `net8-apirest-general` |
+| CLI commands, flags, help, exit codes, stdin/stdout/stderr, non-interactive use | [`cli-design`](skills/shared/cli-design/SKILL.md) |
 | EF Core, DbContext, repositories, migrations, query optimization | `net8-apirest-dataaccess` |
 | JWT/OAuth, authorization, OWASP controls, rate limiting, BOLA, secrets, dependency/infra/CI security | [`security`](skills/backend/security/SKILL.md) (.NET 8) |
 | Request DTOs, model binding, query params, file uploads | `net8-apirest-requests` |

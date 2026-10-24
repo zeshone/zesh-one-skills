@@ -20,8 +20,11 @@ Los siguientes skills son de autoría propia del proyecto `zesh-one`:
 | Backend (.NET 8 REST API) | `skills/backend/` |
 | Frontend (Next.js 15, React 19, Tailwind 4, Zod 4, Zustand 5, TanStack Query, shadcn/ui, security, TypeScript) | `skills/frontend/` |
 | Apps móviles (Ionic Angular, Capacitor) | `skills/apps/` |
+| Contratos de interacción CLI | `skills/shared/cli-design/` |
 
 Los skills de `skills/frontend/` tienen inspiración conceptual en los originales de `gentleman-programming` pero son obras derivadas con modificaciones sustanciales — arquitectura, convenciones, ejemplos y reglas propias de Zesh-One.
+
+La guía `cli-design` es de autoría del proyecto y reutiliza sus límites de arquitectura, seguridad y pruebas. No incorpora contenido, scripts ni paquetes de una colección CLI externa.
 
 ## Referencias conceptuales del piloto de adopción
 

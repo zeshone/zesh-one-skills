@@ -17,6 +17,7 @@ When adopting this guide, include `skills/shared/security/` alongside `skills/do
 |---|---|
 | C# 14 language style, async/cancellation, nullable, naming, SOLID, XML docs, timestamps | `dotnet-conventions` |
 | Project structure, contextual architecture choice, CLI/worker applicability, layering, boundary/seam placement | `architecture` |
+| CLI commands, flags, help, exit codes, stdin/stdout/stderr, non-interactive use | [`cli-design`](skills/shared/cli-design/SKILL.md) |
 | Minimal API endpoints, TypedResults, ProblemDetails, routing/versioning, OpenAPI/Scalar, middleware order | `api-rest-minimal-apis` |
 | EF Core, DbContext, migrations, raw SQL, `ISqlExecutor` ports | `data-access-persistence` |
 | Auth, JWT signing, password hashing, TOTP, CSRF, CORS, rate limiting, security headers, secrets, dependency/infra/CI security | [`security`](skills/dotnet-10/security/SKILL.md) (.NET 10) |
