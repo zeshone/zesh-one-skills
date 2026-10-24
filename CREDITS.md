@@ -41,9 +41,15 @@ El piloto adapta ideas puntuales a las reglas existentes; no importa colecciones
 
 Las revisiones consultadas, prácticas aceptadas/rechazadas y límites de evidencia están en el [registro del piloto](odd/evidence/architecture-adoption-pilot.md).
 
+El enriquecimiento de las guías de testing .NET es propio del proyecto: escenarios de límites, efectos y tiempo/cancelación sobre sus reglas existentes. No importa otra colección ni unifica las convenciones de .NET 8 y .NET 10.
+
 ## Dependencias del ensayo React DOM
 
 El espécimen propio de `tools/fixtures/frontend-dom/` utiliza React/react-dom, Testing Library (React/DOM) y jsdom solo en su proyecto de pruebas opcional. Sus versiones, dependencias transitivas, licencias declaradas e integridad de descarga quedan en su `package-lock.json`; no se incorporan sus fuentes a la colección ni se añaden al paquete raíz. Esto no modifica la atribución de las skills ni implica una auditoría de licencias o seguridad de dependencias.
+
+## Dependencias del ensayo xUnit
+
+El espécimen propio de `tools/fixtures/dotnet-testing/` utiliza xunit, xunit.runner.visualstudio y Microsoft.NET.Test.Sdk, con sus dependencias transitivas, solo en el ensayo opcional. Su lockfile registra versiones y hashes; no incorpora sus fuentes ni modifica las dependencias raíz. La restauración desde nuget.org fue autorizada por separado, sin auditoría de seguridad o licencias implícita.
 
 ## Herramientas del ecosistema
 

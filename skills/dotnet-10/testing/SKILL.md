@@ -11,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.2"
+  version: "2.3"
 allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
@@ -80,6 +80,8 @@ The real-database tier name is per-project (e.g., `RealPg` is a common choice fo
 
 **Why**: production code accepts `TimeProvider` so tests can substitute `FakeTimeProvider` (package: `Microsoft.Extensions.TimeProvider.Testing 10.x`). In HTTP hosts, register singleton DI and use the override in `WithWebHostBuilder`. For CLI/worker tests, inject the clock directly without building a web host. This preserves deterministic token expiry, JWT key rotation, TOTP windows and rate-limit boundaries where those capabilities exist.
 
+For time-dependent rules, test before, at and after the documented cutoff with the existing controllable clock and no sleeps. Do not add a clock/package to a timeless rule.
+
 ### Rule 8 — Do: serial execution when integration tests share a container; Don't: enable parallelism against shared state
 
 **Why**: when integration tests share a single Testcontainers instance per xUnit Collection fixture, parallel execution against the same container causes non-deterministic state collisions — do not add `xunit.runner.json` parallelism settings in that setup. If you instead provision per-test or per-class isolated databases, or use Respawn-style resets, parallelism may be re-enabled as an explicit, documented decision paired with the isolation strategy that makes it safe.
@@ -95,6 +97,14 @@ The real-database tier name is per-project (e.g., `RealPg` is a common choice fo
 ### Rule 11 — Do: manual hand-rolled spies in `Spies/` or `Fakes/`; Don't: generate spies from a mocking library
 
 **Why**: a boolean was-called flag and a captured-args list are sufficient for most observation needs. Keep spy classes simple. Mocking libraries are redundant given the three-tier strategy.
+
+### Rule 12 — Do: cover changed-rule boundaries and complete rejection effects; Don't: stop at a type/exception assertion
+
+Exercise the exact limit and adjacent values for applicable valid and rejected inputs; assert the documented result or exception and use parameterized cases for the same rule. Add null, empty or overflow cases only when the contract admits or handles them. For rejection, assert unchanged business state through public observations and no write or publication forbidden by that rejection, using the existing manual spy where a collaborator exists. Reads and diagnostic logging can remain valid; do not assert private implementation details, add a synthetic seam or weaken real-database/transaction requirements.
+
+### Rule 13 — Do: verify supported cancellation semantics; Don't: infer rollback or cancellation capabilities
+
+For APIs supporting cancellation, verify token forwarding and the documented cancellation outcome using a pre-cancelled token or controlled completion, with no sleeps. When rejection occurs before commitment, assert no prohibited effects; do not require rollback of work already committed or add cancellation support just to satisfy a test. Keep native assertions, hand-rolled spies and the existing tier for the seam actually exercised.
 
 ## Constraints & Tradeoffs
 
@@ -124,7 +134,7 @@ The real-database tier name is per-project (e.g., `RealPg` is a common choice fo
 1. **First**: read `Critical Patterns` — operational defaults.
 2. **On package or library decisions**: check `Constraints & Tradeoffs` for the recommended baseline versions.
 3. **On real-database fixture setup**: R8 (fixture lifecycle and parallelism) and R9 (Docker/CI) together cover the container setup contract.
-4. **On coverage questions**: the coverage rule is in `Constraints & Tradeoffs` — lead with integration weight, not a blanket line-coverage target.
+4. **On coverage questions**: the coverage rule is in `Constraints & Tradeoffs` — lead with integration weight, not a blanket line-coverage target. Apply R12 to changed-rule boundaries/effects, R7 to clock cutoffs and R13 only to supported cancellation.
 5. **If neighboring domains are touched**: follow `Resources`.
 
 ## Resources
@@ -135,8 +145,12 @@ The real-database tier name is per-project (e.g., `RealPg` is a common choice fo
 - Architecture selection framework (vertical-slice monolith / modular monolith) and domain model guidance: [`../architecture/SKILL.md`](../architecture/SKILL.md)
 - Result discriminated-union assertion conventions: [`../design-patterns/SKILL.md`](../design-patterns/SKILL.md)
 - Endpoint contracts, TypedResults, ProblemDetails (WAF-tier assertions): [`../api-rest-minimal-apis/SKILL.md`](../api-rest-minimal-apis/SKILL.md)
+- Optional pure-rule xUnit specimen: [isolated trial](../../../tools/fixtures/dotnet-testing/README.md); read its prerequisite approval and evidence limits before execution. This is not a WAF/real-database substitute.
 
 ## Changelog
+
+### v2.3 — Phase 2C
+- Added exact/adjacent boundaries, rejected-operation effects and deterministic cutoff/cancellation scenarios while retaining .NET 10 assertions, tier applicability and infrastructure/security obligations.
 
 ### v2.2 — 2026-10-22
 - Scoped test tiers/packages to existing CLI, HTTP and database capabilities; added file-I/O fixtures and direct clock injection without a web host.

@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Zesh-One
-  version: "2.0"
+  version: "2.1"
 allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
@@ -51,6 +51,15 @@ Why: focused tests communicate domain rules better.
 10) **DO** keep unit tests fast and deterministic; **DON'T** involve DB/network/host lifecycle in this layer.  
 Why: slow/flaky tests break feedback loops.
 
+11) **DO** cover the exact limit and adjacent values for a changed rule; **DON'T** select unrelated edge cases mechanically.
+Assert the documented result or exception for valid and rejected inputs; use parameterized cases for the same rule. Add null, empty or overflow cases only when the contract admits or handles them.
+
+12) **DO** assert rejection and unchanged business state together; **DON'T** stop at an exception/result assertion.
+Through public outputs and applicable boundary substitutes, verify no write or publication forbidden by that rejection. Reads and diagnostic logging may still be valid; do not assert private implementation details or invent collaborators solely for verification.
+
+13) **DO** test time before, at and after the documented cutoff using a controllable clock; **DON'T** hide races with sleeps.
+Use the existing clock seam, with no sleeps or unnecessary clock package for timeless rules. Where cancellation is supported, verify token forwarding and the documented cancellation outcome using a pre-cancelled token or controlled completion. Assert no prohibited effects when cancellation rejects before commitment; do not demand rollback of work already committed or invent cancellation support.
+
 ```csharp
 [Fact]
 public async Task GetByIdAsync_WhenOwnerDiffers_ShouldThrowForbiddenException()
@@ -89,7 +98,7 @@ public async Task GetByIdAsync_WhenOwnerDiffers_ShouldThrowForbiddenException()
 ## Progressive Disclosure
 
 1. **Baseline for every new unit test:** rules 1, 3, 4, 6, 10.
-2. **Service logic depth:** add rules 7 and 9 for branch completeness and focus.
+2. **Service logic depth:** add rules 7 and 9 for branch completeness and focus, plus 11–12 for applicable boundaries and rejected-operation effects; add 13 only for time/cancellation behavior.
 3. **Maintainability at scale:** add rules 5 and 8 when fixture setup grows.
 4. **Boundary check:** if test needs pipeline/routing/EF behavior, move to integration skill.
 
@@ -106,6 +115,9 @@ public async Task GetByIdAsync_WhenOwnerDiffers_ShouldThrowForbiddenException()
 ---
 
 ## Changelog
+
+### v2.1 — Phase 2C
+- Added applicable boundary, rejected-effect and deterministic time/cancellation scenarios without changing .NET 8 libraries, naming or existing security/integration ownership.
 
 ### v2.0 — 2026-04-21
 - P2 trim: reduced tutorial/setup density and kept operational defaults only.
