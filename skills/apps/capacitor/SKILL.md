@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
   inspired-by: capawesome-team/ionic-capacitor
 ---
 
@@ -43,17 +43,17 @@ Apply these as rules, not suggestions.
    **Don't** collapse cancellation and operational errors into one path.
    **Why:** User cancellation is expected behavior, not a crash signal.
 
-4. **Do** normalize plugin error handling at service boundaries.
-   **Don't** duplicate ad-hoc string matching in multiple components.
-   **Why:** Centralized handling reduces drift and inconsistent UX.
+4. **Do** normalize plugin error handling at service boundaries: distinguish denied/restricted permission, unsupported capability, cancellation and operational failures.
+   **Don't** duplicate ad-hoc string matching in multiple components or report every outcome as an unexpected error.
+   **Why:** Recovery differs by outcome; error codes and restricted-state handling are plugin/platform-specific, so verify against the installed version.
 
 5. **Do** register long-lived native listeners intentionally and store handles.
    **Don't** leak listeners across view re-entry or logout/login cycles.
    **Why:** Orphan listeners cause duplicate events, memory growth, and phantom side effects.
 
-6. **Do** gate plugin execution by runtime capability (`native` vs `web`).
-   **Don't** call native APIs unconditionally from shared code paths.
-   **Why:** Browser runtime may not provide the same plugin behavior.
+6. **Do** inspect the installed plugin's platform support and check runtime/plugin availability where applicable with `Capacitor.isNativePlatform()`, `Capacitor.getPlatform()` and `Capacitor.isPluginAvailable('<Name>')` before execution.
+   **Don't** equate native-platform detection with plugin availability or permission. Do not blanket-disable web: many official plugins ship web implementations.
+   **Why:** Platform, plugin availability and permission are separate checks; provide a supported web path or an explicit unsupported-capability fallback.
 
 7. **Do** initialize push registration when user context is available.
    **Don't** register blindly before auth/session restoration.
@@ -71,13 +71,17 @@ Apply these as rules, not suggestions.
     **Don't** enable permissive flags (cleartext/mixed content) outside controlled dev scenarios.
     **Why:** Misconfigured transport/security flags can silently ship high-risk builds.
 
+11. **Do** follow each permission-based plugin's own docs: use `checkPermissions()`/`requestPermissions()` where exposed, with states such as `granted`, `denied`, `prompt`, `prompt-with-rationale`. Add required iOS Info.plist usage descriptions and Android manifest permissions according to that plugin's own docs. Explain any settings-based recovery only when supported by the target platform/plugin.
+    **Don't** assume all plugins share permission aliases, request timing or recovery paths; verify against the installed version. Request only permissions needed for the user action and handle denial without repeated prompt loops.
+    **Why:** Runtime permission handling does not replace native configuration.
+
 ## Constraints & Tradeoffs
 
 - **Constraint:** `ionic cap sync` after plugin changes is mandatory.
   **Tradeoff:** Adds iteration cost, but prevents mismatched native/JS state.
 
-- **Constraint:** Platform detection must use Capacitor APIs.
-  **Tradeoff:** Slightly more explicit branching, much higher correctness.
+- **Constraint:** Platform detection must use Capacitor APIs; execution also requires plugin support and applicable permissions.
+  **Tradeoff:** More explicit checks, but valid web implementations remain usable rather than being rejected by a native-only gate.
 
 - **Constraint:** Native calls require `try/catch` and cancel/error separation.
   **Tradeoff:** More boilerplate; dramatically better UX and observability.
@@ -92,6 +96,8 @@ Apply these as rules, not suggestions.
 
 - Installing plugin packages without running `ionic cap sync`.
 - UA sniffing for iOS/Android detection.
+- Treating native detection or plugin availability as proof that permission is granted.
+- Disabling a supported web implementation solely because the runtime is not native.
 - Single generic catch block showing “unexpected error” for user cancellation.
 - Creating listeners on every page enter without removing previous handles.
 - Plugin calls from UI components without service-level guards and mapping.
@@ -104,11 +110,11 @@ Apply these as rules, not suggestions.
 
 Implement only the layer you need.
 
-1. **Baseline:** confirm installed versions and runtime capability (`isNativePlatform`); install/change a plugin only when required and authorized, then sync native projects.
-2. **Error layer:** add `try/catch` and explicit cancel-vs-error mapping.
+1. **Baseline:** confirm installed versions, plugin/platform support, availability and applicable permission workflow; install/change a plugin only when required and authorized, then sync native projects.
+2. **Error layer:** add `try/catch` and distinct permission-denied/restricted, unsupported, cancellation and operational failure paths.
 3. **Lifecycle layer:** register listeners once, keep handles, remove on teardown.
 4. **Security/config layer:** review `capacitor.config.*` flags for target environment.
-5. **Production hardening:** verify on real devices with permission-denied/cancel/network-off scenarios.
+5. **Production hardening:** verify on real devices with permission-denied/cancel/network-off scenarios, plus first request, granted, denied/restricted and supported-web/unsupported fallbacks as applicable; verify against the installed version.
 
 Short non-obvious reference snippet:
 
@@ -128,6 +134,9 @@ const isNative = Capacitor.isNativePlatform();
 - Companion Ionic app guidance: ../ionic-angular/SKILL.md
 
 ## Changelog
+
+### v2.2 — 2026-10-23
+- Separated platform/plugin capability, supported web paths, plugin-specific permissions/configuration and recoverable outcomes.
 
 ### v2.1 — 2026-10-22
 - Added installed-version and native-change gates, avoiding plugin installation/sync for UI-only work while preserving native protections.

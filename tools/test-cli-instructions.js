@@ -57,16 +57,15 @@ test('existing .NET architecture and testing routes remain intact', () => {
 test('instruction checks join both default pipelines without requiring .NET', () => {
   const { scripts } = JSON.parse(read('package.json'));
   const added = 'node tools/test-cli-instructions.js';
-  const previous = ['node tools/test-fixtures.js', 'node tools/spec-fixtures-logging.js',
-    'node tools/test-pilot-instructions.js', 'node tools/test-frontend-instructions.js',
-    'node tools/test-dotnet-instructions.js', 'node tools/test-debugging-instructions.js',
-    'node tools/test-accessibility-instructions.js', 'node tools/lint-skills.js',
-    'node tools/test-release-readiness.js', 'node tools/test-lint-zero-skills.js'];
+  const baseline = ['node tools/test-fixtures.js', 'node tools/spec-fixtures-logging.js',
+    'node tools/lint-skills.js', 'node tools/test-release-readiness.js', 'node tools/test-lint-zero-skills.js'];
+  // Instruction-script parity is owned by tools/test-maintainer-instructions.js.
   assert.equal(scripts['test:cli-instructions'], added);
   for (const name of ['test', 'verify']) {
-    const commands = scripts[name].split(' && ');
+    const commands = scripts[name].split('&&').map(command => command.trim());
     assert.equal(commands.filter((command) => command === added).length, 1);
-    assert.deepEqual(commands.filter((command) => command !== added), previous);
+    assert.deepEqual(commands.filter(command => !/^node tools\/test-.*-instructions\.js$/.test(command)), baseline);
+    assert.doesNotMatch(scripts[name], /test-cli-contract|test-frontend-dom|test-dotnet-unit|npm\s+(?:install|ci)\b/);
   }
 });
 

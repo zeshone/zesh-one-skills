@@ -19,17 +19,17 @@ Include `skills/shared/security/` with the app skills and adjust paths when inst
 | Native runtime, plugins, platform behavior, Capacitor config/build | `capacitor` |
 
 ## Operational Defaults
-- Stack baseline: Angular 19 standalone, Ionic 8, Capacitor 6, TypeScript strict.
+- Stack baseline: Angular 19 (standalone by default), Ionic 8, Capacitor 6, TypeScript strict. Preserve valid NgModule and RxJS ownership; no migration is required.
 - API access flow is fixed: component -> service (`HttpClient`) -> interceptor-authenticated request.
-- Use Angular Signals (`signal`, `computed`) as state primitive for new code.
+- Prefer Angular signals where appropriate (`signal`, `computed`); do not replace valid RxJS state merely for consistency.
 - Keep smart/presentational separation where possible for maintainability.
 
 ## Non-Negotiables
 - Preserve the valid page shell of the installed Angular/Ionic integration; do not introduce wrappers copied from a different framework or rewrite valid markup for an unrelated refresh task.
-- Use `ionViewWillEnter` for refreshable data loading, not `ngOnInit`.
-- Use standalone Ionic imports from `@ionic/angular/standalone`.
-- Use `NavController` for page navigation transitions.
-- Do not programmatically jump between tab roots.
+- Use `ionViewWillEnter` for refreshable or stale data loading, not `ngOnInit` for revisits; skip fetching when cached data is still valid. Stop hidden-page work on leave, not only on destruction.
+- Use standalone Ionic imports from `@ionic/angular/standalone` and `loadComponent` for standalone routes; preserve valid NgModule imports and `loadChildren` routes.
+- Prefer `NavController` (`navigateForward`, `navigateBack`, `navigateRoot`) for explicit Ionic direction/stack animation; Angular `Router` and `routerLink` with `routerDirection` remain valid.
+- Each tab keeps its own stack: do not push another tab's child pages into the current tab's history. Intentional tab-root selection from a notification or deep link is valid.
 - Run `ionic cap sync` after adding/updating Capacitor plugins.
 - Use `Capacitor.getPlatform()` for platform checks; never user-agent sniffing.
 - Wrap Capacitor plugin calls with `try/catch` and handle cancellation separately.

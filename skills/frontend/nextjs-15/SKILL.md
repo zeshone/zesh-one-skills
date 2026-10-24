@@ -10,7 +10,7 @@ license: Apache-2.0
 allowed-tools: Read Edit Write Glob Grep
 metadata:
   author: Zesh-One
-  version: "2.2"
+  version: "2.3"
 ---
 
 ## When to Use
@@ -32,7 +32,7 @@ These are mandatory defaults for this repository.
 6. **DO call `redirect()` outside `try/catch`; DO NOT swallow redirect control flow in catch blocks; WHY: redirect is implemented by throwing internally.**
 7. **DO add `loading.tsx` and `error.tsx` at route-segment level where needed; DO NOT centralize all failure/loading UI globally; WHY: local boundaries preserve feature UX and isolate failures.**
 8. **DO organize by vertical slices (`features/<feature>/actions|schemas|components`); DO NOT scatter feature files across generic folders; WHY: locality reduces coupling and review cost.**
-9. **DO revalidate cache after successful mutations (`revalidatePath` or `revalidateTag`); DO NOT leave stale server-rendered pages after writes; WHY: cache coherence is explicit in App Router flows.**
+9. **DO revalidate affected Next cached reads after successful mutations (`revalidatePath` or `revalidateTag`) and invalidate any affected Query-managed reads separately; DO NOT revalidate uncached reads blindly or assume one cache clears another; WHY: cache ownership determines the coherence plan.**
 10. **DO reserve `route.ts` handlers for webhooks/third-party callbacks only; DO NOT add alternative app-facing route handlers for internal reads/writes; WHY: app traffic must stay on the canonical fetch-wrapper + Server Action path without exceptions.**
 11. **DO keep secrets in server-only env vars; DO NOT expose internal API/auth values with `NEXT_PUBLIC_`; WHY: client bundles are inspectable.**
 12. **DO follow this skill's current Next.js 15 patterns; DO NOT use legacy/deprecated APIs from older Next versions; DO verify exact-version syntax/examples/definitions in Context7 before version-sensitive changes; WHY: prevents API drift and broken migrations.**
@@ -48,8 +48,20 @@ Server Action baseline:
 
 - Validate input on server before mutation.
 - Check auth/permissions on server path.
-- Revalidate cache after successful mutation.
+- Revalidate affected cached reads after successful mutation; refresh/refetch uncached reads when the visible UI needs it.
 - Return controlled error objects for expected validation failures.
+
+Cache ownership (Next.js 15):
+- `fetch` is not cached by default and GET Route Handlers are not cached by default; both changed from Next.js 14. Inspect explicit cache configuration and verify against the installed version before choosing a recipe. This does not broaden this profile's webhook/callback-only Route Handler scope.
+- `revalidatePath`/`revalidateTag` act on Next server caches only; they do not invalidate a TanStack Query browser cache.
+
+| Read owner | After a successful write |
+|---|---|
+| Next cached reads | Revalidate only the affected server paths/tags using the installed version's API. |
+| Uncached reads | No server data-cache entry to invalidate; refresh/refetch the visible read through the established boundary when needed. |
+| Query-managed reads | Invalidate affected browser keys with `queryClient.invalidateQueries`; also revalidate Next cached reads only if the same write affects them. |
+
+Keep the existing Client -> Server Action -> .NET API boundary for all applicable reads and writes; cache ownership does not authorize direct client API calls.
 
 ## Constraints & Tradeoffs
 
@@ -57,7 +69,7 @@ Server Action baseline:
 - Middleware-first protection improves security posture but requires precise matcher scoping.
 - Server Components reduce bundle size by default, but interactive features still need explicit client islands.
 - Strict route-handler scope (webhooks/callbacks only) may require architecture changes for teams used to API-route-first designs.
-- Aggressive revalidation improves consistency but can increase backend traffic if applied too broadly.
+- Revalidation improves consistency for cached reads but can increase backend traffic if applied too broadly.
 - Segment-level loading/error boundaries improve resilience but require teams to think per feature slice.
 - Deep client boundaries improve performance but can make prop contracts more explicit and verbose.
 - Async request API handling in Next.js 15 adds clarity but requires discipline in typing and awaiting.
@@ -72,7 +84,7 @@ Server Action baseline:
 - Reading secret env vars from client modules.
 - Duplicating app API logic in route handlers instead of Server Actions.
 - Depending on client-only guards for protected routes.
-- Skipping revalidation and shipping stale post-mutation UI.
+- Skipping the affected cache owner's invalidation/refresh plan and shipping stale post-mutation UI.
 
 ## Progressive Disclosure
 
@@ -81,7 +93,7 @@ Implement in this order:
 1. Define route segment and default server-rendered component boundary.
 2. Confirm installed Next.js version and check Context7 exact-version docs before changing routing/request/caching APIs.
 3. Add middleware protection for access and security policy.
-4. Implement mutation via Server Action (validate, authorize, mutate, revalidate).
+4. Implement mutation via Server Action (validate, authorize, mutate, then reconcile affected caches/visible reads).
 5. Introduce minimal client component only where interaction requires it.
 6. Add route-local `loading.tsx`/`error.tsx` for resilience.
 
@@ -91,7 +103,7 @@ Quick reviewer checklist:
 - Confirm every app API call (GET + mutation) follows `Client -> fetch wrapper -> Server Action -> backend API`.
 - Confirm middleware matcher protects required routes.
 - Confirm async request APIs are awaited.
-- Confirm revalidation happens after successful writes.
+- Confirm affected Next cached reads are revalidated after successful writes; Query browser caches and uncached visible reads have their own invalidation/refresh plan.
 - Confirm secrets remain server-only.
 
 Cross-skill references:
@@ -116,6 +128,9 @@ Repository-level context:
 - `ADOPTING.md` for onboarding and verification flow.
 
 ## Changelog
+
+### v2.3 — 2026-10-23
+- Documented Next 15 uncached defaults and separate Next/Query cache ownership without changing the API boundary.
 
 ### v2.2 — 2026-04-22
 - Aligned versioning metadata and changelog with today's frontend skill updates.

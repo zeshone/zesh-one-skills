@@ -7,7 +7,7 @@ license: Apache-2.0
 allowed-tools: Read Write Edit Bash
 metadata:
   author: Zesh-One
-  version: "2.1"
+  version: "2.2"
   inspired-by: gentleman-programming/zustand-5
 ---
 
@@ -17,25 +17,25 @@ Use this gate BEFORE applying any rule in this skill.
 
 ### Applies when
 
-- The project needs client global/shared UI state management.
-- The project does **not** use Redux as an existing legacy state-management standard.
+- Zustand 5 is installed or explicitly selected for the affected client global/shared UI state.
+- The project has no conflicting established state standard, or an approved architectural migration plan covers this scope.
 
 ### Does NOT apply when
 
-- The project already uses Redux as a legacy standard.
-- There is an attempt to introduce Zustand into a Redux legacy codebase without an approved architectural migration plan.
+- Redux or other established state solutions own this scope without an approved architectural migration plan.
+- Zustand has not been selected; a need for shared UI state alone does not authorize adoption.
 
 ### Required behavior when it does NOT apply
 
 - Return: **"not applicable"**.
-- Respect existing Redux legacy architecture.
+- Respect existing Redux legacy architecture and other established state solutions.
 - Do **not** force migration, parallel adoption, or coexistence by default.
 
 ### Governance Decision Enforced
 
 - No coexistence of state-management packages by default.
-- Zustand is the standard only when Redux is not already the legacy standard.
-- If Redux legacy exists, this `zustand-5` skill is out of scope.
+- Apply Zustand rules only to an installed or explicitly selected Zustand setup; do not replace other established state solutions.
+- If Redux legacy exists, this `zustand-5` skill is out of scope unless an approved architectural migration plan covers the change.
 
 ## When to Use
 
@@ -46,11 +46,11 @@ Load this skill when designing global client state, selector usage, async action
 1. **Do** create one store per feature/domain; **don't** centralize all app state in a mega-store. **Why:** limits coupling and rerender radius.
 2. **Do** use selectors for every component read; **don't** subscribe to the whole store object. **Why:** prevents broad invalidations.
 3. **Do** use `useShallow` for object/tuple multi-selectors; **don't** return new object literals unguarded. **Why:** avoids avoidable rerenders.
-4. **Do** import `useShallow` from `zustand/react/shallow`; **don't** use v4 path `zustand/shallow`. **Why:** Zustand 5 compatibility.
+4. **Do** prefer `zustand/react/shallow` for `useShallow`; `zustand/shallow` and `zustand/react/shallow` are both valid in v5. **Don't** rewrite a valid installed import solely for compatibility. **Why:** preference is not an API restriction.
 5. **Do** keep async actions in feature action modules; **don't** embed transport/service details directly in UI components. **Why:** separation of concerns.
 6. **Do** expose explicit loading/error flags in async store actions; **don't** hide request lifecycle in implicit side effects. **Why:** deterministic UI states.
 7. **Do** prefer local `useState` for component-local state; **don't** globalize ephemeral UI toggles by default. **Why:** reduces store complexity.
-8. **Do** keep server/API state outside Zustand; **don't** use Zustand as remote cache. **Why:** server state belongs to TanStack Query and has different invalidation/lifecycle semantics.
+8. **Do** keep server/API state outside Zustand; **don't** use Zustand as remote cache. **Why:** remote data belongs to the established server-state solution (TanStack Query when selected) and has different invalidation/lifecycle semantics.
 9. **Do** use `persist` only for state with clear rehydration value; **don't** persist volatile or sensitive transient data. **Why:** storage correctness and security.
 10. **Do** namespace persist keys with app/feature prefix; **don't** use generic keys (`settings`, `store`). **Why:** collision prevention.
 11. **Do** follow this skill's current Zustand 5 patterns; **don't** use legacy/deprecated APIs from older Zustand versions; **do** verify exact-version syntax/examples/definitions in Context7 before version-sensitive store changes. **Why:** avoids stale imports and API drift.
@@ -71,6 +71,12 @@ const { name, email } = useUserStore(
 - Middleware improves ergonomics, but each layer increases cognitive and runtime cost.
 - Async action abstraction simplifies UI, while adding an architectural boundary to maintain.
 
+Equality and SSR lifecycle checks:
+- In v5, `create` no longer takes an equality function. If custom equality is required, `createWithEqualityFn` from `zustand/traditional` requires `use-sync-external-store`; do not add it without approval.
+- Only for an existing SSR runtime, use request-local stores, not a shared server module singleton; keep a stable browser store for the intended provider lifetime.
+- Use matching initial snapshots on server and browser. Plan controlled persisted-state hydration so storage does not change the first client render unexpectedly; verify against the installed version for framework/provider and persist recipes.
+- Browser-only SPAs do not need SSR scaffolding; validate persisted-state loading after reload when persistence is used.
+
 Store review checklist:
 - Ensure each component subscribes only to required state slices.
 - Ensure async store actions expose explicit loading and error state.
@@ -88,7 +94,7 @@ Performance notes:
 1. `const store = useStore()` in render paths that only need one field.
 2. Shared monolithic store for unrelated domains.
 3. Persisting tokens/session-like secrets directly in browser storage.
-4. Using outdated v4 `useShallow` import path in v5 projects.
+4. Treating either valid `useShallow` export path as an incompatible v4-only API.
 5. Calling API clients directly inside many components instead of central actions.
 6. Returning new arrays/objects in selectors without shallow guards.
 7. Persisting loading or error flags that should reset per session.
@@ -97,11 +103,11 @@ Performance notes:
 ## Quick Pre-Merge Verification Checklist
 
 - [ ] Applicability gate executed and documented (applies vs not applicable).
-- [ ] If Redux legacy exists, result is **not applicable** and no forced migration was introduced.
+- [ ] If Redux or another solution owns this scope without an approved migration, result is **not applicable** and no forced migration was introduced.
 - [ ] Store layout is per-feature/domain (no monolithic store).
 - [ ] Components read state through selectors only (no full-store subscription in render paths).
-- [ ] `useShallow` imports use `zustand/react/shallow` (v5 path).
-- [ ] Zustand is not being used for server/API state; TanStack Query handles remote data.
+- [ ] `useShallow` imports use either valid path; `zustand/react/shallow` is the convention, not a compatibility mandate.
+- [ ] Zustand is not being used for server/API state; the established remote-cache solution retains ownership.
 - [ ] Persist usage is justified, safe, and key names are namespaced.
 
 ## Progressive Disclosure
@@ -139,6 +145,9 @@ Related operational pairings:
 - Keep store modules colocated with feature folders for ownership clarity.
 
 ## Changelog
+
+### v2.2 — 2026-10-23
+- Preserved established state solutions, corrected shallow/equality API guidance, and scoped SSR/persist hydration lifetimes.
 
 ### v2.1 — 2026-04-22
 - Added mandatory Applicability Gate with explicit apply/not-apply detection criteria.

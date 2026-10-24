@@ -5,6 +5,7 @@ All notable changes to this repository are documented in this file.
 ## Unreleased
 
 ### Added
+- Added `docs/MAINTAINING.md`, the repository maintainer workflow (owner selection, gates, first-party frontmatter versus the vendor template, conditional routes, instruction contracts, pipeline registration, records, provenance and exact lint coverage), linked from README; recorded app-skill inspirations in CREDITS without inferred revisions or licenses. `npm run test:maintainer-instructions` also checks that every instruction script runs exactly once in both default pipelines.
 - Added shared web/hybrid accessibility guidance and frontend/apps routes with Node-only instruction checks; existing UI tooling stays optional and browser/assistive-technology verification remains explicit.
 - Added shared evidence-led bug diagnosis, conditional routes for all four profiles and Node-only instruction checks; proposal observations remain distinct from executed application verification.
 - Added an opt-in .NET10/xUnit capacity-rule trial with six public boundary/rejection cases, separately approved pinned local NuGet prerequisites and offline ordinary execution; default checks/CI remain Node-only.
@@ -15,6 +16,8 @@ All notable changes to this repository are documented in this file.
 - Added the shared `cli-design` interaction contract, conditional .NET routes and focused instruction checks (`npm run test:cli-instructions`). Default `test`/`verify` pipelines remain Node-only; architecture selection and security stay with their existing owners.
 
 ### Changed
+- Corrected and scoped React-side skills: form ownership instead of forced `useActionState`/React Hook Form migrations, `useFormState` deprecation, Zod 4 deprecated-versus-removed APIs and input/output types, both valid Zustand 5 `useShallow` paths, deterministic Query key hashing, Query/Zustand adoption only when installed or selected, SSR client/store lifetimes, separate Next.js and Query cache ownership, concurrency-safe optimistic updates, Tailwind token/dynamic-class rules, installed shadcn primitive variants and no unauthorized React Compiler activation. Checked by `npm run test:react-stack-instructions` (Node-only).
+- Scoped Ionic/Angular guidance to the existing standalone or NgModule/RxJS architecture, freshness-aware page entry with leave cleanup, Router/NavController/tab escape hatches and version-gated template/DI idioms; Capacitor now separates platform, plugin availability and plugin-specific permissions. Checked by `npm run test:apps-instructions` (Node-only).
 - Integrated the shared everyday security guardrails while retaining distinct .NET 8/.NET 10 security rules and exceptions.
 - Added contextual, user-approved architecture selection to existing .NET guidance; removed automatic second-context assembly promotion and scoped HTTP/database recipes away from local CLIs.
 - Scoped React/Query/Next guidance by runtime and Ionic/Capacitor guidance by installed capabilities; extended shared security to SPA and mobile without importing server-only infrastructure.
