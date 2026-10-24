@@ -24,6 +24,8 @@ Los siguientes skills son de autoría propia del proyecto `zesh-one`:
 
 Los skills de `skills/frontend/` tienen inspiración conceptual en los originales de `gentleman-programming` pero son obras derivadas con modificaciones sustanciales — arquitectura, convenciones, ejemplos y reglas propias de Zesh-One.
 
+La guía `frontend/testing` es de autoría del proyecto: criterios de evidencia y comportamiento observable adaptados a sus rutas SPA, seguridad y convenciones existentes; no importa una colección externa ni obliga a instalar un runner.
+
 La guía `cli-design` es de autoría del proyecto y reutiliza sus límites de arquitectura, seguridad y pruebas. No incorpora contenido, scripts ni paquetes de una colección CLI externa.
 
 ## Referencias conceptuales del piloto de adopción
@@ -38,6 +40,10 @@ El piloto adapta ideas puntuales a las reglas existentes; no importa colecciones
 | [midudev/autoskills](https://github.com/midudev/autoskills) | Descubrimiento de candidatos, sin incorporar contenido | CC BY-NC 4.0 en la raíz; las fuentes registradas varían |
 
 Las revisiones consultadas, prácticas aceptadas/rechazadas y límites de evidencia están en el [registro del piloto](odd/evidence/architecture-adoption-pilot.md).
+
+## Dependencias del ensayo React DOM
+
+El espécimen propio de `tools/fixtures/frontend-dom/` utiliza React/react-dom, Testing Library (React/DOM) y jsdom solo en su proyecto de pruebas opcional. Sus versiones, dependencias transitivas, licencias declaradas e integridad de descarga quedan en su `package-lock.json`; no se incorporan sus fuentes a la colección ni se añaden al paquete raíz. Esto no modifica la atribución de las skills ni implica una auditoría de licencias o seguridad de dependencias.
 
 ## Herramientas del ecosistema
 

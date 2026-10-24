@@ -5,6 +5,8 @@ All notable changes to this repository are documented in this file.
 ## Unreleased
 
 ### Added
+- Added an opt-in React19/jsdom rendered-component trial with six list/form/API-state cases, isolated fixed prerequisites and explicit installation approval; root dependencies and Node-only CI remain unchanged.
+- Added React-SPA-scoped frontend testing guidance, a conditional route and Node-only instruction checks; test layers and UI/form/API evidence remain distinct from browser, model-compliance and security guarantees.
 - Added an opt-in .NET 10 `line-tally` acceptance specimen and `npm run test:cli` public-process checks, with project-local disposable state and explicit execution limits; default verification still requires only Node.
 - Added the shared `cli-design` interaction contract, conditional .NET routes and focused instruction checks (`npm run test:cli-instructions`). Default `test`/`verify` pipelines remain Node-only; architecture selection and security stay with their existing owners.
 

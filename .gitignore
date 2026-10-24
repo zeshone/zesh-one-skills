@@ -8,5 +8,10 @@ dist/
 # Unique, disposable workspaces owned by the optional CLI acceptance runner
 /.cli-design-trial-*/
 
+# Optional React DOM trial: downloaded packages/cache are local, never delivery assets
+/.frontend-dom-trial-*/
+/.frontend-dom-npm/
+/tools/fixtures/frontend-dom/node_modules/
+
 # Local agent tooling: skill-registry index (machine-specific paths) and its cache — not versioned
 .atl/

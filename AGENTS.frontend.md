@@ -14,6 +14,7 @@ Copy `skills/shared/security/` with the domain and adjust paths when installed e
 |---|---|
 | Type modeling, strict typing, interface strategy | `typescript` |
 | React component behavior and modern APIs | `react-19` for the installed React 19 runtime |
+| Test selection, UI states, forms and API interactions | [testing](skills/frontend/testing/SKILL.md), currently React SPA only; preserve installed tooling and form/client flow |
 | Next.js routing, App Router, Server Actions | `nextjs-15` only for the matching Next.js profile |
 | Styling with installed Tailwind v4 | `tailwind-4` |
 | Schema validation with Zod | `zod-4` |
