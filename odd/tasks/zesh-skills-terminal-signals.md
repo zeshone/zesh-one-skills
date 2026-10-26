@@ -1,5 +1,5 @@
 # Restore picker terminal on SIGTERM
-Status: IN PROGRESS. Bounded correction for native finding `R4-signal-cleanup`.
+Status: COMPLETE. Bounded correction for native finding `R4-signal-cleanup`.
 Historical worktree: `dist/rdd-picker-32ee027`; current branch: `feat/zesh-skills-wizard-languages`.
 
 ## Specs
@@ -10,7 +10,7 @@ S3. "Revisar por unidades más pequeñas" — "Revisar commits o slices acotados
 ## Tasks
 - T1 [done] S1-S2 — route: inline; worker join applied and Linux/Windows full suites + vet passed — commits: b510e05 and 4d61a8a5ab21b0c7e8841b998f62883b1cf44df8; total163 correction diff-lines.
 - T2 [done] S1-S2 — route: inline; worker join ported and Linux/Windows suites, vet and six builds passed — commits: ce3225ca1895a270cfe67082d06153951e5c5e96 and 88cb8dd5d9aa0f456a1bbd5a04236a6166eb5071.
-- T3 [in_progress] S2-S3 — route: independent verifier then native controller; independent blocker resolved, parent spot check passed, all three native units approved/acknowledged; closure evidence/checksum check and act commit pending.
+- T3 [done] S2-S3 — route: independent verifier then native controller; independent blocker resolved, parent spot check and six checksums passed, all three native units approved/acknowledged — commit: 6fc86fc970f783486ef6bd8f044aad3e0d9fe321.
 
 ## Log
 - L1 User: "Corregir y continuar".
@@ -36,4 +36,4 @@ S3. "Revisar por unidades más pequeñas" — "Revisar commits o slices acotados
 - L21 Eleven advisories across the three units are non-blocking follow-ups only. They do not reopen receipts, authorize extra changes or start new correction/review tasks. No source changes followed the final approved code at `88cb8dd`; remaining changes are this passive outcome record.
 - L22 Proof: original public SIGTERM RED, fixed real Linux PTY GREEN, historical/current full Linux and Windows Go suites, vet, Node tests, six binaries and independent targeted/parent spot checks passed as logged. Node passed in job18 before the subsequent Go-only worker join; Node sources/contracts were unchanged. Last rebuilt binaries/checksums came from job20. Failures were preserved: aggregate context-budget refusal (no authority), first malformed refuter admission (fresh offered slot/new result succeeded), MSYS argv conversion and direct-test cwd incidents (diagnosed/corrected), expected RED, and independent static race (one correction/limited recheck resolved).
 - L23 Limits: Windows skips the Linux-only SIGTERM/PTY case and retained its existing symlink privilege limit; ordinary keyboard/cancel/EOF regressions passed. Linux amd64 executed for real; macOS and ARM targets are compile-only evidence. Race detector unavailable (no Linux C toolchain); the scheduling interleaving was statically identified/resolved, not dynamically reproduced. Actual agent/model loading remains unverified and unchanged by this correction. Forced kills cannot execute cleanup.
-- L24 Delivery remains local: no push, release, global installation or history rewrite. Original aggregate `b938...` is not approved and was not explicitly left unreviewed; bounded per-unit authorities remain separate, with no inferred transfer to a different tree. Source correction commits are historical `b510e05`/`4d61a8a` and root `ce3225c`/`88cb8dd`. Final passive log/checksum structural check and local act commit still pending.
+- L24 Delivery remains local: no push, release, global installation or history rewrite. Original aggregate `b938...` is not approved and was not explicitly left unreviewed; bounded per-unit authorities remain separate, with no inferred transfer to a different tree. Source correction commits are historical `b510e05`/`4d61a8a` and root `ce3225c`/`88cb8dd`. Final structural check passed (three specs/tasks/review records and aggregate caveat), all six SHA-256 checksums matched, and source comparison to `88cb8dd` was empty. Closure work-unit commit: `6fc86fc970f783486ef6bd8f044aad3e0d9fe321`; only passive completion metadata follows. No implementation, functional check, build, independent verification or native review remains pending.
