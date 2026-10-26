@@ -311,13 +311,11 @@ func selectSkills(reader *bufio.Reader, input io.Reader, out io.Writer, skills [
 }
 
 func selectOptions(reader *bufio.Reader, input io.Reader, out io.Writer, m *pickerModel) (ids []string, accepted bool, err error) {
-	restore, e := preparePickerTerminal(input, out)
+	restore, e := preparePickerSession(input, out)
 	if e != nil {
 		return nil, false, fmt.Errorf("cannot prepare interactive terminal: %w", e)
 	}
-	fmt.Fprint(out, "\x1b[?1049h\x1b[?25l")
 	defer func() {
-		fmt.Fprint(out, "\x1b[?25h\x1b[?1049l")
 		if e := restore(); e != nil {
 			ids = nil
 			accepted = false

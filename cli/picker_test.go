@@ -3,12 +3,20 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
+	"regexp"
+	"runtime"
+	"strconv"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 )
 
 func suggestionCatalog() []Skill {
@@ -158,6 +166,91 @@ func TestCLISuggestedChoicesNeedNoTypedIDsAndCanBeCleared(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPickerSIGTERMRestoresTerminal(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Linux PTY regression; other platforms retain keyboard cancellation coverage")
+	}
+	script, err := exec.LookPath("script")
+	if err != nil {
+		t.Skip("PTY test requires script")
+	}
+	binary, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := t.TempDir()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	shell := `before=$(stty -g)
+"$ZESH_SIGNAL_BINARY" -test.run=^TestPickerSIGTERMHelper$
+code=$?
+after=$(stty -g)
+printf '\nSIGNAL_STATUS=%s\nBEFORE=%s\nAFTER=%s\n' "$code" "$before" "$after"`
+	cmd := exec.CommandContext(ctx, script, "-q", "-c", shell, "/dev/null")
+	cmd.Env = append(os.Environ(), "ZESH_SIGNAL_CHILD=1", "ZESH_SIGNAL_ROOT="+root, "ZESH_SIGNAL_BINARY="+binary)
+	input, err := cmd.StdinPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer input.Close()
+	output, err := cmd.StdoutPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	fmt.Fprintln(input)
+	reader := bufio.NewReader(output)
+	var transcript strings.Builder
+	for !strings.Contains(transcript.String(), "Space") {
+		b, err := reader.ReadByte()
+		if err != nil {
+			t.Fatalf("picker did not open: %v; output=%q", err, transcript.String())
+		}
+		transcript.WriteByte(b)
+	}
+	pidMatch := regexp.MustCompile(`SIGNAL_PID=([0-9]+)`).FindStringSubmatch(transcript.String())
+	if len(pidMatch) != 2 {
+		t.Fatal("missing child PID", transcript.String())
+	}
+	pid, _ := strconv.Atoi(pidMatch[1])
+	child, err := os.FindProcess(pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer child.Release()
+	if err := child.Signal(syscall.SIGTERM); err != nil {
+		t.Fatal(err)
+	}
+	rest, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	transcript.Write(rest)
+	if err := cmd.Wait(); err != nil || stderr.String() != "" {
+		t.Fatalf("PTY wrapper: %v; stderr=%q", err, stderr.String())
+	}
+	text := strings.ReplaceAll(transcript.String(), "\r", "")
+	states := regexp.MustCompile(`SIGNAL_STATUS=([0-9]+)\nBEFORE=([^\n]+)\nAFTER=([^\n]+)`).FindStringSubmatch(text)
+	if len(states) != 4 || states[1] != "143" || states[2] != states[3] || strings.Count(text, "\x1b[?25h\x1b[?1049l") != 1 {
+		t.Fatalf("SIGTERM failed to restore raw state, cursor/screen or exit status: %q", text)
+	}
+	if entries, err := os.ReadDir(root); err != nil || len(entries) != 0 {
+		t.Fatalf("termination changed project: %v %v", entries, err)
+	}
+}
+
+func TestPickerSIGTERMHelper(t *testing.T) {
+	if os.Getenv("ZESH_SIGNAL_CHILD") != "1" {
+		return
+	}
+	fmt.Printf("SIGNAL_PID=%d\n", os.Getpid())
+	os.Exit(Run([]string{"--root", os.Getenv("ZESH_SIGNAL_ROOT"), "--scope", "frontend", "--architecture", "mockup", "--agents", "pi"}, os.Stdin, os.Stdout, os.Stderr, testSource(t), true))
 }
 
 func TestPackageMajorDetectionAvoidsAmbiguousVersions(t *testing.T) {
