@@ -48,6 +48,7 @@ func preparePickerSession(input io.Reader, out io.Writer) (func() error, error) 
 	}
 	fmt.Fprint(out, "\x1b[?1049h\x1b[?25l")
 	done := make(chan struct{})
+	exited := make(chan struct{})
 	var once sync.Once
 	var restoreErr error
 	cleanup := func() error {
@@ -58,6 +59,7 @@ func preparePickerSession(input io.Reader, out io.Writer) (func() error, error) 
 		return restoreErr
 	}
 	go func() {
+		defer close(exited)
 		select {
 		case sig := <-signals:
 			_ = cleanup()
@@ -70,6 +72,7 @@ func preparePickerSession(input io.Reader, out io.Writer) (func() error, error) 
 		err := cleanup()
 		stop()
 		close(done)
+		<-exited
 		return err
 	}, nil
 }
