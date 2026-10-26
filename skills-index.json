@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 1,
+  "skills": [
+    {
+      "id": "apps/capacitor",
+      "name": "capacitor",
+      "description": "Operational defaults for Capacitor native-layer work in app projects. Trigger: When implementing or modifying Capacitor plugins, platform behavior, native listeners, or mobile runtime integration.",
+      "path": "skills/apps/capacitor",
+      "version": "2.2",
+      "scopes": [
+        "app"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "apps"
+      ],
+      "triggers": [
+        "Operational defaults for Capacitor native-layer work in app projects. Trigger: When implementing or modifying Capacitor plugins, platform behavior, native listeners, or mobile runtime integration."
+      ],
+      "files": [
+        {
+          "path": "skills/apps/capacitor/SKILL.md",
+          "sha256": "37861b9b2994305a7b11af91bfead1d7aa585b6d30c590b4930e3afcd1f97714"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "apps/ionic-angular",
+      "name": "ionic-angular",
+      "description": "Operational defaults for Ionic + Angular application work. Trigger: When implementing or modifying Ionic Angular pages, routing, state, navigation, or lifecycle behavior.",
+      "path": "skills/apps/ionic-angular",
+      "version": "2.2",
+      "scopes": [
+        "app"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "apps"
+      ],
+      "triggers": [
+        "Operational defaults for Ionic + Angular application work. Trigger: When implementing or modifying Ionic Angular pages, routing, state, navigation, or lifecycle behavior."
+      ],
+      "files": [
+        {
+          "path": "skills/apps/ionic-angular/SKILL.md",
+          "sha256": "24d8055200eb720a6260c187764a0640c04de9ecd9eb64b4405b2a205fbd60e6"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "backend/dataaccess",
+      "name": "dataaccess",
+      "description": "EF Core data access conventions for ASP.NET Core 8 APIs with operational defaults for repositories, DbContext lifecycle, query behavior, transactions, and raw SQL safety. Trigger: When implementing or reviewing repositories, DbContext registration/configuration, read/write queries, migrations, or stored procedure access in backend services.",
+      "path": "skills/backend/dataaccess",
+      "version": "3.0",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "data-access"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "EF Core data access conventions for ASP.NET Core 8 APIs with operational defaults for repositories, DbContext lifecycle, query behavior, transactions, and raw SQL safety. Trigger: When implementing or reviewing repositories, DbContext registration/configuration, read/write queries, migrations, or stored procedure access in backend services."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/dataaccess/SKILL.md",
+          "sha256": "64b737f162ed8b425e33840979584ddef5054e06c0771cc2fdd82023e9d9f543"
+        }
+      ]
+    },
+    {
+      "id": "backend/general",
+      "name": "general",
+      "description": "Operational defaults for ASP.NET Core 8 REST API architecture and conventions. Trigger: When creating, restructuring, or reviewing backend feature slices, dependency wiring, middleware order, and shared conventions.",
+      "path": "skills/backend/general",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "architecture"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational defaults for ASP.NET Core 8 REST API architecture and conventions. Trigger: When creating, restructuring, or reviewing backend feature slices, dependency wiring, middleware order, and shared conventions."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/general/SKILL.md",
+          "sha256": "851422d0eab7ff32be731f54e3e0126bd2cd30498442c014777c60125b9579c0"
+        },
+        {
+          "path": "skills/shared/architecture-selection.md",
+          "sha256": "778549d60d37c120a2175d64dc532546f488408a473b5a2362fcd34066fd1df6"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "backend/logging",
+      "name": "logging",
+      "description": "Operational logging standards for ASP.NET Core APIs using Serilog structured events, request correlation, and canonical exception telemetry. Trigger: When implementing or reviewing API logging, middleware instrumentation, incident diagnostics, or log safety controls.",
+      "path": "skills/backend/logging",
+      "version": "2.9",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "observability"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational logging standards for ASP.NET Core APIs using Serilog structured events, request correlation, and canonical exception telemetry. Trigger: When implementing or reviewing API logging, middleware instrumentation, incident diagnostics, or log safety controls."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/logging/SKILL.md",
+          "sha256": "07bbd937443802bf1115121f6022d677ce2e60d8a41b49588a3bd6f5e7b378a0"
+        }
+      ]
+    },
+    {
+      "id": "backend/mapping",
+      "name": "mapping",
+      "description": "Operational mapping policy for ASP.NET Core APIs: service-layer ownership, repository entity boundaries, and explicit transformations by default. Trigger: When implementing Request↔Entity↔DTO mappings, reviewing AutoMapper usage, or enforcing clean layer contracts in backend features.",
+      "path": "skills/backend/mapping",
+      "version": "1.6",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "data-access"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational mapping policy for ASP.NET Core APIs: service-layer ownership, repository entity boundaries, and explicit transformations by default. Trigger: When implementing Request↔Entity↔DTO mappings, reviewing AutoMapper usage, or enforcing clean layer contracts in backend features."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/mapping/SKILL.md",
+          "sha256": "ecc9a710a92ad03063c1a7312e5340efe4ae968aae7c6e496ab67c1977a0f0fd"
+        }
+      ]
+    },
+    {
+      "id": "backend/performance",
+      "name": "performance",
+      "description": "Operational performance defaults for ASP.NET Core 8 APIs focused on concurrency, outbound resilience, and runtime limits. Trigger: When tuning latency/throughput, configuring Polly resilience, sizing Kestrel limits, or parallelizing independent async work.",
+      "path": "skills/backend/performance",
+      "version": "2.0",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "performance"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational performance defaults for ASP.NET Core 8 APIs focused on concurrency, outbound resilience, and runtime limits. Trigger: When tuning latency/throughput, configuring Polly resilience, sizing Kestrel limits, or parallelizing independent async work."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/performance/SKILL.md",
+          "sha256": "ef867b4d3591a69bfc9e5dbdc5820fd6b47ae4cf905c480290f3f7f5b76a281c"
+        }
+      ]
+    },
+    {
+      "id": "backend/requests",
+      "name": "requests",
+      "description": "Operational rules for HTTP request contracts in ASP.NET Core 8 APIs. Trigger: When designing request DTOs, binding route/query/body inputs, or defining endpoint signatures in .NET APIs.",
+      "path": "skills/backend/requests",
+      "version": "1.3",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "data-access"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational rules for HTTP request contracts in ASP.NET Core 8 APIs. Trigger: When designing request DTOs, binding route/query/body inputs, or defining endpoint signatures in .NET APIs."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/requests/SKILL.md",
+          "sha256": "25bf8139c154a381dccfca31acbb91e8d9cb30ff3b0c430b5f0a3cf4dbb20a92"
+        }
+      ]
+    },
+    {
+      "id": "backend/responses",
+      "name": "responses",
+      "description": "Operational response contract guidance for ASP.NET Core APIs with strict internal boundaries and safe external error mapping. Trigger: When defining service return contracts, mapping domain failures to HTTP, or enforcing consistent response behavior across backend services.",
+      "path": "skills/backend/responses",
+      "version": "2.0",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "data-access"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational response contract guidance for ASP.NET Core APIs with strict internal boundaries and safe external error mapping. Trigger: When defining service return contracts, mapping domain failures to HTTP, or enforcing consistent response behavior across backend services."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/responses/SKILL.md",
+          "sha256": "f631b51b4408031f29ae50f10504a31c46914af1babc6cc96a7e8de03f43e1de"
+        }
+      ]
+    },
+    {
+      "id": "backend/security",
+      "name": "security",
+      "description": "Operational security defaults for backend APIs with OWASP API focus: ownership checks (BOLA), JWT/policy boundaries, CORS/rate limits, and secret handling. Trigger: When implementing or reviewing authn/authz, resource access controls, API hardening, user-owned data, external inputs, secrets, dependencies, infrastructure, or CI/CD.",
+      "path": "skills/backend/security",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "security"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational security defaults for backend APIs with OWASP API focus: ownership checks (BOLA), JWT/policy boundaries, CORS/rate limits, and secret handling. Trigger: When implementing or reviewing authn/authz, resource access controls, API hardening, user-owned data, external inputs, secrets, dependencies, infrastructure, or CI/CD."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/security/SKILL.md",
+          "sha256": "b8d25e4aeb6d6886f07fb2b4599d1e2a1d3414246547c3699c03dffc002ae93d"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "backend/testing-unit",
+      "name": "testing-unit",
+      "description": "Operational unit-testing defaults for backend code using xUnit, NSubstitute, and FluentAssertions, focused on services, validators, mappings, and domain behavior. Trigger: When writing or reviewing unit tests for business logic, validation rules, mapping logic, or authorization/ownership branches in backend services.",
+      "path": "skills/backend/testing-unit",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "testing"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Operational unit-testing defaults for backend code using xUnit, NSubstitute, and FluentAssertions, focused on services, validators, mappings, and domain behavior. Trigger: When writing or reviewing unit tests for business logic, validation rules, mapping logic, or authorization/ownership branches in backend services."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/testing-unit/SKILL.md",
+          "sha256": "dd0fe1a4a512a33673ab242636cdf28c56e0a2a1175f92ce14244037838cdd7c"
+        }
+      ]
+    },
+    {
+      "id": "backend/validations",
+      "name": "validations",
+      "description": "Boundary validation standards for ASP.NET Core APIs with FluentValidation. Trigger: When validating HTTP request DTOs, placing validation responsibilities, or handling validation failures.",
+      "path": "skills/backend/validations",
+      "version": "1.5",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "validation"
+      ],
+      "technologies": [
+        "backend"
+      ],
+      "triggers": [
+        "Boundary validation standards for ASP.NET Core APIs with FluentValidation. Trigger: When validating HTTP request DTOs, placing validation responsibilities, or handling validation failures."
+      ],
+      "files": [
+        {
+          "path": "skills/backend/validations/SKILL.md",
+          "sha256": "9aaa8ae08c7eee9bc9158cf06511ea1ee00d2b941624b6e3fdb50725f677aadf"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/api-rest-minimal-apis",
+      "name": "api-rest-minimal-apis",
+      "description": "REST API design and Minimal API surface rules for .NET 10 / C# 14 REST APIs, covering TypedResults, Results<T1,T2> unions, ProblemDetails (RFC 7807), URL/versioning conventions, built-in OpenAPI with Scalar, middleware ordering, and endpoint organization. Trigger: adding or modifying endpoints in Program.cs, a MapGroup extension, or endpoint extension classes; creating DTO records; configuring middleware pipeline ordering; working on OpenAPI/Scalar; mapping entities to DTOs in handlers; or designing URL structure and versioning segments.",
+      "path": "skills/dotnet-10/api-rest-minimal-apis",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "REST API design and Minimal API surface rules for .NET 10 / C# 14 REST APIs, covering TypedResults, Results<T1,T2> unions, ProblemDetails (RFC 7807), URL/versioning conventions, built-in OpenAPI with Scalar, middleware ordering, and endpoint organization. Trigger: adding or modifying endpoints in Program.cs, a MapGroup extension, or endpoint extension classes; creating DTO records; configuring middleware pipeline ordering; working on OpenAPI/Scalar; mapping entities to DTOs in handlers; or designing URL structure and versioning segments."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/api-rest-minimal-apis/SKILL.md",
+          "sha256": "d4f3abbac448f13393f42998ab63bab7c5047ca0eb420bfbe1f2bc0e298b2680"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/architecture",
+      "name": "architecture",
+      "description": "Contextual architecture selection for .NET 10 APIs, CLIs and workers: user-approved structure, proportional boundaries, Vertical Slice, Clean/Hexagonal separation and modular monoliths, plus domain-model richness, data-access seams and orchestration. Trigger: starting a new project, CLI, worker or module; adding a layer, project, or assembly; where does logic go; should I use a repository, IUnitOfWork, MediatR, or aggregate root; Clean Architecture; Hexagonal Architecture; Vertical Slice; modular monolith structure; DbContext transaction; Application layer; Program.cs organization; endpoint organization.",
+      "path": "skills/dotnet-10/architecture",
+      "version": "2.2",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "architecture"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "Contextual architecture selection for .NET 10 APIs, CLIs and workers: user-approved structure, proportional boundaries, Vertical Slice, Clean/Hexagonal separation and modular monoliths, plus domain-model richness, data-access seams and orchestration. Trigger: starting a new project, CLI, worker or module; adding a layer, project, or assembly; where does logic go; should I use a repository, IUnitOfWork, MediatR, or aggregate root; Clean Architecture; Hexagonal Architecture; Vertical Slice; modular monolith structure; DbContext transaction; Application layer; Program.cs organization; endpoint organization."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/architecture/SKILL.md",
+          "sha256": "c63708ee0e4bf11c923406a7fcc5913a1c3eb4fbf03ef8256a0f768d33b86369"
+        },
+        {
+          "path": "skills/shared/architecture-selection.md",
+          "sha256": "778549d60d37c120a2175d64dc532546f488408a473b5a2362fcd34066fd1df6"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/data-access-persistence",
+      "name": "data-access-persistence",
+      "description": "EF Core 10 + Npgsql data-access rules for .NET 10 REST APIs: DbContext registration, entity configuration, query patterns, migrations, raw SQL, and testing against real Postgres. Trigger: DbContext, EF Core, IEntityTypeConfiguration, migration, Npgsql, AsNoTracking, .Select() projection, raw SQL, ExecuteSqlRawAsync, BackgroundService data access.",
+      "path": "skills/dotnet-10/data-access-persistence",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "EF Core 10 + Npgsql data-access rules for .NET 10 REST APIs: DbContext registration, entity configuration, query patterns, migrations, raw SQL, and testing against real Postgres. Trigger: DbContext, EF Core, IEntityTypeConfiguration, migration, Npgsql, AsNoTracking, .Select() projection, raw SQL, ExecuteSqlRawAsync, BackgroundService data access."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/data-access-persistence/SKILL.md",
+          "sha256": "448bb25182bc7f94354047a2641d93df04d2ce3f6fd9c2de2bc3aa0396ad1201"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/design-patterns",
+      "name": "design-patterns",
+      "description": "Design-pattern rules for .NET 10 backends (REST APIs): Result discriminated unions, Options pattern, DI lifetimes, keyed services, and exception mapping. Trigger: Result pattern, discriminated union, sealed record cases, Options pattern, IOptions, ValidateOnStart, DI lifetime, PostgresExceptionMapper, keyed services, FromKeyedServices, Factory pattern, BackgroundService, MediatR, IRepository, AutoMapper, FluentValidation.",
+      "path": "skills/dotnet-10/design-patterns",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "Design-pattern rules for .NET 10 backends (REST APIs): Result discriminated unions, Options pattern, DI lifetimes, keyed services, and exception mapping. Trigger: Result pattern, discriminated union, sealed record cases, Options pattern, IOptions, ValidateOnStart, DI lifetime, PostgresExceptionMapper, keyed services, FromKeyedServices, Factory pattern, BackgroundService, MediatR, IRepository, AutoMapper, FluentValidation."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/design-patterns/SKILL.md",
+          "sha256": "d8c5a0b4ebcf59f5d0c113eac30df7379850c2bdf887ca1f540b38c8ca2b6192"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/dotnet-conventions",
+      "name": "dotnet-conventions",
+      "description": "C# 14 and .NET 10 code-level conventions covering language style, async, nullable, XML docs, naming, SOLID, Result pattern, and timestamp handling for AOT-first, minimal-dependency .NET 10 REST APIs. Trigger: any .cs or .csproj file read or modified; keywords nullable, async, await, extension block, field keyword, null-conditional assignment, DateTime.Now, TimeProvider, Result pattern, discriminated union, TypedResults, ProblemDetails, IOptions, ValidateOnStart, primary constructor; phrases indicating mapping (AutoMapper, Mapster), mediation (MediatR, IMediator), or validation libraries (FluentValidation, AbstractValidator).",
+      "path": "skills/dotnet-10/dotnet-conventions",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "C# 14 and .NET 10 code-level conventions covering language style, async, nullable, XML docs, naming, SOLID, Result pattern, and timestamp handling for AOT-first, minimal-dependency .NET 10 REST APIs. Trigger: any .cs or .csproj file read or modified; keywords nullable, async, await, extension block, field keyword, null-conditional assignment, DateTime.Now, TimeProvider, Result pattern, discriminated union, TypedResults, ProblemDetails, IOptions, ValidateOnStart, primary constructor; phrases indicating mapping (AutoMapper, Mapster), mediation (MediatR, IMediator), or validation libraries (FluentValidation, AbstractValidator)."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/dotnet-conventions/SKILL.md",
+          "sha256": "da57c63c1474aeedb87f8e7daf23275dad4d6c959f8988353fe73b2703328474"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/observability-operations",
+      "name": "observability-operations",
+      "description": "Rules for Serilog structured logging (bootstrap + CLEF), health checks, background services, Options validation, HTTP resilience, and telemetry decisions in a .NET 10 Minimal API project. Trigger: add logging, configure Serilog, CLEF, log enrichment, request logging, health check, liveness probe, readiness probe, BackgroundService, IHostedService, ExecuteAsync, hosted service, Options pattern, ValidateOnStart, IValidateOptions, resilience, AddStandardResilienceHandler, telemetry, observability, OpenTelemetry, Scalar, docs/openapi.json, TimeProvider.",
+      "path": "skills/dotnet-10/observability-operations",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "Rules for Serilog structured logging (bootstrap + CLEF), health checks, background services, Options validation, HTTP resilience, and telemetry decisions in a .NET 10 Minimal API project. Trigger: add logging, configure Serilog, CLEF, log enrichment, request logging, health check, liveness probe, readiness probe, BackgroundService, IHostedService, ExecuteAsync, hosted service, Options pattern, ValidateOnStart, IValidateOptions, resilience, AddStandardResilienceHandler, telemetry, observability, OpenTelemetry, Scalar, docs/openapi.json, TimeProvider."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/observability-operations/SKILL.md",
+          "sha256": "a78dc59a1ed0bf8490f1ca782dba5381ff8e03f7eacdec9c73999251521ea9c6"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/performance",
+      "name": "performance",
+      "description": "Performance and efficiency rules for .NET 10 / EF Core / Minimal API backends, covering async correctness, EF query patterns, allocation management, HTTP resilience, channels, and connection-pool safety. Trigger: performance, efficiency, allocation, AsNoTracking, N+1 query, projection, Select DTO, HttpClient, IHttpClientFactory, AddStandardResilienceHandler, Channel, backpressure, BoundedChannel, StringBuilder, Span, async void, blocking async, GetAwaiter, .Result, .Wait, CancellationToken, stoppingToken, Interlocked, ConcurrentDictionary, caching, IMemoryCache, connection pool, AddDbContextPool.",
+      "path": "skills/dotnet-10/performance",
+      "version": "2.1",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "performance"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "Performance and efficiency rules for .NET 10 / EF Core / Minimal API backends, covering async correctness, EF query patterns, allocation management, HTTP resilience, channels, and connection-pool safety. Trigger: performance, efficiency, allocation, AsNoTracking, N+1 query, projection, Select DTO, HttpClient, IHttpClientFactory, AddStandardResilienceHandler, Channel, backpressure, BoundedChannel, StringBuilder, Span, async void, blocking async, GetAwaiter, .Result, .Wait, CancellationToken, stoppingToken, Interlocked, ConcurrentDictionary, caching, IMemoryCache, connection pool, AddDbContextPool."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/performance/SKILL.md",
+          "sha256": "815c2dec4bc997716a992c270c07f59370e966ea72687436a0374a34f5f18598"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/security",
+      "name": "security",
+      "description": "Security rules for .NET 10 Minimal API backends covering Argon2id, ES256 JWT with KEK-wrapped keys, CSRF, CORS, rate limiting, and no-leakage error design. Trigger: security, authentication, authorization, password hashing, JWT, TOTP, 2FA, CORS, CSRF, rate limit, security headers, session revocation, key management, KEK, Argon2, ES256, secrets, input validation, account enumeration, ProblemDetails error, token storage, dependencies, infrastructure, CI/CD.",
+      "path": "skills/dotnet-10/security",
+      "version": "2.2",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "security"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "Security rules for .NET 10 Minimal API backends covering Argon2id, ES256 JWT with KEK-wrapped keys, CSRF, CORS, rate limiting, and no-leakage error design. Trigger: security, authentication, authorization, password hashing, JWT, TOTP, 2FA, CORS, CSRF, rate limit, security headers, session revocation, key management, KEK, Argon2, ES256, secrets, input validation, account enumeration, ProblemDetails error, token storage, dependencies, infrastructure, CI/CD."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/security/SKILL.md",
+          "sha256": "39475eb611e86654172a28ac88dcdac06fa4a740bedd0334433ab94cfed772f8"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-10/testing",
+      "name": "testing",
+      "description": "Testing conventions, tier strategy, library choices, and real-database (Testcontainers) integration rules for .NET 10 APIs, CLIs and workers, scoped to existing capabilities. Trigger: writing a test, adding a test, CLI/file I/O tests, WebApplicationFactory, Testcontainers, real database integration test, database integration tier, Testcontainers PostgreSQL, xUnit, integration test, unit test, mocking, assertion library, FluentAssertions, InMemory database for tests, FakeTimeProvider, SkippableFact, test fixture, IAsyncLifetime in tests, test naming, test coverage.",
+      "path": "skills/dotnet-10/testing",
+      "version": "2.3",
+      "scopes": [
+        "backend"
+      ],
+      "topics": [
+        "testing"
+      ],
+      "technologies": [
+        "dotnet-10"
+      ],
+      "triggers": [
+        "Testing conventions, tier strategy, library choices, and real-database (Testcontainers) integration rules for .NET 10 APIs, CLIs and workers, scoped to existing capabilities. Trigger: writing a test, adding a test, CLI/file I/O tests, WebApplicationFactory, Testcontainers, real database integration test, database integration tier, Testcontainers PostgreSQL, xUnit, integration test, unit test, mocking, assertion library, FluentAssertions, InMemory database for tests, FakeTimeProvider, SkippableFact, test fixture, IAsyncLifetime in tests, test naming, test coverage."
+      ],
+      "files": [
+        {
+          "path": "skills/dotnet-10/testing/SKILL.md",
+          "sha256": "fd0f573e47264329281552e05e2a03634bc93e87a0f5a188ca24f0d2379c8d29"
+        }
+      ]
+    },
+    {
+      "id": "frontend/nextjs-15",
+      "name": "nextjs-15",
+      "description": "Operational conventions for Next.js 15 in this repo with App Router only, Server Components by default, Server Actions for mutations, and middleware-first route protection. Trigger: When implementing Next.js routing, data flow, auth guards, cache updates, or mutation paths in frontend features.",
+      "path": "skills/frontend/nextjs-15",
+      "version": "2.3",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "Operational conventions for Next.js 15 in this repo with App Router only, Server Components by default, Server Actions for mutations, and middleware-first route protection. Trigger: When implementing Next.js routing, data flow, auth guards, cache updates, or mutation paths in frontend features."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/nextjs-15/SKILL.md",
+          "sha256": "3927e36d10cb9d075121ba0c3cf2459ce0b91f4bdb714593e246873723530aff"
+        }
+      ]
+    },
+    {
+      "id": "frontend/react-19",
+      "name": "react-19",
+      "description": "Operational React 19 rules for component boundaries, forms, and modern APIs. Trigger: When building or refactoring React 19 components, hooks, refs, or form actions.",
+      "path": "skills/frontend/react-19",
+      "version": "1.5",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "Operational React 19 rules for component boundaries, forms, and modern APIs. Trigger: When building or refactoring React 19 components, hooks, refs, or form actions."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/react-19/SKILL.md",
+          "sha256": "adf04af104ccb3cf327141ff1104232dfb8f52ef1384c5df6eb94b1ab7e1a230"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "frontend/security",
+      "name": "security",
+      "description": "ZeshOne frontend security defaults for Next.js applications. Trigger: When adding middleware, route protection, headers, validation, cookies, or handling untrusted input.",
+      "path": "skills/frontend/security",
+      "version": "2.2",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "security"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "ZeshOne frontend security defaults for Next.js applications. Trigger: When adding middleware, route protection, headers, validation, cookies, or handling untrusted input."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/security/SKILL.md",
+          "sha256": "0c5d13be8aad4e767c3a1200536c4c40c1a4fa1a141d7f4a998eaf135703ad5a"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "frontend/shadcn-ui",
+      "name": "shadcn-ui",
+      "description": "ZeshOne shadcn/ui conventions for composed UI primitives. Trigger: When building components/forms with shadcn/ui and customizing behavior via composition or theme tokens.",
+      "path": "skills/frontend/shadcn-ui",
+      "version": "2.2",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "design"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "ZeshOne shadcn/ui conventions for composed UI primitives. Trigger: When building components/forms with shadcn/ui and customizing behavior via composition or theme tokens."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/shadcn-ui/SKILL.md",
+          "sha256": "6811e28ee468fb8b1aca09cbd9d0f5e645464d27f797456a06846fd7d89473df"
+        }
+      ]
+    },
+    {
+      "id": "frontend/tailwind-4",
+      "name": "tailwind-4",
+      "description": "ZeshOne Tailwind CSS 4 conventions. Trigger: When styling UI with Tailwind utilities, semantic tokens, responsive rules, or runtime dynamic values.",
+      "path": "skills/frontend/tailwind-4",
+      "version": "2.3",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "design"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "ZeshOne Tailwind CSS 4 conventions. Trigger: When styling UI with Tailwind utilities, semantic tokens, responsive rules, or runtime dynamic values."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/tailwind-4/SKILL.md",
+          "sha256": "7e1ff8a2ed535c9bdf94224f57619847c70e59562a7c47db6b48d8ac1215cec5"
+        }
+      ]
+    },
+    {
+      "id": "frontend/tanstack-query",
+      "name": "tanstack-query",
+      "description": "ZeshOne TanStack Query defaults for server/API state management. Trigger: When TanStack Query is installed or explicitly selected for remote fetching, caching, mutations, invalidation, SSR prefetch, or hydration.",
+      "path": "skills/frontend/tanstack-query",
+      "version": "2.3",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "data-access"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "ZeshOne TanStack Query defaults for server/API state management. Trigger: When TanStack Query is installed or explicitly selected for remote fetching, caching, mutations, invalidation, SSR prefetch, or hydration."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/tanstack-query/SKILL.md",
+          "sha256": "3a7d0bb4520572bb8ce3ccfcaa3bd77f3658f68c5468bc19208345c5c9a0fbbe"
+        }
+      ]
+    },
+    {
+      "id": "frontend/testing",
+      "name": "testing",
+      "description": "Trigger: React SPA tests, component behavior, forms, API states, test selection. Verify observable behavior with existing tools; do not import Next or Ionic recipes.",
+      "path": "skills/frontend/testing",
+      "version": "1.0",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "testing"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "React SPA tests, component behavior, forms, API states, test selection. Verify observable behavior with existing tools; do not import Next or Ionic recipes."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/testing/SKILL.md",
+          "sha256": "f0dc90c97dfa2978dc36754fc8db4ce3e5260ce4cd8fa51ecb3c0d327cdb263f"
+        },
+        {
+          "path": "skills/shared/architecture-selection.md",
+          "sha256": "778549d60d37c120a2175d64dc532546f488408a473b5a2362fcd34066fd1df6"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "frontend/typescript",
+      "name": "typescript",
+      "description": "TypeScript defaults for explicit typing, utility types, and schema-driven contracts. Trigger: When authoring or reviewing frontend TypeScript models, APIs, and shared type utilities.",
+      "path": "skills/frontend/typescript",
+      "version": "2.2",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "framework"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "TypeScript defaults for explicit typing, utility types, and schema-driven contracts. Trigger: When authoring or reviewing frontend TypeScript models, APIs, and shared type utilities."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/typescript/SKILL.md",
+          "sha256": "8043b8e815addb53d6b0064789cf63effd48ffc8e1038b961d7dfb4ded265d49"
+        }
+      ]
+    },
+    {
+      "id": "frontend/zod-4",
+      "name": "zod-4",
+      "description": "Operational Zod 4 rules for schema-first validation and type-safe form flows. Trigger: When creating, updating, or integrating Zod schemas in frontend forms and data boundaries.",
+      "path": "skills/frontend/zod-4",
+      "version": "1.3",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "validation"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "Operational Zod 4 rules for schema-first validation and type-safe form flows. Trigger: When creating, updating, or integrating Zod schemas in frontend forms and data boundaries."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/zod-4/SKILL.md",
+          "sha256": "36d3f92e8f6ed823b9c1990e6f917be71adb4a0e706c735942da6fc248e7df3e"
+        }
+      ]
+    },
+    {
+      "id": "frontend/zustand-5",
+      "name": "zustand-5",
+      "description": "Operational Zustand 5 rules for store boundaries, selectors, and async state flow. Trigger: When creating, refactoring, or reviewing Zustand 5 stores and selectors.",
+      "path": "skills/frontend/zustand-5",
+      "version": "2.2",
+      "scopes": [
+        "frontend"
+      ],
+      "topics": [
+        "state"
+      ],
+      "technologies": [
+        "frontend"
+      ],
+      "triggers": [
+        "Operational Zustand 5 rules for store boundaries, selectors, and async state flow. Trigger: When creating, refactoring, or reviewing Zustand 5 stores and selectors."
+      ],
+      "files": [
+        {
+          "path": "skills/frontend/zustand-5/SKILL.md",
+          "sha256": "179de039a2630313e82aff9bc21ca6889c97b62e742395d57399ee915ceb6078"
+        }
+      ]
+    },
+    {
+      "id": "shared/accessibility",
+      "name": "accessibility",
+      "description": "Trigger: accessibility, a11y, keyboard, focus, labels, UI feedback. Improve changed interfaces and report verification limits.",
+      "path": "skills/shared/accessibility",
+      "version": "1.0",
+      "scopes": [
+        "frontend",
+        "backend",
+        "app"
+      ],
+      "topics": [
+        "accessibility"
+      ],
+      "technologies": [
+        "any"
+      ],
+      "triggers": [
+        "accessibility, a11y, keyboard, focus, labels, UI feedback. Improve changed interfaces and report verification limits."
+      ],
+      "files": [
+        {
+          "path": "skills/shared/accessibility/SKILL.md",
+          "sha256": "f3605fd9a11bc1fc8fa424a77a553a46463ca21783b70a7b19faf905c98e3f4a"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "shared/cli-design",
+      "name": "cli-design",
+      "description": "Trigger: CLI design, commands, flags, help, stdin/stdout/stderr. Define compatible human and automation interfaces without choosing architecture.",
+      "path": "skills/shared/cli-design",
+      "version": "1.0",
+      "scopes": [
+        "frontend",
+        "backend",
+        "app"
+      ],
+      "topics": [
+        "cli"
+      ],
+      "technologies": [
+        "any"
+      ],
+      "triggers": [
+        "CLI design, commands, flags, help, stdin/stdout/stderr. Define compatible human and automation interfaces without choosing architecture."
+      ],
+      "files": [
+        {
+          "path": "skills/shared/architecture-selection.md",
+          "sha256": "778549d60d37c120a2175d64dc532546f488408a473b5a2362fcd34066fd1df6"
+        },
+        {
+          "path": "skills/shared/cli-design/SKILL.md",
+          "sha256": "2b27722ece32882bb46e401bc76ae30cfe767935738a8d535073adbfdfe36219"
+        },
+        {
+          "path": "skills/shared/cli-design/assets/line-tally/LineTally.csproj",
+          "sha256": "072c59e947e482097e6c1510108da28ae45feb0fb3ed4c3b930d329e605d1e29"
+        },
+        {
+          "path": "skills/shared/cli-design/assets/line-tally/Program.cs",
+          "sha256": "2618ec65e5906fb5b45fe79eae7255f233b54f6e644b6b113097155ad9ec098e"
+        },
+        {
+          "path": "skills/shared/cli-design/assets/line-tally/README.md",
+          "sha256": "343e5340bad1ffeafe609702128722b88eb5bc481b17bb205ebb09a67d530211"
+        },
+        {
+          "path": "skills/shared/cli-design/assets/line-tally/contract.json",
+          "sha256": "3ba7ec92eb275c43c38410358c53198a552e81dc69dc393c64639fe2a27a8fc2"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "shared/diagnosing-bugs",
+      "name": "diagnosing-bugs",
+      "description": "Trigger: bug, regression, unexpected behavior, diagnosis. Reproduce, isolate and verify the smallest evidence-based correction.",
+      "path": "skills/shared/diagnosing-bugs",
+      "version": "1.0",
+      "scopes": [
+        "frontend",
+        "backend",
+        "app"
+      ],
+      "topics": [
+        "debugging"
+      ],
+      "technologies": [
+        "any"
+      ],
+      "triggers": [
+        "bug, regression, unexpected behavior, diagnosis. Reproduce, isolate and verify the smallest evidence-based correction."
+      ],
+      "files": [
+        {
+          "path": "skills/shared/diagnosing-bugs/SKILL.md",
+          "sha256": "3529a20acba6cc51b93d959739bf4d465a913728d49c7d86144ee6a3f961ef2d"
+        },
+        {
+          "path": "skills/shared/security/application-checks.md",
+          "sha256": "7e4f5a307899e9d1c6762b4ed7a65b67fb4541bb9c7a0c0b1cd86372d4f575ab"
+        },
+        {
+          "path": "skills/shared/security/baseline.md",
+          "sha256": "8036f1c586a4bbfc7edd0cd3fbc79b4c6bf0baca0c383fe357dec45531e65c58"
+        },
+        {
+          "path": "skills/shared/security/delivery-checks.md",
+          "sha256": "a491c23c0c07543731ac48c4ffdd863d69a251e2bb4b6a40af43dfa55a1569c7"
+        }
+      ]
+    },
+    {
+      "id": "shared/github-pr",
+      "name": "github-pr",
+      "description": "Operational GitHub Pull Request rules for branch, title, body, and merge readiness. Trigger: When creating, updating, or reviewing pull requests with GitHub CLI workflows.",
+      "path": "skills/shared/github-pr",
+      "version": "1.1",
+      "scopes": [
+        "frontend",
+        "backend",
+        "app"
+      ],
+      "topics": [
+        "collaboration"
+      ],
+      "technologies": [
+        "any"
+      ],
+      "triggers": [
+        "Operational GitHub Pull Request rules for branch, title, body, and merge readiness. Trigger: When creating, updating, or reviewing pull requests with GitHub CLI workflows."
+      ],
+      "files": [
+        {
+          "path": "skills/shared/github-pr/SKILL.md",
+          "sha256": "a8fb922e593c9dd2e85bbd9f16f4989c075dd937a9725f137168e035a827072f"
+        }
+      ]
+    }
+  ]
+}
