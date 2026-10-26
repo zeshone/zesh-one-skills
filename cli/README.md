@@ -15,7 +15,11 @@ zesh-skills --es
 
 Use `--es` to localize prompts, scope/architecture choices and descriptions, picker controls, previews, confirmations and app diagnostics into Spanish. There is no extra startup question or saved language preference. Spanish confirmations accept `s`, `si`, `sí`, `y` or `yes`; English behavior remains unchanged. `--es=false` explicitly keeps English.
 
-The language flag does not translate skill IDs, flags, JSON formats, custom user values, downloaded skill content or generated agent documents. Skill descriptions from the remote catalog remain in the repository's original language; technical OS details may also retain their original language and are identified as such. Predefined architecture profiles are stored by stable ID, regardless of the displayed language.
+Architecture names stay recognizable in Spanish: they remain in English or accompany their translation, for example `Arquitectura Limpia (Clean Architecture)`. Hybrid names such as `CQRS + event sourcing` stay in English to keep the menu compact. Explanations remain Spanish; familiar terms such as UI, view models, focus, feedback and triggers retain their English names.
+
+In the skill catalog (`--list` and the interactive skill picker), **only descriptions** are localized: skill names/IDs and topic headings/tags keep their original English. With `--es`, a validated remote `descriptionEs` takes precedence. The binary also bundles 35 Spanish translations for the original catalog, used only when both ID and exact original English description match. Unknown skills or changed descriptions without a translation honestly fall back to English; they remain discoverable. Without `--es` (or with `--es=false`), descriptions stay exactly as supplied in English.
+
+The language flag does not translate flags, JSON formats, custom user values, downloaded skill content or generated agent documents. Localized descriptions are presentation-only: the manifest and installed instruction tables retain canonical original metadata, without `descriptionEs`. Technical OS details may retain their original language and are identified as such. Predefined architecture profiles are stored by stable ID, regardless of the displayed language.
 
 The wizard confirms the current directory as the project root, detects framework manifests and existing instruction files, asks for the architecture, then opens a keyboard-driven checkbox picker. Every relevant skill remains available with its topic and a brief description; no skill IDs need to be typed.
 
@@ -105,7 +109,7 @@ npm test                 # Existing Node-only suite, including catalog freshness
 npm run test:zesh-cli     # Separate executable Go acceptance/unit checks
 ```
 
-`skills-index.json` uses `schemaVersion: 1` and stable `<domain>/<directory>` IDs. Entries contain name, description, scopes, topics, technologies, triggers, source path, version and file hashes. The generator reads all `SKILL.md` YAML frontmatter, including folded descriptions. Add a skill, regenerate the catalog and submit both together; no binary rebuild is needed. The pipeline rejects a stale catalog. A future incompatible catalog schema requires a compatible CLI update.
+`skills-index.json` uses `schemaVersion: 1` and stable `<domain>/<directory>` IDs. Entries contain name, description, scopes, topics, technologies, triggers, source path, version and file hashes. Optional `descriptionEs` is a bounded plain-text Spanish description (up to 1024 UTF-8 bytes, no control characters); missing or empty values remain valid legacy input. The generator reads all `SKILL.md` YAML frontmatter, including folded descriptions. Add a skill, regenerate the catalog and submit both together; no binary rebuild is needed. The pipeline rejects a stale catalog. A future incompatible catalog schema requires a compatible CLI update.
 
 Optional frontmatter overrides allow precise classification without editing the generator:
 
@@ -118,6 +122,8 @@ metadata:
     technologies: [react]
     triggers: ["Landing-page layout and visual composition"]
 ```
+
+For a new skill, optional `metadata.catalog.descriptionEs` supplies the Spanish UI description without a binary rebuild. The generator otherwise uses `cli/skill_descriptions_es.json` only for an exact ID/source match; that file is optional in legacy fixtures and never drives discovery. Keep the canonical English `description` unchanged. Invalid authored translations are rejected before catalog generation.
 
 Without overrides, existing domain metadata and conservative topic defaults are used. Scopes are `frontend`, `backend`, `app`; topics are descriptive and extensible. Shared skills may apply to several scopes. Detection suggests scopes from known package manifests and .NET project files without running tools; it does not hide skills based on an inferred framework version. Review version compatibility when selecting .NET 8 versus .NET 10 or framework-specific skills.
 

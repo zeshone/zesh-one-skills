@@ -50,6 +50,7 @@ func (l language) errorText(err error) string {
 	}
 	for _, pair := range [][2]string{
 		{"flag provided but not defined: ", "opción no definida: "},
+		{"incomplete skill: ", "skill incompleta: "},
 		{"unknown scope: ", "alcance desconocido: "}, {"unknown agent: ", "agente desconocido: "}, {"unknown skill: ", "skill desconocida: "}, {"invalid skill number: ", "número de skill no válido: "},
 		{"cancelled: local changes preserved in ", "cancelado: se conservaron los cambios locales en "}, {"checksum mismatch: ", "verificación SHA-256 fallida: "},
 		{"cannot prepare interactive terminal: ", "no se pudo preparar la terminal interactiva: "}, {"cannot restore terminal: ", "no se pudo restaurar la terminal: "},
@@ -96,7 +97,7 @@ var spanishText = map[string]string{
 	"Additional root instruction file (.md; optional)": "Archivo adicional de instrucciones en la raíz (.md; opcional)",
 	"\nInstall %d selected skill(s) into %s\nSource: main @ %s\nArchitecture: %s\nAgents: %s\nSkills: %s\nContent: .zesh-skills/content/\n": "\nSkills a instalar: %d\nDestino: %s\nFuente: main @ %s\nArquitectura: %s\nAgentes: %s\nSkills: %s\nContenido: .zesh-skills/content/\n",
 	"Instruction files: ":                                             "Archivos de instrucciones: ",
-	"\n  %s (managed index and triggers)\n":                           "\n  %s (índice administrado y condiciones de uso)\n",
+	"\n  %s (managed index and triggers)\n":                           "\n  %s (índice administrado y triggers)\n",
 	"Proceed? (y/N)":                                                  "¿Continuar? (s/N)",
 	"Replace local changes in %s? (y/N)":                              "¿Reemplazar los cambios locales en %s? (s/N)",
 	" (modified managed index)":                                       " (índice administrado modificado)",
@@ -112,13 +113,13 @@ var spanishText = map[string]string{
 	"Enter: confirm | a: all | n: none | r: reset":         "Enter: confirmar | a: todas | n: ninguna | r: restablecer",
 	"q or Ctrl-C: cancel (no files changed)":               "q o Ctrl-C: cancelar (sin modificar archivos)",
 	"Enter: choose highlighted profile | q/Ctrl-C: cancel": "Enter: elegir perfil resaltado | q/Ctrl-C: cancelar",
-	"Framework-neutral debugging baseline":                 "Base de diagnóstico independiente del framework",
-	"UI keyboard, focus and feedback baseline":             "Base de teclado, foco y respuesta de la interfaz",
+	"Framework-neutral debugging baseline":                 "Base de debugging independiente del framework",
+	"UI keyboard, focus and feedback baseline":             "Base de teclado, focus y feedback para UI",
 	"Matches project dependency ":                          "Coincide con la dependencia del proyecto ",
-	"accessibility":                                        "Accesibilidad", "architecture": "Arquitectura", "cli": "CLI", "collaboration": "Colaboración",
-	"data-access": "Acceso a datos", "debugging": "Diagnóstico", "design": "Diseño", "framework": "Framework",
-	"observability": "Observabilidad", "performance": "Rendimiento", "security": "Seguridad", "state": "Estado",
-	"testing": "Pruebas", "validation": "Validación",
+	"accessibility":                                        "Accesibilidad (Accessibility)", "architecture": "Arquitectura (Architecture)", "cli": "CLI", "collaboration": "Colaboración (Collaboration)",
+	"data-access": "Acceso a datos (Data Access)", "debugging": "Depuración (Debugging)", "design": "Diseño (Design)", "framework": "Framework",
+	"observability": "Observabilidad (Observability)", "performance": "Rendimiento (Performance)", "security": "Seguridad (Security)", "state": "Estado (State)",
+	"testing": "Pruebas (Testing)", "validation": "Validación (Validation)",
 }
 
 const helpTextES = `Uso: zesh-skills [opciones]
@@ -145,7 +146,13 @@ Ejemplos:
   zesh-skills --es --scope frontend --list
   zesh-skills --es --non-interactive --agents pi --architecture mockup --skills frontend/tailwind-4 --yes
 
-Los IDs, valores personalizados y documentos descargados no se traducen.
+Los nombres técnicos se conservan en inglés, solos o entre paréntesis:
+Arquitectura Limpia (Clean Architecture).
+En el catálogo solo se traducen las descripciones de skills disponibles;
+los nombres, IDs y temas conservan el inglés original. Se prefieren descripciones
+remotas en español; hay 35 traducciones integradas para descripciones originales
+conocidas. Sin traducción o si cambia el original, se muestra el inglés.
+Los valores personalizados y documentos descargados no se traducen.
 Se conservan las selecciones instaladas; los cambios locales requieren confirmación.
 Códigos de salida: 0 éxito/cancelación, 1 fallo de ejecución, 2 uso/entrada no válidos.
 `

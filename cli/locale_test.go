@@ -11,7 +11,7 @@ func TestSpanishHelpAndErrorsNeedNoNetworkOrWrites(t *testing.T) {
 	root := t.TempDir()
 	t.Chdir(root)
 	code, out, stderr := invoke([]string{"--es", "--help"}, "", Source{}, false)
-	if code != 0 || stderr != "" || !strings.HasPrefix(out, "Uso: zesh-skills") || !strings.Contains(out, "--es") || !strings.Contains(out, "arquitectura") {
+	if code != 0 || stderr != "" || !strings.HasPrefix(out, "Uso: zesh-skills") || !strings.Contains(out, "--es") || !strings.Contains(out, "arquitectura") || !strings.Contains(out, "Arquitectura Limpia (Clean Architecture)") {
 		t.Fatalf("%d %q %q", code, out, stderr)
 	}
 	for _, tt := range []struct {
@@ -74,7 +74,7 @@ func TestLanguageDoesNotChangeInstalledProtocols(t *testing.T) {
 func TestSpanishListAndConflictRejectionPreserveChoices(t *testing.T) {
 	root := t.TempDir()
 	code, out, stderr := invoke([]string{"--es", "--root", root, "--scope", "frontend", "--list"}, "", testSource(t), false)
-	want := "\nDiseño\n  [ ] 1. frontend/design — UI layout\n\nSeguridad\n  [ ] 2. frontend/security — Security checks\n"
+	want := "\ndesign\n  [ ] 1. frontend/design — UI layout\n\nsecurity\n  [ ] 2. frontend/security — Security checks\n"
 	if code != 0 || out != want || stderr != "" {
 		t.Fatalf("%d %q %q", code, out, stderr)
 	}
@@ -94,7 +94,7 @@ func TestSpanishListAndConflictRejectionPreserveChoices(t *testing.T) {
 		t.Fatal("Spanish rejection modified data")
 	}
 }
-func TestSpanishHybridShowsTranslatedLabelButStoresCanonicalID(t *testing.T) {
+func TestSpanishHybridPreservesEnglishNameAndCanonicalID(t *testing.T) {
 	root := t.TempDir()
 	options := architectureOptions(true)
 	index := 0
@@ -103,7 +103,7 @@ func TestSpanishHybridShowsTranslatedLabelButStoresCanonicalID(t *testing.T) {
 	}
 	args := []string{"--es", "--root", root, "--scope", "frontend", "--agents", "pi", "--skills", "frontend/design", "--instructions", "AGENTS.md", "--yes"}
 	code, out, stderr := invoke(args, "\n"+strings.Repeat("\x1b[B", index)+"\n", testSource(t), true)
-	if code != 0 || stderr != "" || !strings.Contains(out, "Arquitectura: Microservicios + eventos") {
+	if code != 0 || stderr != "" || !strings.Contains(out, "Arquitectura: Microservices + events") || !strings.Contains(out, "índice administrado y triggers") {
 		t.Fatalf("%d %q %q", code, out, stderr)
 	}
 	if !strings.Contains(readInstalled(t, root, "AGENTS.md"), "Architecture: microservices-events") {
@@ -124,9 +124,6 @@ func TestListMultiTopicSpacingPreservesEnglishAndPickerContracts(t *testing.T) {
 		heading, security, pickerTopics := "design, testing", "security", "[design,testing]"
 		if spanish {
 			args = append(args, "--es")
-			heading = "Diseño, Pruebas"
-			security = "Seguridad"
-			pickerTopics = "[Diseño,Pruebas]"
 		}
 		code, stdout, stderr := invoke(args, "", testCatalogSource(t, catalog, files), false)
 		want := "\n" + heading + "\n  [ ] 1. frontend/design — UI layout\n\n" + security + "\n  [ ] 2. frontend/security — Security checks\n"
@@ -141,6 +138,80 @@ func TestListMultiTopicSpacingPreservesEnglishAndPickerContracts(t *testing.T) {
 		if err != nil || len(entries) != 0 {
 			t.Fatal("listing changed project", err)
 		}
+	}
+}
+
+func TestSpanishArchitectureNamesRetainEnglishTerminology(t *testing.T) {
+	root := t.TempDir()
+	input := "\n" + strings.Repeat("\x1b[B", 19) + "q"
+	code, out, stderr := invoke([]string{"--es", "--root", root, "--scope", "frontend"}, input, Source{}, true)
+	if code != 0 || stderr != "" {
+		t.Fatalf("%d %q %q", code, out, stderr)
+	}
+	for _, name := range []string{
+		"Minimal monolith", "Layered / N-tier", "Vertical slices", "Clean Architecture",
+		"Hexagonal / ports and adapters", "Onion Architecture", "Modular monolith",
+		"Microservices", "Event-driven", "Serverless functions", "Model-View-Controller",
+		"Model-View-ViewModel", "Component-based UI", "Feature-based UI",
+		"Modular monolith + vertical slices", "Clean + vertical slices",
+		"Hexagonal + domain-driven design", "Microservices + events", "CQRS + event sourcing",
+		"Arquitectura Limpia (Clean Architecture)", "Elige la arquitectura",
+	} {
+		if !strings.Contains(out, name) {
+			t.Errorf("Spanish wizard lost recognizable technical name %q", name)
+		}
+	}
+	if entries, err := os.ReadDir(root); err != nil || len(entries) != 0 {
+		t.Fatalf("cancelled menu changed project: %v %v", entries, err)
+	}
+}
+
+func TestSpanishTechnicalTopicsRetainEnglishTerminology(t *testing.T) {
+	for _, tt := range []struct{ topic, label string }{
+		{"accessibility", "Accesibilidad (Accessibility)"}, {"architecture", "Arquitectura (Architecture)"},
+		{"cli", "CLI"}, {"collaboration", "Colaboración (Collaboration)"},
+		{"data-access", "Acceso a datos (Data Access)"}, {"debugging", "Depuración (Debugging)"},
+		{"design", "Diseño (Design)"}, {"framework", "Framework"},
+		{"observability", "Observabilidad (Observability)"}, {"performance", "Rendimiento (Performance)"},
+		{"security", "Seguridad (Security)"}, {"state", "Estado (State)"},
+		{"testing", "Pruebas (Testing)"}, {"validation", "Validación (Validation)"},
+	} {
+		t.Run(tt.topic, func(t *testing.T) {
+			root := t.TempDir()
+			catalog, files := specimen()
+			catalog.Skills = catalog.Skills[:1]
+			catalog.Skills[0].Topics = []string{tt.topic}
+			code, out, stderr := invoke([]string{"--es", "--root", root, "--scope", "frontend", "--list"}, "", testCatalogSource(t, catalog, files), false)
+			want := "\n" + tt.topic + "\n  [ ] 1. frontend/design — UI layout\n"
+			if code != 0 || out != want || stderr != "" {
+				t.Fatalf("%d %q %q; want %q", code, out, stderr, want)
+			}
+			if entries, err := os.ReadDir(root); err != nil || len(entries) != 0 {
+				t.Fatalf("list changed project: %v %v", entries, err)
+			}
+		})
+	}
+}
+
+func TestSpanishSuggestionTerminologyRetainsEnglish(t *testing.T) {
+	for _, tt := range []struct{ topic, reason string }{
+		{"debugging", "Base de debugging independiente del framework"},
+		{"accessibility", "Base de teclado, focus y feedback para UI"},
+	} {
+		t.Run(tt.topic, func(t *testing.T) {
+			root := t.TempDir()
+			catalog, files := specimen()
+			catalog.Skills[0].Topics = []string{tt.topic}
+			catalog.Skills[0].Technologies = []string{"any"}
+			args := []string{"--es", "--root", root, "--scope", "frontend", "--architecture", "clean", "--agents", "pi"}
+			code, out, stderr := invoke(args, "\nq", testCatalogSource(t, catalog, files), true)
+			if code != 0 || stderr != "" || !strings.Contains(out, tt.reason) {
+				t.Fatalf("%d %q %q", code, out, stderr)
+			}
+			if entries, err := os.ReadDir(root); err != nil || len(entries) != 0 {
+				t.Fatalf("cancelled suggestions changed project: %v %v", entries, err)
+			}
+		})
 	}
 }
 

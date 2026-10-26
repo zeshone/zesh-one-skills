@@ -84,6 +84,7 @@ func declaredMajor(version string) int {
 
 type pickerOption struct {
 	ID, Label, Description string
+	DescriptionES          string
 	Topics                 []string
 }
 
@@ -96,14 +97,17 @@ type pickerModel struct {
 	title          string
 	single         bool
 	lang           language
+	catalog        bool
 }
 
 func newPicker(skills []Skill, suggestions map[string]string) *pickerModel {
 	options := []pickerOption{}
 	for _, skill := range skills {
-		options = append(options, pickerOption{ID: skill.ID, Label: skill.ID, Description: skill.Description, Topics: skill.Topics})
+		options = append(options, pickerOption{ID: skill.ID, Label: skill.ID, Description: skill.Description, DescriptionES: skill.DescriptionES, Topics: skill.Topics})
 	}
-	return newOptionPicker(options, suggestions, "Select project skills", false)
+	m := newOptionPicker(options, suggestions, "Select project skills", false)
+	m.catalog = true
+	return m
 }
 func newOptionPicker(options []pickerOption, suggestions map[string]string, title string, single bool) *pickerModel {
 	m := &pickerModel{options: options, selected: map[string]bool{}, suggestions: suggestions, title: title, single: single}
@@ -224,7 +228,11 @@ func (m *pickerModel) view(width, height int) string {
 		}
 		topic := ""
 		if len(s.Topics) > 0 {
-			topic = " [" + m.lang.topics(s.Topics) + "]"
+			topics := m.lang.topics(s.Topics)
+			if m.catalog {
+				topics = strings.Join(s.Topics, ",")
+			}
+			topic = " [" + topics + "]"
 		}
 		box := "[" + checked + "]"
 		if m.single {
@@ -233,7 +241,11 @@ func (m *pickerModel) view(width, height int) string {
 				box = "(o)"
 			}
 		}
-		lines = append(lines, fmt.Sprintf("%s %s %s%s%s", cursor, box, label, topic, tag), "    "+s.Description)
+		description := s.Description
+		if m.catalog {
+			description = m.lang.skillDescription(Skill{ID: s.ID, Description: s.Description, DescriptionES: s.DescriptionES})
+		}
+		lines = append(lines, fmt.Sprintf("%s %s %s%s%s", cursor, box, label, topic, tag), "    "+description)
 	}
 	reason := m.lang.text("* suggested")
 	if len(m.options) > 0 && m.suggestions[m.options[m.cursor].ID] != "" {

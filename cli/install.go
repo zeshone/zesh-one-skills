@@ -129,6 +129,8 @@ func (in Installer) Install(root string, c Catalog, commit string, ids, agents [
 			}
 			writes[target] = data
 		}
+		// Catalog translations are presentation-only, not installed metadata.
+		s.DescriptionES = ""
 		state.Skills[id] = s
 	}
 	allAgents := map[string]bool{}

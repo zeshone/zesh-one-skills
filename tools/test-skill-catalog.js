@@ -1,7 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 const { buildCatalog } = require('./skill-catalog');
 const root = path.resolve(__dirname, '..');
@@ -12,6 +11,12 @@ const discovered = fs.readdirSync(path.join(root, 'skills'), { recursive: true }
   .filter(name => path.basename(name) === 'SKILL.md');
 assert.ok(catalog.skills.length > 0);
 assert.equal(catalog.skills.length, discovered.length);
+const translations = JSON.parse(fs.readFileSync(path.join(root, 'cli/skill_descriptions_es.json'), 'utf8'));
+assert.equal(Object.keys(translations).length, 35, 'explicit old-main fallback coverage');
+for (const skill of catalog.skills) {
+  assert.equal(translations[skill.id].source, skill.description, `stale English source: ${skill.id}`);
+  assert.equal(skill.descriptionEs, translations[skill.id].es);
+}
 for (const skill of catalog.skills) {
   assert.ok(skill.description && skill.triggers.length && skill.topics.length && skill.scopes.length);
   assert.ok(skill.files.some(f => f.path === `${skill.path}/SKILL.md`));
@@ -25,7 +30,8 @@ assert.ok(catalog.skills.some(s => s.id === 'frontend/security'));
 assert.ok(catalog.skills.some(s => s.id === 'backend/security'));
 assert.ok(catalog.skills.find(s => s.id === 'shared/cli-design').files.some(f => f.path.endsWith('baseline.md')));
 assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'skills-index.json'), 'utf8')), catalog, 'catalog is stale: npm run catalog:generate');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'zesh-catalog-'));
+fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
+const tmp = fs.mkdtempSync(path.join(root, 'dist/zesh-catalog-'));
 try {
   fs.mkdirSync(path.join(tmp, 'skills/frontend/new-design'), { recursive: true });
   fs.writeFileSync(path.join(tmp, 'skills/frontend/new-design/SKILL.md'), '---\nname: new-design\ndescription: >\n  Trigger: design.\n  New UI guidance.\nmetadata:\n  version: "1.0"\n---\n# Design\n');
@@ -34,6 +40,30 @@ try {
   assert.match(added.description, /New UI guidance/);
   assert.deepEqual(added.scopes, ['frontend']);
   assert.ok(added.topics.length);
+  assert.equal(added.descriptionEs, undefined, 'legacy fixture needs no translations file');
+  const entry = path.join(tmp, 'skills/frontend/new-design/SKILL.md');
+  const original = fs.readFileSync(entry, 'utf8');
+  const withTranslation = value => original.replace('  version: "1.0"', `  version: "1.0"\n  catalog:\n    descriptionEs: ${JSON.stringify(value)}`);
+  fs.writeFileSync(entry, withTranslation('Nueva guía de interfaces.'));
+  assert.equal(buildCatalog(tmp).skills[0].descriptionEs, 'Nueva guía de interfaces.', 'new skills support authored Spanish');
+  for (const value of ['bad\ntext', 'x'.repeat(1025), 'á'.repeat(513), 42, ['texto'], null, true]) {
+    fs.writeFileSync(entry, withTranslation(value));
+    assert.throws(() => buildCatalog(tmp), /Invalid Spanish description/);
+  }
+  fs.writeFileSync(entry, original);
+  fs.mkdirSync(path.join(tmp, 'cli'));
+  const translations = { [added.id]: { source: added.description, es: 'Guía de diseño.' } };
+  fs.writeFileSync(path.join(tmp, 'cli/skill_descriptions_es.json'), JSON.stringify(translations));
+  assert.equal(buildCatalog(tmp).skills[0].descriptionEs, 'Guía de diseño.');
+  translations[added.id].source = 'Changed source';
+  fs.writeFileSync(path.join(tmp, 'cli/skill_descriptions_es.json'), JSON.stringify(translations));
+  assert.equal(buildCatalog(tmp).skills[0].descriptionEs, undefined);
+  translations[added.id].source = added.description;
+  fs.writeFileSync(path.join(tmp, 'cli/skill_descriptions_es.json'), JSON.stringify(translations));
+  fs.writeFileSync(entry, withTranslation('Traducción prioritaria.'));
+  assert.equal(buildCatalog(tmp).skills[0].descriptionEs, 'Traducción prioritaria.');
+  fs.writeFileSync(entry, withTranslation(''));
+  assert.equal(buildCatalog(tmp).skills[0].descriptionEs, 'Guía de diseño.', 'empty optional metadata uses matched fallback');
 } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 // Exercise the actual maintenance command against isolated state, never the real catalog.
 const { spawnSync } = require('node:child_process');
