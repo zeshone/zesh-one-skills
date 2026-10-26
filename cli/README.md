@@ -9,9 +9,19 @@ cd your-project
 zesh-skills
 ```
 
-The wizard confirms the current directory as the project root, detects framework manifests and existing instruction files, asks for the architecture, then lists every relevant skill grouped by topic with its description. Select individual IDs or numbers; no topic is mandatory. For a landing-page mockup, choose design skills and leave security/data-access skills unselected. Shared skills are offered, never silently selected.
+The wizard confirms the current directory as the project root, detects framework manifests and existing instruction files, asks for the architecture, then opens a keyboard-driven checkbox picker. Every relevant skill remains available with its topic and a brief description; no skill IDs need to be typed.
 
-The final preview lists source commit, selected IDs, destination directories and instruction files. Answer `y` to install or `n` to leave the project unchanged. Enter `none` at skill selection to cancel. Architecture accepts the displayed options or your own text; it does not scaffold or alter your application's architecture.
+| Key | Action |
+| --- | --- |
+| Up/Down or `j`/`k` | Move through the scrolling skill list |
+| Space | Check/uncheck the focused skill |
+| Enter | Accept the current selection |
+| `a` / `n` / `r` | Select all / clear selection / restore suggestions |
+| `q` or Ctrl-C | Cancel without installing anything |
+
+A small suggested set is visibly checked and marked `*`. Suggestions include framework-neutral debugging, accessibility for frontend/apps, and matching framework/design foundations when package declarations provide evidence. At most five are suggested. Versioned skills require the same declared package major; unknown ranges and conflicting monorepo versions do not select a versioned profile. Missing evidence never forces .NET 8/10 or a new UI library. All suggestions can be unchecked; security/data-access skills are not mandatory. For a landing-page mockup, keep only the design skills you want. Descriptions and suggestion reasons stay visible, and the screen/cursor/input mode are restored on confirmation, cancellation or input failure. Scope and agent setup still use the short initial questions.
+
+The final preview lists source commit, selected IDs, destination directories and instruction files. Answer `y` to install or `n` to leave the project unchanged. Confirming an empty picker selection also cancels. Architecture accepts the displayed options or your own text; it does not scaffold or alter your application's architecture. Clearing choices is not an uninstall: previously installed selections are retained.
 
 ```bash
 zesh-skills --scope frontend --list
@@ -31,10 +41,10 @@ zesh-skills --scope frontend,backend --agents claude,codex \
 
 ## Build a dependency-free executable
 
-Development requires Go 1.25+; the installed binary requires neither Go, Node, Git nor a .NET runtime. Network access is required to install/update skills.
+Development requires Go 1.25+; `golang.org/x/term` and its platform support are downloaded as pinned Go modules on the first build. They are compiled into the executable: the installed binary requires neither Go, Node, Git nor a .NET runtime. Network access is required to install/update skills. The picker supports Windows consoles/Windows Terminal and ANSI terminals on Linux/macOS; redirected input/output uses the non-interactive flag contract instead of changing console modes.
 
 ```bash
-# Go only; no third-party Go modules.
+# Go only; terminal support is compiled into the executable.
 CGO_ENABLED=0 go build -trimpath -o dist/zesh-skills ./cli
 
 # Repository convenience scripts use Node only during development.
@@ -70,7 +80,7 @@ Paths are validated for portability, symbolic-link destinations are refused, and
 
 ## Maintain the remote catalog
 
-**The CLI cannot download this new catalog from production until `skills-index.json` and its source changes are merged into the repository's `main`.** Local tests use isolated HTTP fixtures; building a binary alone does not publish skills or a release.
+Installations read the published `skills-index.json` from the repository's `main`. Future skill changes must publish the regenerated catalog alongside their source changes. Local tests use isolated HTTP fixtures; building a binary alone does not publish skills or a release.
 
 ```bash
 npm run catalog:generate -- --help  # Side-effect-free catalog command help

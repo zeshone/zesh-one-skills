@@ -15,6 +15,11 @@ import (
 func testSource(t *testing.T) Source {
 	t.Helper()
 	cat, files := specimen()
+	return testCatalogSource(t, cat, files)
+}
+
+func testCatalogSource(t *testing.T, cat Catalog, files map[string][]byte) Source {
+	t.Helper()
 	commit := strings.Repeat("a", 40)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -76,8 +81,8 @@ func TestCLIListsEveryRelevantTopicWithoutWriting(t *testing.T) {
 func TestCLILandingMockupInstallsDesignOnly(t *testing.T) {
 	root := t.TempDir()
 	source := testSource(t)
-	// root, scope, architecture (free text), agents, skill IDs, extra instructions, confirmation.
-	input := "\nfrontend\nlanding mockup\nclaude,codex,opencode,pi\nfrontend/design\n\ny\n"
+	// Root, scope, architecture, agents; Space/Enter choose design in the TUI; extra file and confirmation.
+	input := "\nfrontend\nlanding mockup\nclaude,codex,opencode,pi\n \n\ny\n"
 	code, out, err := invoke([]string{"--root", root}, input, source, true)
 	if code != 0 || err != "" || !strings.Contains(out, "Architecture") || !strings.Contains(out, "Security checks") || !strings.Contains(out, "Installed 1 selected skill") {
 		t.Fatalf("%d %q %q", code, out, err)
@@ -112,7 +117,7 @@ func TestCLIRejectAndCancelLeaveFilesUnchanged(t *testing.T) {
 		t.Fatal("rejection changed file")
 	}
 	empty := t.TempDir()
-	code, out, err = invoke([]string{"--root", empty}, "\nfrontend\nmockup\npi\nfrontend/design\n\nn\n", source, true)
+	code, out, err = invoke([]string{"--root", empty}, "\nfrontend\nmockup\npi\nq", source, true)
 	if code != 0 || err != "" || !strings.Contains(out, "Cancelled") {
 		t.Fatalf("%d %q %q", code, out, err)
 	}

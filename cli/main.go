@@ -13,13 +13,17 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 var version = "dev"
 
 const helpText = `Usage: zesh-skills [options]
 Install selected project-local skills from zeshone/zesh-one-skills main.
-No arguments: interactive wizard when stdin is a terminal. Default root: current directory.
+No arguments: interactive wizard and checkbox skill picker on a terminal. Default root: current directory.
+Picker: arrows/j/k move; Space toggles; Enter confirms; a all, n none, r reset; q/Ctrl-C cancels.
+Basic suggestions are preselected, optional and editable; automation flags do not use suggestions.
 
   --root PATH             Project root (default: current directory)
   --scope SCOPES          Comma-separated frontend,backend,app (mixed allowed)
@@ -44,8 +48,7 @@ Exit codes: 0 success/cancel, 1 download/filesystem/conflict failure, 2 invalid 
 `
 
 func main() {
-	info, err := os.Stdin.Stat()
-	tty := err == nil && info.Mode()&os.ModeCharDevice != 0
+	tty := term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
 	os.Exit(Run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr, github(), tty))
 }
 
@@ -191,17 +194,22 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 		return failure(err)
 	}
 	relevant := relevantSkills(c, scopes)
-	if list || interactive {
+	if list || (interactive && skillText != "") {
 		showSkills(out, relevant)
 	}
 	if list {
 		return 0
 	}
 	if skillText == "" {
-		skillText, err = ask("Select skill IDs or numbers (comma-separated; none cancels)", "")
-		if err != nil {
-			return usage(err)
+		selected, accepted, e := selectSkills(reader, input, out, relevant, basicSuggestions(relevant, scopes, detected.PackageMajors))
+		if e != nil {
+			return failure(e)
 		}
+		if !accepted || len(selected) == 0 {
+			fmt.Fprintln(out, "Cancelled; no files changed.")
+			return 0
+		}
+		skillText = strings.Join(selected, ",")
 	}
 	if skillText == "" || skillText == "none" {
 		fmt.Fprintln(out, "Cancelled; no files changed.")
@@ -372,10 +380,13 @@ func showSkills(out io.Writer, skills []Skill) {
 	}
 }
 
-type Detection struct{ Scopes, Technologies, Instructions, Agents []string }
+type Detection struct {
+	Scopes, Technologies, Instructions, Agents []string
+	PackageMajors                              map[string]int
+}
 
 func Detect(root string) (Detection, error) {
-	result := Detection{}
+	result := Detection{PackageMajors: map[string]int{}}
 	dir, err := os.OpenRoot(root)
 	if err != nil {
 		return result, err
@@ -433,13 +444,18 @@ func Detect(root string) (Detection, error) {
 				if json.Unmarshal(data, &pkg) != nil {
 					continue
 				}
-				for dep := range pkg.Dependencies {
+				for dep, version := range pkg.Dependencies {
 					if pkg.DevDependencies == nil {
 						pkg.DevDependencies = map[string]string{}
 					}
-					pkg.DevDependencies[dep] = ""
+					pkg.DevDependencies[dep] = version
 				}
-				for dep := range pkg.DevDependencies {
+				for dep, version := range pkg.DevDependencies {
+					major := declaredMajor(version)
+					if previous, exists := result.PackageMajors[dep]; exists && previous != major {
+						major = 0 // Conflicting monorepo declarations must not force a profile.
+					}
+					result.PackageMajors[dep] = major
 					switch {
 					case dep == "react" || dep == "next" || dep == "@angular/core" || dep == "vue" || dep == "vite":
 						scopes["frontend"] = true
