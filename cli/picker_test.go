@@ -138,8 +138,8 @@ func TestCLISuggestedChoicesNeedNoTypedIDsAndCanBeCleared(t *testing.T) {
 			catalog, files := specimen()
 			catalog.Skills[0].Topics = []string{"accessibility"}
 			catalog.Skills[0].Technologies = []string{"any"}
-			input := "\nfrontend\nmockup\npi\n" + choice
-			code, stdout, stderr := invoke([]string{"--root", root}, input, testCatalogSource(t, catalog, files), true)
+			input := "\n" + choice
+			code, stdout, stderr := invoke([]string{"--root", root, "--scope", "frontend", "--architecture", "mockup", "--agents", "pi"}, input, testCatalogSource(t, catalog, files), true)
 			if code != 0 || stderr != "" || strings.Contains(stdout, "Select skill IDs") {
 				t.Fatalf("%d %q %q", code, stdout, stderr)
 			}

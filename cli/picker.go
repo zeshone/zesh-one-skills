@@ -82,16 +82,30 @@ func declaredMajor(version string) int {
 	return 0
 }
 
+type pickerOption struct {
+	ID, Label, Description string
+	Topics                 []string
+}
+
 type pickerModel struct {
-	skills         []Skill
+	options        []pickerOption
 	selected       map[string]bool
 	suggestions    map[string]string
 	cursor         int
 	done, accepted bool
+	title          string
+	single         bool
 }
 
 func newPicker(skills []Skill, suggestions map[string]string) *pickerModel {
-	m := &pickerModel{skills: skills, selected: map[string]bool{}, suggestions: suggestions}
+	options := []pickerOption{}
+	for _, skill := range skills {
+		options = append(options, pickerOption{ID: skill.ID, Label: skill.ID, Description: skill.Description, Topics: skill.Topics})
+	}
+	return newOptionPicker(options, suggestions, "Select project skills", false)
+}
+func newOptionPicker(options []pickerOption, suggestions map[string]string, title string, single bool) *pickerModel {
+	m := &pickerModel{options: options, selected: map[string]bool{}, suggestions: suggestions, title: title, single: single}
 	m.apply("reset")
 	return m
 }
@@ -102,29 +116,35 @@ func (m *pickerModel) apply(key string) {
 			m.cursor--
 		}
 	case "down":
-		if m.cursor+1 < len(m.skills) {
+		if m.cursor+1 < len(m.options) {
 			m.cursor++
 		}
 	case "home":
 		m.cursor = 0
 	case "end":
-		if len(m.skills) > 0 {
-			m.cursor = len(m.skills) - 1
+		if len(m.options) > 0 {
+			m.cursor = len(m.options) - 1
 		}
 	case "space":
-		if len(m.skills) > 0 {
-			id := m.skills[m.cursor].ID
+		if len(m.options) > 0 {
+			id := m.options[m.cursor].ID
 			m.selected[id] = !m.selected[id]
 		}
 	case "all":
-		for _, s := range m.skills {
+		if m.single {
+			break
+		}
+		for _, s := range m.options {
 			m.selected[s.ID] = true
 		}
 	case "none":
+		if m.single {
+			break
+		}
 		m.selected = map[string]bool{}
 	case "reset":
 		m.selected = map[string]bool{}
-		for _, s := range m.skills {
+		for _, s := range m.options {
 			if m.suggestions[s.ID] != "" {
 				m.selected[s.ID] = true
 			}
@@ -135,10 +155,13 @@ func (m *pickerModel) apply(key string) {
 	case "cancel":
 		m.done = true
 	}
+	if m.single && len(m.options) > 0 {
+		m.selected = map[string]bool{m.options[m.cursor].ID: true}
+	}
 }
 func (m *pickerModel) ids() []string {
 	ids := []string{}
-	for _, s := range m.skills {
+	for _, s := range m.options {
 		if m.selected[s.ID] {
 			ids = append(ids, s.ID)
 		}
@@ -166,20 +189,24 @@ func (m *pickerModel) view(width, height int) string {
 	if visible < 1 {
 		visible = 1
 	}
-	if visible > len(m.skills) {
-		visible = len(m.skills)
+	if visible > len(m.options) {
+		visible = len(m.options)
 	}
 	start := 0
 	if m.cursor >= visible && visible > 0 {
 		start = m.cursor - visible + 1
 	}
 	end := start + visible
-	if end > len(m.skills) {
-		end = len(m.skills)
+	if end > len(m.options) {
+		end = len(m.options)
 	}
-	lines := []string{"Select project skills", fmt.Sprintf("%d selected | %d suggested | %d available", len(m.ids()), len(m.suggestions), len(m.skills)), "Suggestions are optional; every choice is editable.", ""}
+	lines := []string{m.title, fmt.Sprintf("%d selected | %d suggested | %d available", len(m.ids()), len(m.suggestions), len(m.options)), "Suggestions are optional; every choice is editable.", ""}
+	if m.single {
+		lines[1] = fmt.Sprintf("Choose one profile | %d available", len(m.options))
+		lines[2] = "This describes the project; it does not scaffold it."
+	}
 	for index := start; index < end; index++ {
-		s := m.skills[index]
+		s := m.options[index]
 		cursor, checked, tag := " ", " ", ""
 		if index == m.cursor {
 			cursor = ">"
@@ -190,13 +217,34 @@ func (m *pickerModel) view(width, height int) string {
 		if m.suggestions[s.ID] != "" {
 			tag = " *"
 		}
-		lines = append(lines, fmt.Sprintf("%s [%s] %s [%s]%s", cursor, checked, s.ID, strings.Join(s.Topics, ","), tag), "    "+s.Description)
+		label := s.Label
+		if label == "" {
+			label = s.ID
+		}
+		topic := ""
+		if len(s.Topics) > 0 {
+			topic = " [" + strings.Join(s.Topics, ",") + "]"
+		}
+		box := "[" + checked + "]"
+		if m.single {
+			box = "( )"
+			if checked == "x" {
+				box = "(o)"
+			}
+		}
+		lines = append(lines, fmt.Sprintf("%s %s %s%s%s", cursor, box, label, topic, tag), "    "+s.Description)
 	}
 	reason := "* suggested"
-	if len(m.skills) > 0 && m.suggestions[m.skills[m.cursor].ID] != "" {
-		reason = "* suggested: " + m.suggestions[m.skills[m.cursor].ID]
+	if len(m.options) > 0 && m.suggestions[m.options[m.cursor].ID] != "" {
+		reason = "* suggested: " + m.suggestions[m.options[m.cursor].ID]
+	}
+	if m.single {
+		reason = "Only one architecture profile is selected."
 	}
 	lines = append(lines, "", reason, "Up/Down or j/k: move | Space: toggle", "Enter: confirm | a: all | n: none | r: reset", "q or Ctrl-C: cancel (no files changed)")
+	if m.single {
+		lines[len(lines)-2] = "Enter: choose highlighted profile | q/Ctrl-C: cancel"
+	}
 	for i, line := range lines {
 		lines[i] = clip(line, width)
 	}
@@ -258,6 +306,10 @@ func readPickerKey(reader *bufio.Reader) (string, error) {
 	return "", nil
 }
 func selectSkills(reader *bufio.Reader, input io.Reader, out io.Writer, skills []Skill, suggestions map[string]string) (ids []string, accepted bool, err error) {
+	return selectOptions(reader, input, out, newPicker(skills, suggestions))
+}
+
+func selectOptions(reader *bufio.Reader, input io.Reader, out io.Writer, m *pickerModel) (ids []string, accepted bool, err error) {
 	restore, e := preparePickerTerminal(input, out)
 	if e != nil {
 		return nil, false, fmt.Errorf("cannot prepare interactive terminal: %w", e)
@@ -271,7 +323,6 @@ func selectSkills(reader *bufio.Reader, input io.Reader, out io.Writer, skills [
 			err = fmt.Errorf("cannot restore terminal: %w", e)
 		}
 	}()
-	m := newPicker(skills, suggestions)
 	for !m.done {
 		width, height := pickerSize(out)
 		fmt.Fprint(out, "\x1b[H\x1b[2J", m.view(width, height))

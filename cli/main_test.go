@@ -81,9 +81,9 @@ func TestCLIListsEveryRelevantTopicWithoutWriting(t *testing.T) {
 func TestCLILandingMockupInstallsDesignOnly(t *testing.T) {
 	root := t.TempDir()
 	source := testSource(t)
-	// Root, scope, architecture, agents; Space/Enter choose design in the TUI; extra file and confirmation.
-	input := "\nfrontend\nlanding mockup\nclaude,codex,opencode,pi\n \n\ny\n"
-	code, out, err := invoke([]string{"--root", root}, input, source, true)
+	// Explicit setup flags remain valid; Space/Enter choose design in the skill TUI.
+	input := "\nclaude,codex,opencode,pi\n \n\ny\n"
+	code, out, err := invoke([]string{"--root", root, "--scope", "frontend", "--architecture", "landing mockup"}, input, source, true)
 	if code != 0 || err != "" || !strings.Contains(out, "Architecture") || !strings.Contains(out, "Security checks") || !strings.Contains(out, "Installed 1 selected skill") {
 		t.Fatalf("%d %q %q", code, out, err)
 	}
@@ -117,7 +117,7 @@ func TestCLIRejectAndCancelLeaveFilesUnchanged(t *testing.T) {
 		t.Fatal("rejection changed file")
 	}
 	empty := t.TempDir()
-	code, out, err = invoke([]string{"--root", empty}, "\nfrontend\nmockup\npi\nq", source, true)
+	code, out, err = invoke([]string{"--root", empty, "--scope", "frontend", "--architecture", "mockup", "--agents", "pi"}, "\nq", source, true)
 	if code != 0 || err != "" || !strings.Contains(out, "Cancelled") {
 		t.Fatalf("%d %q %q", code, out, err)
 	}

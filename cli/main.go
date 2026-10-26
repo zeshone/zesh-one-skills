@@ -23,6 +23,7 @@ const helpText = `Usage: zesh-skills [options]
 Install selected project-local skills from zeshone/zesh-one-skills main.
 No arguments: interactive wizard and checkbox skill picker on a terminal. Default root: current directory.
 Picker: arrows/j/k move; Space toggles; Enter confirms; a all, n none, r reset; q/Ctrl-C cancels.
+Setup: scope supports multiple choices; architecture selects one explained profile or custom text.
 Basic suggestions are preselected, optional and editable; automation flags do not use suggestions.
 
   --root PATH             Project root (default: current directory)
@@ -71,6 +72,7 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	flags.BoolVar(&showVersion, "version", false, "version")
 	usage := func(err error) int { fmt.Fprintf(errOut, "zesh-skills: %s\nUse --help for usage.\n", err); return 2 }
 	failure := func(err error) int { fmt.Fprintf(errOut, "zesh-skills: %s\n", err); return 1 }
+	cancelled := func() int { fmt.Fprintln(out, "Cancelled; no files changed."); return 0 }
 	if err := flags.Parse(args); err != nil {
 		return usage(err)
 	}
@@ -145,18 +147,47 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	if err != nil {
 		return failure(err)
 	}
+	architectureDisplay := architecture
 	if interactive && !list {
 		fmt.Fprintf(out, "Project: %s\nDetected technologies: %s\nExisting instructions: %s\n", display(filepath.Base(root)), strings.Join(detected.Technologies, ", "), strings.Join(detected.Instructions, ", "))
 		if scope == "" {
-			scope, err = ask("Scope (frontend, backend, app; comma-separated for mixed)", strings.Join(detected.Scopes, ","))
-			if err != nil {
-				return usage(err)
+			defaults := map[string]string{}
+			for _, value := range detected.Scopes {
+				defaults[value] = "Detected project scope"
 			}
+			selected, accepted, e := selectOptions(reader, input, out, newOptionPicker(scopeOptions(false), defaults, "Choose project scope", false))
+			if e != nil {
+				return failure(e)
+			}
+			if !accepted || len(selected) == 0 {
+				return cancelled()
+			}
+			scope = strings.Join(selected, ",")
 		}
 		if architecture == "" {
-			architecture, err = ask("Architecture (minimal, clean, hexagonal, modular, vertical-slices, or custom text)", "")
-			if err != nil {
-				return usage(err)
+			options := architectureOptions(false)
+			selected, accepted, e := selectOptions(reader, input, out, newOptionPicker(options, nil, "Choose architecture", true))
+			if e != nil {
+				return failure(e)
+			}
+			if !accepted || len(selected) == 0 {
+				return cancelled()
+			}
+			architecture = selected[0]
+			for _, option := range options {
+				if option.ID == architecture {
+					architectureDisplay = option.Label
+				}
+			}
+			if architecture == "custom" {
+				architecture, err = ask("Custom architecture", "")
+				if err != nil {
+					return usage(err)
+				}
+				if !plainText(architecture, 300) {
+					return usage(fmt.Errorf("invalid architecture text"))
+				}
+				architectureDisplay = architecture
 			}
 		}
 		if agentText == "" {
@@ -241,7 +272,7 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	if instructions != "" && !instructionPath(instructions) {
 		return usage(fmt.Errorf("instruction file must be a root-level .md filename"))
 	}
-	fmt.Fprintf(out, "\nInstall %d selected skill(s) into %s\nSource: main @ %s\nArchitecture: %s\nAgents: %s\nSkills: %s\nContent: .zesh-skills/content/\n", len(ids), display(root), commit, display(architecture), strings.Join(agents, ", "), strings.Join(ids, ", "))
+	fmt.Fprintf(out, "\nInstall %d selected skill(s) into %s\nSource: main @ %s\nArchitecture: %s\nAgents: %s\nSkills: %s\nContent: .zesh-skills/content/\n", len(ids), display(root), commit, display(architectureDisplay), strings.Join(agents, ", "), strings.Join(ids, ", "))
 	fmt.Fprint(out, "Instruction files: ")
 	targets := map[string]bool{}
 	for _, a := range agents {
