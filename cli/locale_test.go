@@ -115,6 +115,35 @@ func TestSpanishHybridShowsTranslatedLabelButStoresCanonicalID(t *testing.T) {
 	}
 }
 
+func TestListMultiTopicSpacingPreservesEnglishAndPickerContracts(t *testing.T) {
+	for _, spanish := range []bool{false, true} {
+		root := t.TempDir()
+		catalog, files := specimen()
+		catalog.Skills[0].Topics = []string{"design", "testing"}
+		args := []string{"--root", root, "--scope", "frontend", "--list"}
+		heading, security, pickerTopics := "design, testing", "security", "[design,testing]"
+		if spanish {
+			args = append(args, "--es")
+			heading = "Diseño, Pruebas"
+			security = "Seguridad"
+			pickerTopics = "[Diseño,Pruebas]"
+		}
+		code, stdout, stderr := invoke(args, "", testCatalogSource(t, catalog, files), false)
+		want := "\n" + heading + "\n  [ ] 1. frontend/design — UI layout\n\n" + security + "\n  [ ] 2. frontend/security — Security checks\n"
+		if code != 0 || stdout != want || stderr != "" {
+			t.Fatalf("Spanish=%v: %d %q %q", spanish, code, stdout, stderr)
+		}
+		model := newPicker(catalog.Skills, nil).inLanguage(language(spanish))
+		if !strings.Contains(model.view(120, 30), pickerTopics) {
+			t.Fatal("picker separator changed")
+		}
+		entries, err := os.ReadDir(root)
+		if err != nil || len(entries) != 0 {
+			t.Fatal("listing changed project", err)
+		}
+	}
+}
+
 func TestSpanishConfirmationCanDeclineWithoutWriting(t *testing.T) {
 	root := t.TempDir()
 	args := []string{"--es", "--root", root, "--scope", "frontend", "--architecture", "Architecture user value", "--agents", "pi", "--skills", "frontend/design", "--instructions", "AGENTS.md"}

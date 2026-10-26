@@ -416,7 +416,12 @@ func showSkillsLanguage(out io.Writer, skills []Skill, lang language) {
 	for i, s := range skills {
 		topic := strings.Join(s.Topics, ", ")
 		if topic != last {
-			fmt.Fprintf(out, "\n%s\n", lang.topics(s.Topics))
+			// Preserve --list's comma-space contract; picker rows use comma only.
+			labels := make([]string, len(s.Topics))
+			for index, value := range s.Topics {
+				labels[index] = lang.text(value)
+			}
+			fmt.Fprintf(out, "\n%s\n", strings.Join(labels, ", "))
 			last = topic
 		}
 		fmt.Fprintf(out, "  [ ] %d. %s — %s\n", i+1, s.ID, brief(s.Description))
