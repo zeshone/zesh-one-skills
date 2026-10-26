@@ -95,6 +95,7 @@ type pickerModel struct {
 	done, accepted bool
 	title          string
 	single         bool
+	lang           language
 }
 
 func newPicker(skills []Skill, suggestions map[string]string) *pickerModel {
@@ -200,10 +201,10 @@ func (m *pickerModel) view(width, height int) string {
 	if end > len(m.options) {
 		end = len(m.options)
 	}
-	lines := []string{m.title, fmt.Sprintf("%d selected | %d suggested | %d available", len(m.ids()), len(m.suggestions), len(m.options)), "Suggestions are optional; every choice is editable.", ""}
+	lines := []string{m.lang.text(m.title), fmt.Sprintf(m.lang.text("%d selected | %d suggested | %d available"), len(m.ids()), len(m.suggestions), len(m.options)), m.lang.text("Suggestions are optional; every choice is editable."), ""}
 	if m.single {
-		lines[1] = fmt.Sprintf("Choose one profile | %d available", len(m.options))
-		lines[2] = "This describes the project; it does not scaffold it."
+		lines[1] = fmt.Sprintf(m.lang.text("Choose one profile | %d available"), len(m.options))
+		lines[2] = m.lang.text("This describes the project; it does not scaffold it.")
 	}
 	for index := start; index < end; index++ {
 		s := m.options[index]
@@ -223,7 +224,7 @@ func (m *pickerModel) view(width, height int) string {
 		}
 		topic := ""
 		if len(s.Topics) > 0 {
-			topic = " [" + strings.Join(s.Topics, ",") + "]"
+			topic = " [" + m.lang.topics(s.Topics) + "]"
 		}
 		box := "[" + checked + "]"
 		if m.single {
@@ -234,16 +235,16 @@ func (m *pickerModel) view(width, height int) string {
 		}
 		lines = append(lines, fmt.Sprintf("%s %s %s%s%s", cursor, box, label, topic, tag), "    "+s.Description)
 	}
-	reason := "* suggested"
+	reason := m.lang.text("* suggested")
 	if len(m.options) > 0 && m.suggestions[m.options[m.cursor].ID] != "" {
-		reason = "* suggested: " + m.suggestions[m.options[m.cursor].ID]
+		reason = fmt.Sprintf(m.lang.text("* suggested: %s"), m.lang.reason(m.suggestions[m.options[m.cursor].ID]))
 	}
 	if m.single {
-		reason = "Only one architecture profile is selected."
+		reason = m.lang.text("Only one architecture profile is selected.")
 	}
-	lines = append(lines, "", reason, "Up/Down or j/k: move | Space: toggle", "Enter: confirm | a: all | n: none | r: reset", "q or Ctrl-C: cancel (no files changed)")
+	lines = append(lines, "", reason, m.lang.text("Up/Down or j/k: move | Space: toggle"), m.lang.text("Enter: confirm | a: all | n: none | r: reset"), m.lang.text("q or Ctrl-C: cancel (no files changed)"))
 	if m.single {
-		lines[len(lines)-2] = "Enter: choose highlighted profile | q/Ctrl-C: cancel"
+		lines[len(lines)-2] = m.lang.text("Enter: choose highlighted profile | q/Ctrl-C: cancel")
 	}
 	for i, line := range lines {
 		lines[i] = clip(line, width)

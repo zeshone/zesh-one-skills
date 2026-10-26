@@ -35,6 +35,7 @@ Basic suggestions are preselected, optional and editable; automation flags do no
   --list                  List relevant skills by topic; never write files
   --yes                   Confirm installation, NOT replacement of local edits
   --non-interactive       Never prompt; require skills, agents, architecture and --yes
+  --es                    Spanish interface (default: English)
   --version               Print version without network or writes
   --help                  Print this help without network or writes
 
@@ -59,6 +60,8 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	flags.SetOutput(io.Discard)
 	var root, scope, agentText, architecture, skillText, instructions string
 	var list, yes, noPrompt, help, showVersion bool
+	var spanish bool
+	var lang language
 	flags.StringVar(&root, "root", "", "project root")
 	flags.StringVar(&scope, "scope", "", "scopes")
 	flags.StringVar(&agentText, "agents", "", "agents")
@@ -68,19 +71,25 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	flags.BoolVar(&list, "list", false, "list skills")
 	flags.BoolVar(&yes, "yes", false, "confirm installation")
 	flags.BoolVar(&noPrompt, "non-interactive", false, "never prompt")
+	flags.BoolVar(&spanish, "es", false, "Spanish interface")
 	flags.BoolVar(&help, "help", false, "help")
 	flags.BoolVar(&showVersion, "version", false, "version")
-	usage := func(err error) int { fmt.Fprintf(errOut, "zesh-skills: %s\nUse --help for usage.\n", err); return 2 }
-	failure := func(err error) int { fmt.Fprintf(errOut, "zesh-skills: %s\n", err); return 1 }
-	cancelled := func() int { fmt.Fprintln(out, "Cancelled; no files changed."); return 0 }
-	if err := flags.Parse(args); err != nil {
-		return usage(err)
+	usage := func(err error) int {
+		fmt.Fprintf(errOut, lang.text("zesh-skills: %s\nUse --help for usage.\n"), lang.errorText(err))
+		return 2
+	}
+	failure := func(err error) int { fmt.Fprintf(errOut, "zesh-skills: %s\n", lang.errorText(err)); return 1 }
+	cancelled := func() int { fmt.Fprintln(out, lang.text("Cancelled; no files changed.")); return 0 }
+	parseErr := flags.Parse(args)
+	lang = language(spanish)
+	if parseErr != nil {
+		return usage(parseErr)
 	}
 	if flags.NArg() != 0 {
 		return usage(fmt.Errorf("unexpected positional arguments"))
 	}
 	if help {
-		fmt.Fprint(out, helpText)
+		fmt.Fprint(out, lang.help())
 		return 0
 	}
 	if showVersion {
@@ -116,6 +125,7 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	}
 	reader := bufio.NewReader(input)
 	ask := func(label, def string) (string, error) {
+		label = lang.text(label)
 		if def != "" {
 			fmt.Fprintf(out, "%s [%s]: ", label, display(def))
 		} else {
@@ -149,13 +159,13 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	}
 	architectureDisplay := architecture
 	if interactive && !list {
-		fmt.Fprintf(out, "Project: %s\nDetected technologies: %s\nExisting instructions: %s\n", display(filepath.Base(root)), strings.Join(detected.Technologies, ", "), strings.Join(detected.Instructions, ", "))
+		fmt.Fprintf(out, lang.text("Project: %s\nDetected technologies: %s\nExisting instructions: %s\n"), display(filepath.Base(root)), strings.Join(detected.Technologies, ", "), strings.Join(detected.Instructions, ", "))
 		if scope == "" {
 			defaults := map[string]string{}
 			for _, value := range detected.Scopes {
 				defaults[value] = "Detected project scope"
 			}
-			selected, accepted, e := selectOptions(reader, input, out, newOptionPicker(scopeOptions(false), defaults, "Choose project scope", false))
+			selected, accepted, e := selectOptions(reader, input, out, newOptionPicker(scopeOptions(bool(lang)), defaults, "Choose project scope", false).inLanguage(lang))
 			if e != nil {
 				return failure(e)
 			}
@@ -165,8 +175,8 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 			scope = strings.Join(selected, ",")
 		}
 		if architecture == "" {
-			options := architectureOptions(false)
-			selected, accepted, e := selectOptions(reader, input, out, newOptionPicker(options, nil, "Choose architecture", true))
+			options := architectureOptions(bool(lang))
+			selected, accepted, e := selectOptions(reader, input, out, newOptionPicker(options, nil, "Choose architecture", true).inLanguage(lang))
 			if e != nil {
 				return failure(e)
 			}
@@ -226,24 +236,24 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	}
 	relevant := relevantSkills(c, scopes)
 	if list || (interactive && skillText != "") {
-		showSkills(out, relevant)
+		showSkillsLanguage(out, relevant, lang)
 	}
 	if list {
 		return 0
 	}
 	if skillText == "" {
-		selected, accepted, e := selectSkills(reader, input, out, relevant, basicSuggestions(relevant, scopes, detected.PackageMajors))
+		selected, accepted, e := selectOptions(reader, input, out, newPicker(relevant, basicSuggestions(relevant, scopes, detected.PackageMajors)).inLanguage(lang))
 		if e != nil {
 			return failure(e)
 		}
 		if !accepted || len(selected) == 0 {
-			fmt.Fprintln(out, "Cancelled; no files changed.")
+			fmt.Fprintln(out, lang.text("Cancelled; no files changed."))
 			return 0
 		}
 		skillText = strings.Join(selected, ",")
 	}
 	if skillText == "" || skillText == "none" {
-		fmt.Fprintln(out, "Cancelled; no files changed.")
+		fmt.Fprintln(out, lang.text("Cancelled; no files changed."))
 		return 0
 	}
 	ids := split(skillText)
@@ -272,8 +282,8 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	if instructions != "" && !instructionPath(instructions) {
 		return usage(fmt.Errorf("instruction file must be a root-level .md filename"))
 	}
-	fmt.Fprintf(out, "\nInstall %d selected skill(s) into %s\nSource: main @ %s\nArchitecture: %s\nAgents: %s\nSkills: %s\nContent: .zesh-skills/content/\n", len(ids), display(root), commit, display(architectureDisplay), strings.Join(agents, ", "), strings.Join(ids, ", "))
-	fmt.Fprint(out, "Instruction files: ")
+	fmt.Fprintf(out, lang.text("\nInstall %d selected skill(s) into %s\nSource: main @ %s\nArchitecture: %s\nAgents: %s\nSkills: %s\nContent: .zesh-skills/content/\n"), len(ids), display(root), commit, display(architectureDisplay), strings.Join(agents, ", "), strings.Join(ids, ", "))
+	fmt.Fprint(out, lang.text("Instruction files: "))
 	targets := map[string]bool{}
 	for _, a := range agents {
 		target := "AGENTS.md"
@@ -291,14 +301,14 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	if instructions != "" {
 		targets[instructions] = true
 	}
-	fmt.Fprintf(out, "\n  %s (managed index and triggers)\n", strings.Join(keys(targets), ", "))
+	fmt.Fprintf(out, lang.text("\n  %s (managed index and triggers)\n"), strings.Join(keys(targets), ", "))
 	if !yes {
 		answer, e := ask("Proceed? (y/N)", "n")
 		if e != nil {
 			return usage(e)
 		}
-		if !affirmative(answer) {
-			fmt.Fprintln(out, "Cancelled; no files changed.")
+		if !lang.affirmative(answer) {
+			fmt.Fprintln(out, lang.text("Cancelled; no files changed."))
 			return 0
 		}
 	}
@@ -306,8 +316,8 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 		if !interactive {
 			return false
 		}
-		answer, e := ask("Replace local changes in "+display(name)+"? (y/N)", "n")
-		return e == nil && affirmative(answer)
+		answer, e := ask(fmt.Sprintf(lang.text("Replace local changes in %s? (y/N)"), display(lang.confirmationName(name))), "n")
+		return e == nil && lang.affirmative(answer)
 	}
 	in := Installer{Fetch: source.Fetch}
 	if instructions != "" {
@@ -316,7 +326,7 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	if err = in.Install(root, c, commit, ids, agents, architecture, confirm); err != nil {
 		return failure(err)
 	}
-	fmt.Fprintf(out, "Installed %d selected skill(s). Existing selections retained.\n", len(ids))
+	fmt.Fprintf(out, lang.text("Installed %d selected skill(s). Existing selections retained.\n"), len(ids))
 	return 0
 }
 func split(s string) []string {
@@ -399,12 +409,14 @@ func brief(s string) string {
 	return s
 }
 
-func showSkills(out io.Writer, skills []Skill) {
+func showSkills(out io.Writer, skills []Skill) { showSkillsLanguage(out, skills, false) }
+
+func showSkillsLanguage(out io.Writer, skills []Skill, lang language) {
 	last := ""
 	for i, s := range skills {
 		topic := strings.Join(s.Topics, ", ")
 		if topic != last {
-			fmt.Fprintf(out, "\n%s\n", topic)
+			fmt.Fprintf(out, "\n%s\n", lang.topics(s.Topics))
 			last = topic
 		}
 		fmt.Fprintf(out, "  [ ] %d. %s — %s\n", i+1, s.ID, brief(s.Description))

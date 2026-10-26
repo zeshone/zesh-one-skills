@@ -7,7 +7,15 @@
 ```text
 cd your-project
 zesh-skills
+# Spanish interface; English remains the default without this flag.
+zesh-skills --es
 ```
+
+### Interface language
+
+Use `--es` to localize prompts, scope/architecture choices and descriptions, picker controls, previews, confirmations and app diagnostics into Spanish. There is no extra startup question or saved language preference. Spanish confirmations accept `s`, `si`, `sí`, `y` or `yes`; English behavior remains unchanged. `--es=false` explicitly keeps English.
+
+The language flag does not translate skill IDs, flags, JSON formats, custom user values, downloaded skill content or generated agent documents. Skill descriptions from the remote catalog remain in the repository's original language; technical OS details may also retain their original language and are identified as such. Predefined architecture profiles are stored by stable ID, regardless of the displayed language.
 
 The wizard confirms the current directory as the project root, detects framework manifests and existing instruction files, asks for the architecture, then opens a keyboard-driven checkbox picker. Every relevant skill remains available with its topic and a brief description; no skill IDs need to be typed.
 
