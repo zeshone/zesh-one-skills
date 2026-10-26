@@ -57,7 +57,7 @@ test('existing .NET architecture and testing routes remain intact', () => {
 test('instruction checks join both default pipelines without requiring .NET', () => {
   const { scripts } = JSON.parse(read('package.json'));
   const added = 'node tools/test-cli-instructions.js';
-  const baseline = ['node tools/test-fixtures.js', 'node tools/spec-fixtures-logging.js',
+  const baseline = ['node tools/test-skill-catalog.js', 'node tools/test-fixtures.js', 'node tools/spec-fixtures-logging.js',
     'node tools/lint-skills.js', 'node tools/test-release-readiness.js', 'node tools/test-lint-zero-skills.js'];
   // Instruction-script parity is owned by tools/test-maintainer-instructions.js.
   assert.equal(scripts['test:cli-instructions'], added);

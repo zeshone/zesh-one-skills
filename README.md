@@ -71,6 +71,14 @@ zesh-one-skills/
 └── CREDITS.md
 ```
 
+## Project-local CLI installer
+
+Run `zesh-skills` from a consumer project's root to choose skills by scope and topic, with descriptions and no mandatory bundles. It supports Claude Code, Codex, OpenCode and Pi, preserves existing instructions, and reads the latest catalog/content from `main` at one pinned commit per run.
+
+See [CLI usage, standalone builds and installation](cli/README.md). Build locally with `npm run build:zesh-cli`; no publication or global installation is performed. The production download flow becomes available after the new `skills-index.json` is merged into `main`.
+
+Maintainers: run `npm run catalog:generate` after changing skills. The existing Node-only checks validate catalog freshness; executable Go checks run separately with `npm run test:zesh-cli`.
+
 ## Adoption
 
 Use the onboarding guide:

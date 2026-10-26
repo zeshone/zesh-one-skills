@@ -3,6 +3,11 @@
   "private": true,
   "scripts": {
     "lint:skills": "node tools/lint-skills.js",
+    "catalog:generate": "node tools/skill-catalog.js",
+    "catalog:check": "node tools/skill-catalog.js --check",
+    "test:catalog": "node tools/test-skill-catalog.js",
+    "test:zesh-cli": "go test ./cli/...",
+    "build:zesh-cli": "node tools/build-zesh-skills.js",
     "test:fixtures": "node tools/test-fixtures.js",
     "test:pilot": "node tools/test-pilot-instructions.js",
     "test:cli-instructions": "node tools/test-cli-instructions.js",
@@ -16,9 +21,9 @@
     "test:apps-instructions": "node tools/test-apps-instructions.js",
     "test:react-stack-instructions": "node tools/test-react-stack-instructions.js",
     "test:maintainer-instructions": "node tools/test-maintainer-instructions.js",
-    "test": "node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/test-pilot-instructions.js && node tools/test-cli-instructions.js && node tools/test-frontend-instructions.js && node tools/test-dotnet-instructions.js && node tools/test-debugging-instructions.js && node tools/test-accessibility-instructions.js && node tools/test-apps-instructions.js && node tools/test-react-stack-instructions.js && node tools/test-maintainer-instructions.js && node tools/lint-skills.js && node tools/test-release-readiness.js && node tools/test-lint-zero-skills.js",
+    "test": "node tools/test-skill-catalog.js && node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/test-pilot-instructions.js && node tools/test-cli-instructions.js && node tools/test-frontend-instructions.js && node tools/test-dotnet-instructions.js && node tools/test-debugging-instructions.js && node tools/test-accessibility-instructions.js && node tools/test-apps-instructions.js && node tools/test-react-stack-instructions.js && node tools/test-maintainer-instructions.js && node tools/lint-skills.js && node tools/test-release-readiness.js && node tools/test-lint-zero-skills.js",
     "build": "node tools/lint-skills.js",
-    "verify": "node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/test-pilot-instructions.js && node tools/test-cli-instructions.js && node tools/test-frontend-instructions.js && node tools/test-dotnet-instructions.js && node tools/test-debugging-instructions.js && node tools/test-accessibility-instructions.js && node tools/test-apps-instructions.js && node tools/test-react-stack-instructions.js && node tools/test-maintainer-instructions.js && node tools/lint-skills.js && node tools/test-release-readiness.js && node tools/test-lint-zero-skills.js"
+    "verify": "node tools/test-skill-catalog.js && node tools/test-fixtures.js && node tools/spec-fixtures-logging.js && node tools/test-pilot-instructions.js && node tools/test-cli-instructions.js && node tools/test-frontend-instructions.js && node tools/test-dotnet-instructions.js && node tools/test-debugging-instructions.js && node tools/test-accessibility-instructions.js && node tools/test-apps-instructions.js && node tools/test-react-stack-instructions.js && node tools/test-maintainer-instructions.js && node tools/lint-skills.js && node tools/test-release-readiness.js && node tools/test-lint-zero-skills.js"
   },
   "devDependencies": {
     "js-yaml": "^4.1.0"
