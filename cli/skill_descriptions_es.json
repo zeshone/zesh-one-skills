@@ -1,0 +1,142 @@
+{
+  "apps/capacitor": {
+    "source": "Operational defaults for Capacitor native-layer work in app projects. Trigger: When implementing or modifying Capacitor plugins, platform behavior, native listeners, or mobile runtime integration.",
+    "es": "Criterios operativos para trabajar en la capa nativa de Capacitor en aplicaciones. Se aplica al implementar o modificar plugins de Capacitor, comportamiento de plataforma, listeners nativos o integración con el runtime móvil."
+  },
+  "apps/ionic-angular": {
+    "source": "Operational defaults for Ionic + Angular application work. Trigger: When implementing or modifying Ionic Angular pages, routing, state, navigation, or lifecycle behavior.",
+    "es": "Criterios operativos para desarrollar aplicaciones con Ionic + Angular. Se aplica al implementar o modificar páginas, routing, estado, navegación o comportamiento del ciclo de vida en Ionic Angular."
+  },
+  "backend/dataaccess": {
+    "source": "EF Core data access conventions for ASP.NET Core 8 APIs with operational defaults for repositories, DbContext lifecycle, query behavior, transactions, and raw SQL safety. Trigger: When implementing or reviewing repositories, DbContext registration/configuration, read/write queries, migrations, or stored procedure access in backend services.",
+    "es": "Convenciones de acceso a datos con EF Core para APIs de ASP.NET Core 8: repositorios, ciclo de vida de DbContext, consultas, transacciones y seguridad de SQL directo. Se aplica al implementar o revisar repositorios, registro/configuración de DbContext, consultas de lectura/escritura, migraciones o acceso a procedimientos almacenados en servicios backend."
+  },
+  "backend/general": {
+    "source": "Operational defaults for ASP.NET Core 8 REST API architecture and conventions. Trigger: When creating, restructuring, or reviewing backend feature slices, dependency wiring, middleware order, and shared conventions.",
+    "es": "Criterios operativos de arquitectura y convenciones para APIs REST de ASP.NET Core 8. Se aplica al crear, reestructurar o revisar divisiones por funcionalidad del backend, conexión de dependencias, orden del middleware y convenciones compartidas."
+  },
+  "backend/logging": {
+    "source": "Operational logging standards for ASP.NET Core APIs using Serilog structured events, request correlation, and canonical exception telemetry. Trigger: When implementing or reviewing API logging, middleware instrumentation, incident diagnostics, or log safety controls.",
+    "es": "Estándares operativos de logging para APIs de ASP.NET Core con eventos estructurados de Serilog, correlación de solicitudes y telemetría canónica de excepciones. Se aplica al implementar o revisar logging de APIs, instrumentación de middleware, diagnóstico de incidentes o controles de seguridad de logs."
+  },
+  "backend/mapping": {
+    "source": "Operational mapping policy for ASP.NET Core APIs: service-layer ownership, repository entity boundaries, and explicit transformations by default. Trigger: When implementing Request↔Entity↔DTO mappings, reviewing AutoMapper usage, or enforcing clean layer contracts in backend features.",
+    "es": "Política operativa de mapeo para APIs de ASP.NET Core: responsabilidad en la capa de servicio, límites de entidades del repositorio y transformaciones explícitas por defecto. Se aplica al implementar mapeos Request↔Entity↔DTO, revisar el uso de AutoMapper o mantener contratos claros entre capas en funcionalidades backend."
+  },
+  "backend/performance": {
+    "source": "Operational performance defaults for ASP.NET Core 8 APIs focused on concurrency, outbound resilience, and runtime limits. Trigger: When tuning latency/throughput, configuring Polly resilience, sizing Kestrel limits, or parallelizing independent async work.",
+    "es": "Criterios operativos de rendimiento para APIs de ASP.NET Core 8 centrados en concurrencia, resiliencia de llamadas salientes y límites del runtime. Se aplica al ajustar latencia/throughput, configurar resiliencia con Polly, dimensionar límites de Kestrel o paralelizar trabajo async independiente."
+  },
+  "backend/requests": {
+    "source": "Operational rules for HTTP request contracts in ASP.NET Core 8 APIs. Trigger: When designing request DTOs, binding route/query/body inputs, or defining endpoint signatures in .NET APIs.",
+    "es": "Reglas operativas para contratos de solicitudes HTTP en APIs de ASP.NET Core 8. Se aplica al diseñar DTOs de solicitud, enlazar entradas de ruta/query/body o definir firmas de endpoints en APIs de .NET."
+  },
+  "backend/responses": {
+    "source": "Operational response contract guidance for ASP.NET Core APIs with strict internal boundaries and safe external error mapping. Trigger: When defining service return contracts, mapping domain failures to HTTP, or enforcing consistent response behavior across backend services.",
+    "es": "Guía operativa de contratos de respuesta para APIs de ASP.NET Core, con límites internos estrictos y mapeo seguro de errores externos. Se aplica al definir contratos de retorno de servicios, mapear fallos del dominio a HTTP o mantener respuestas coherentes entre servicios backend."
+  },
+  "backend/security": {
+    "source": "Operational security defaults for backend APIs with OWASP API focus: ownership checks (BOLA), JWT/policy boundaries, CORS/rate limits, and secret handling. Trigger: When implementing or reviewing authn/authz, resource access controls, API hardening, user-owned data, external inputs, secrets, dependencies, infrastructure, or CI/CD.",
+    "es": "Criterios operativos de seguridad para APIs backend con enfoque OWASP API: comprobaciones de propiedad (BOLA), límites JWT/políticas, CORS/rate limits y manejo de secretos. Se aplica al implementar o revisar autenticación/autorización, acceso a recursos, endurecimiento de APIs, datos de usuarios, entradas externas, secretos, dependencias, infraestructura o CI/CD."
+  },
+  "backend/testing-unit": {
+    "source": "Operational unit-testing defaults for backend code using xUnit, NSubstitute, and FluentAssertions, focused on services, validators, mappings, and domain behavior. Trigger: When writing or reviewing unit tests for business logic, validation rules, mapping logic, or authorization/ownership branches in backend services.",
+    "es": "Criterios operativos de pruebas unitarias backend con xUnit, NSubstitute y FluentAssertions, centrados en servicios, validadores, mapeos y comportamiento del dominio. Se aplica al escribir o revisar pruebas unitarias de lógica de negocio, reglas de validación, mapeos o ramas de autorización/propiedad en servicios backend."
+  },
+  "backend/validations": {
+    "source": "Boundary validation standards for ASP.NET Core APIs with FluentValidation. Trigger: When validating HTTP request DTOs, placing validation responsibilities, or handling validation failures.",
+    "es": "Estándares de validación en los límites de APIs de ASP.NET Core con FluentValidation. Se aplica al validar DTOs de solicitudes HTTP, asignar responsabilidades de validación o gestionar fallos de validación."
+  },
+  "dotnet-10/api-rest-minimal-apis": {
+    "source": "REST API design and Minimal API surface rules for .NET 10 / C# 14 REST APIs, covering TypedResults, Results<T1,T2> unions, ProblemDetails (RFC 7807), URL/versioning conventions, built-in OpenAPI with Scalar, middleware ordering, and endpoint organization. Trigger: adding or modifying endpoints in Program.cs, a MapGroup extension, or endpoint extension classes; creating DTO records; configuring middleware pipeline ordering; working on OpenAPI/Scalar; mapping entities to DTOs in handlers; or designing URL structure and versioning segments.",
+    "es": "Reglas de diseño REST y superficie Minimal API para APIs de .NET 10 / C# 14: TypedResults, uniones Results<T1,T2>, ProblemDetails (RFC 7807), convenciones de URL/versionado, OpenAPI integrado con Scalar, orden del middleware y organización de endpoints. Se aplica al añadir o modificar endpoints en Program.cs, extensiones MapGroup o clases de extensión de endpoints; crear records DTO; ordenar el pipeline de middleware; trabajar con OpenAPI/Scalar; mapear entidades a DTOs en handlers; o diseñar URLs y segmentos de versionado."
+  },
+  "dotnet-10/architecture": {
+    "source": "Contextual architecture selection for .NET 10 APIs, CLIs and workers: user-approved structure, proportional boundaries, Vertical Slice, Clean/Hexagonal separation and modular monoliths, plus domain-model richness, data-access seams and orchestration. Trigger: starting a new project, CLI, worker or module; adding a layer, project, or assembly; where does logic go; should I use a repository, IUnitOfWork, MediatR, or aggregate root; Clean Architecture; Hexagonal Architecture; Vertical Slice; modular monolith structure; DbContext transaction; Application layer; Program.cs organization; endpoint organization.",
+    "es": "Selección contextual de arquitectura para APIs, CLIs y workers de .NET 10: estructura aprobada por el usuario, límites proporcionales, Vertical Slice, separación Clean/Hexagonal y monolitos modulares, riqueza del modelo de dominio, puntos de separación del acceso a datos y orquestación. Se aplica al iniciar proyectos, CLIs, workers o módulos; añadir capas, proyectos o assemblies; decidir dónde ubicar lógica o usar repositorios, IUnitOfWork, MediatR o raíces de agregado; Clean Architecture; Hexagonal Architecture; Vertical Slice; estructura de monolito modular; transacciones DbContext; capa Application; organización de Program.cs y endpoints."
+  },
+  "dotnet-10/data-access-persistence": {
+    "source": "EF Core 10 + Npgsql data-access rules for .NET 10 REST APIs: DbContext registration, entity configuration, query patterns, migrations, raw SQL, and testing against real Postgres. Trigger: DbContext, EF Core, IEntityTypeConfiguration, migration, Npgsql, AsNoTracking, .Select() projection, raw SQL, ExecuteSqlRawAsync, BackgroundService data access.",
+    "es": "Reglas de acceso a datos con EF Core 10 + Npgsql para APIs REST de .NET 10: registro de DbContext, configuración de entidades, patrones de consulta, migraciones, SQL directo y pruebas con Postgres real. Se aplica a DbContext, EF Core, IEntityTypeConfiguration, migraciones, Npgsql, AsNoTracking, proyecciones .Select(), SQL directo, ExecuteSqlRawAsync y acceso a datos desde BackgroundService."
+  },
+  "dotnet-10/design-patterns": {
+    "source": "Design-pattern rules for .NET 10 backends (REST APIs): Result discriminated unions, Options pattern, DI lifetimes, keyed services, and exception mapping. Trigger: Result pattern, discriminated union, sealed record cases, Options pattern, IOptions, ValidateOnStart, DI lifetime, PostgresExceptionMapper, keyed services, FromKeyedServices, Factory pattern, BackgroundService, MediatR, IRepository, AutoMapper, FluentValidation.",
+    "es": "Reglas de patrones de diseño para backends .NET 10 (APIs REST): uniones discriminadas Result, patrón Options, ciclos de vida de DI, servicios con clave y mapeo de excepciones. Se aplica al patrón Result, uniones discriminadas, casos sealed record, patrón Options, IOptions, ValidateOnStart, ciclos de vida de DI, PostgresExceptionMapper, servicios con clave, FromKeyedServices, patrón Factory, BackgroundService, MediatR, IRepository, AutoMapper y FluentValidation."
+  },
+  "dotnet-10/dotnet-conventions": {
+    "source": "C# 14 and .NET 10 code-level conventions covering language style, async, nullable, XML docs, naming, SOLID, Result pattern, and timestamp handling for AOT-first, minimal-dependency .NET 10 REST APIs. Trigger: any .cs or .csproj file read or modified; keywords nullable, async, await, extension block, field keyword, null-conditional assignment, DateTime.Now, TimeProvider, Result pattern, discriminated union, TypedResults, ProblemDetails, IOptions, ValidateOnStart, primary constructor; phrases indicating mapping (AutoMapper, Mapster), mediation (MediatR, IMediator), or validation libraries (FluentValidation, AbstractValidator).",
+    "es": "Convenciones de código C# 14 y .NET 10: estilo, async, nullable, documentación XML, nombres, SOLID, patrón Result y marcas de tiempo para APIs REST que priorizan AOT y dependencias mínimas. Se aplica al leer o modificar archivos .cs o .csproj; nullable, async, await, bloques de extensión, palabra clave field, asignación condicional de nulos, DateTime.Now, TimeProvider, patrón Result, uniones discriminadas, TypedResults, ProblemDetails, IOptions, ValidateOnStart, constructores primarios; mapeo (AutoMapper, Mapster), mediación (MediatR, IMediator) o bibliotecas de validación (FluentValidation, AbstractValidator)."
+  },
+  "dotnet-10/observability-operations": {
+    "source": "Rules for Serilog structured logging (bootstrap + CLEF), health checks, background services, Options validation, HTTP resilience, and telemetry decisions in a .NET 10 Minimal API project. Trigger: add logging, configure Serilog, CLEF, log enrichment, request logging, health check, liveness probe, readiness probe, BackgroundService, IHostedService, ExecuteAsync, hosted service, Options pattern, ValidateOnStart, IValidateOptions, resilience, AddStandardResilienceHandler, telemetry, observability, OpenTelemetry, Scalar, docs/openapi.json, TimeProvider.",
+    "es": "Reglas de logging estructurado con Serilog (bootstrap + CLEF), comprobaciones de salud, servicios en segundo plano, validación Options, resiliencia HTTP y decisiones de telemetría en proyectos Minimal API de .NET 10. Se aplica al añadir logging, configurar Serilog, CLEF, enriquecimiento de logs, registro de solicitudes, health checks, sondas liveness/readiness, BackgroundService, IHostedService, ExecuteAsync, servicios alojados, patrón Options, ValidateOnStart, IValidateOptions, resiliencia, AddStandardResilienceHandler, telemetría, observabilidad, OpenTelemetry, Scalar, docs/openapi.json y TimeProvider."
+  },
+  "dotnet-10/performance": {
+    "source": "Performance and efficiency rules for .NET 10 / EF Core / Minimal API backends, covering async correctness, EF query patterns, allocation management, HTTP resilience, channels, and connection-pool safety. Trigger: performance, efficiency, allocation, AsNoTracking, N+1 query, projection, Select DTO, HttpClient, IHttpClientFactory, AddStandardResilienceHandler, Channel, backpressure, BoundedChannel, StringBuilder, Span, async void, blocking async, GetAwaiter, .Result, .Wait, CancellationToken, stoppingToken, Interlocked, ConcurrentDictionary, caching, IMemoryCache, connection pool, AddDbContextPool.",
+    "es": "Reglas de rendimiento y eficiencia para backends .NET 10 / EF Core / Minimal API: uso correcto de async, consultas EF, gestión de asignaciones, resiliencia HTTP, canales y seguridad del pool de conexiones. Se aplica a rendimiento, eficiencia, asignaciones, AsNoTracking, consultas N+1, proyecciones, Select DTO, HttpClient, IHttpClientFactory, AddStandardResilienceHandler, Channel, backpressure, BoundedChannel, StringBuilder, Span, async void, bloqueo de async, GetAwaiter, .Result, .Wait, CancellationToken, stoppingToken, Interlocked, ConcurrentDictionary, caché, IMemoryCache, pool de conexiones y AddDbContextPool."
+  },
+  "dotnet-10/security": {
+    "source": "Security rules for .NET 10 Minimal API backends covering Argon2id, ES256 JWT with KEK-wrapped keys, CSRF, CORS, rate limiting, and no-leakage error design. Trigger: security, authentication, authorization, password hashing, JWT, TOTP, 2FA, CORS, CSRF, rate limit, security headers, session revocation, key management, KEK, Argon2, ES256, secrets, input validation, account enumeration, ProblemDetails error, token storage, dependencies, infrastructure, CI/CD.",
+    "es": "Reglas de seguridad para backends Minimal API de .NET 10: Argon2id, JWT ES256 con claves envueltas mediante KEK, CSRF, CORS, límites de solicitudes y errores sin filtración de información. Se aplica a seguridad, autenticación, autorización, hashing de contraseñas, JWT, TOTP, 2FA, CORS, CSRF, rate limits, cabeceras de seguridad, revocación de sesiones, gestión de claves, KEK, Argon2, ES256, secretos, validación de entradas, enumeración de cuentas, errores ProblemDetails, almacenamiento de tokens, dependencias, infraestructura y CI/CD."
+  },
+  "dotnet-10/testing": {
+    "source": "Testing conventions, tier strategy, library choices, and real-database (Testcontainers) integration rules for .NET 10 APIs, CLIs and workers, scoped to existing capabilities. Trigger: writing a test, adding a test, CLI/file I/O tests, WebApplicationFactory, Testcontainers, real database integration test, database integration tier, Testcontainers PostgreSQL, xUnit, integration test, unit test, mocking, assertion library, FluentAssertions, InMemory database for tests, FakeTimeProvider, SkippableFact, test fixture, IAsyncLifetime in tests, test naming, test coverage.",
+    "es": "Convenciones de pruebas, estrategia por niveles, selección de bibliotecas y reglas de integración con bases de datos reales (Testcontainers) para APIs, CLIs y workers .NET 10, limitadas a capacidades existentes. Se aplica al escribir o añadir pruebas, pruebas de CLI/E/S de archivos, WebApplicationFactory, Testcontainers, integración con bases de datos reales, nivel de integración de datos, Testcontainers PostgreSQL, xUnit, pruebas de integración y unitarias, mocking, bibliotecas de aserciones, FluentAssertions, bases InMemory para pruebas, FakeTimeProvider, SkippableFact, fixtures, IAsyncLifetime en pruebas, nombres y cobertura de pruebas."
+  },
+  "frontend/nextjs-15": {
+    "source": "Operational conventions for Next.js 15 in this repo with App Router only, Server Components by default, Server Actions for mutations, and middleware-first route protection. Trigger: When implementing Next.js routing, data flow, auth guards, cache updates, or mutation paths in frontend features.",
+    "es": "Convenciones operativas de Next.js 15 en este repositorio: solo App Router, Server Components por defecto, Server Actions para mutaciones y protección de rutas desde middleware. Se aplica al implementar routing, flujo de datos, controles de autenticación, actualizaciones de caché o rutas de mutación en funcionalidades frontend."
+  },
+  "frontend/react-19": {
+    "source": "Operational React 19 rules for component boundaries, forms, and modern APIs. Trigger: When building or refactoring React 19 components, hooks, refs, or form actions.",
+    "es": "Reglas operativas de React 19 para límites de componentes, formularios y APIs modernas. Se aplica al crear o refactorizar componentes, hooks, refs o acciones de formulario de React 19."
+  },
+  "frontend/security": {
+    "source": "ZeshOne frontend security defaults for Next.js applications. Trigger: When adding middleware, route protection, headers, validation, cookies, or handling untrusted input.",
+    "es": "Criterios de seguridad frontend de ZeshOne para aplicaciones Next.js. Se aplica al añadir middleware, protección de rutas, cabeceras, validación, cookies o gestionar entradas no confiables."
+  },
+  "frontend/shadcn-ui": {
+    "source": "ZeshOne shadcn/ui conventions for composed UI primitives. Trigger: When building components/forms with shadcn/ui and customizing behavior via composition or theme tokens.",
+    "es": "Convenciones shadcn/ui de ZeshOne para primitivas de UI compuestas. Se aplica al crear componentes/formularios con shadcn/ui y personalizar su comportamiento mediante composición o tokens de tema."
+  },
+  "frontend/tailwind-4": {
+    "source": "ZeshOne Tailwind CSS 4 conventions. Trigger: When styling UI with Tailwind utilities, semantic tokens, responsive rules, or runtime dynamic values.",
+    "es": "Convenciones de Tailwind CSS 4 de ZeshOne. Se aplica al dar estilo a la UI con utilidades de Tailwind, tokens semánticos, reglas responsive o valores dinámicos en tiempo de ejecución."
+  },
+  "frontend/tanstack-query": {
+    "source": "ZeshOne TanStack Query defaults for server/API state management. Trigger: When TanStack Query is installed or explicitly selected for remote fetching, caching, mutations, invalidation, SSR prefetch, or hydration.",
+    "es": "Criterios de TanStack Query de ZeshOne para gestionar estado de servidor/API. Se aplica cuando TanStack Query está instalado o se elige explícitamente para obtener datos remotos, caché, mutaciones, invalidación, prefetch SSR o hidratación."
+  },
+  "frontend/testing": {
+    "source": "Trigger: React SPA tests, component behavior, forms, API states, test selection. Verify observable behavior with existing tools; do not import Next or Ionic recipes.",
+    "es": "Se aplica a pruebas de SPA React, comportamiento de componentes, formularios, estados de API y selección de pruebas. Verifica el comportamiento observable con las herramientas existentes; no incorpores recetas de Next ni Ionic."
+  },
+  "frontend/typescript": {
+    "source": "TypeScript defaults for explicit typing, utility types, and schema-driven contracts. Trigger: When authoring or reviewing frontend TypeScript models, APIs, and shared type utilities.",
+    "es": "Criterios de TypeScript para tipado explícito, tipos utilitarios y contratos guiados por esquemas. Se aplica al crear o revisar modelos TypeScript frontend, APIs y utilidades de tipos compartidas."
+  },
+  "frontend/zod-4": {
+    "source": "Operational Zod 4 rules for schema-first validation and type-safe form flows. Trigger: When creating, updating, or integrating Zod schemas in frontend forms and data boundaries.",
+    "es": "Reglas operativas de Zod 4 para validación basada en esquemas y flujos de formularios con tipos seguros. Se aplica al crear, actualizar o integrar esquemas Zod en formularios frontend y límites de datos."
+  },
+  "frontend/zustand-5": {
+    "source": "Operational Zustand 5 rules for store boundaries, selectors, and async state flow. Trigger: When creating, refactoring, or reviewing Zustand 5 stores and selectors.",
+    "es": "Reglas operativas de Zustand 5 para límites de stores, selectores y flujo de estado async. Se aplica al crear, refactorizar o revisar stores y selectores de Zustand 5."
+  },
+  "shared/accessibility": {
+    "source": "Trigger: accessibility, a11y, keyboard, focus, labels, UI feedback. Improve changed interfaces and report verification limits.",
+    "es": "Se aplica a accesibilidad, a11y, teclado, focus, etiquetas y feedback de UI. Mejora las interfaces modificadas e informa los límites de la verificación."
+  },
+  "shared/cli-design": {
+    "source": "Trigger: CLI design, commands, flags, help, stdin/stdout/stderr. Define compatible human and automation interfaces without choosing architecture.",
+    "es": "Se aplica al diseño de CLI, comandos, flags, ayuda y stdin/stdout/stderr. Define interfaces compatibles para personas y automatización sin elegir la arquitectura."
+  },
+  "shared/diagnosing-bugs": {
+    "source": "Trigger: bug, regression, unexpected behavior, diagnosis. Reproduce, isolate and verify the smallest evidence-based correction.",
+    "es": "Se aplica a bugs, regresiones, comportamiento inesperado y diagnóstico. Reproduce, aísla y verifica la corrección mínima basada en evidencia."
+  },
+  "shared/github-pr": {
+    "source": "Operational GitHub Pull Request rules for branch, title, body, and merge readiness. Trigger: When creating, updating, or reviewing pull requests with GitHub CLI workflows.",
+    "es": "Reglas operativas de Pull Requests de GitHub para ramas, título, descripción y preparación para merge. Se aplica al crear, actualizar o revisar pull requests mediante flujos de GitHub CLI."
+  }
+}

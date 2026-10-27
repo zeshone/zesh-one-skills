@@ -17,17 +17,39 @@ type File struct {
 	SHA256 string `json:"sha256"`
 }
 type Skill struct {
-	ID           string   `json:"id"`
-	Name         string   `json:"name"`
-	Description  string   `json:"description"`
-	Path         string   `json:"path"`
-	Version      string   `json:"version"`
-	Scopes       []string `json:"scopes"`
-	Topics       []string `json:"topics"`
-	Technologies []string `json:"technologies"`
-	Triggers     []string `json:"triggers"`
-	Files        []File   `json:"files"`
+	ID            string   `json:"id"`
+	Name          string   `json:"name"`
+	Description   string   `json:"description"`
+	DescriptionES string   `json:"descriptionEs,omitempty"`
+	Path          string   `json:"path"`
+	Version       string   `json:"version"`
+	Scopes        []string `json:"scopes"`
+	Topics        []string `json:"topics"`
+	Technologies  []string `json:"technologies"`
+	Triggers      []string `json:"triggers"`
+	Files         []File   `json:"files"`
 }
+
+// Reject explicit null as well as non-string optional translations at the JSON boundary.
+func (s *Skill) UnmarshalJSON(data []byte) error {
+	type skillJSON Skill
+	var decoded struct {
+		*skillJSON
+		DescriptionES json.RawMessage `json:"descriptionEs"`
+	}
+	decoded.skillJSON = (*skillJSON)(s)
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	if len(decoded.DescriptionES) > 0 {
+		if string(decoded.DescriptionES) == "null" {
+			return fmt.Errorf("invalid Spanish description type")
+		}
+		return json.Unmarshal(decoded.DescriptionES, &s.DescriptionES)
+	}
+	return nil
+}
+
 type Catalog struct {
 	SchemaVersion int     `json:"schemaVersion"`
 	Skills        []Skill `json:"skills"`
@@ -75,7 +97,7 @@ func (c Catalog) Validate() error {
 		}
 		ids[s.ID] = true
 		aliases[alias] = true
-		if s.Path != "skills/"+s.ID || !safePath(s.Path) || s.Name == "" || !plainText(s.Description, 1024) || s.Version == "" || len(s.Scopes) == 0 || len(s.Topics) == 0 || len(s.Triggers) == 0 || len(s.Files) == 0 || len(s.Files) > 500 {
+		if s.Path != "skills/"+s.ID || !safePath(s.Path) || s.Name == "" || !plainText(s.Description, 1024) || (s.DescriptionES != "" && !plainText(s.DescriptionES, 1024)) || s.Version == "" || len(s.Scopes) == 0 || len(s.Topics) == 0 || len(s.Triggers) == 0 || len(s.Files) == 0 || len(s.Files) > 500 {
 			return fmt.Errorf("incomplete skill: %s", s.ID)
 		}
 		for _, values := range [][]string{s.Scopes, s.Topics, s.Technologies, s.Triggers} {

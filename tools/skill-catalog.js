@@ -23,7 +23,16 @@ function filesUnder(dir) {
     return entry.isDirectory() ? filesUnder(full) : [full];
   });
 }
+function plainText(value) {
+  return typeof value === 'string' && Buffer.byteLength(value, 'utf8') <= 1024 && value.length > 0 && !/[\x00-\x1f\x7f]/.test(value);
+}
 function buildCatalog(root) {
+  const translationsPath = path.join(root, 'cli/skill_descriptions_es.json');
+  const translations = fs.existsSync(translationsPath) ? JSON.parse(fs.readFileSync(translationsPath, 'utf8')) : {};
+  if (!translations || typeof translations !== 'object' || Array.isArray(translations)) throw new Error('Invalid Spanish description bundle');
+  for (const entry of Object.values(translations)) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry) || Object.keys(entry).sort().join(',') !== 'es,source' || !plainText(entry.source) || !plainText(entry.es)) throw new Error('Invalid Spanish description bundle entry');
+  }
   const relative = p => path.relative(root, p).split(path.sep).join('/');
   const all = filesUnder(path.join(root, 'skills'));
   const skills = all.filter(p => path.basename(p) === 'SKILL.md').map(entry => {
@@ -50,8 +59,13 @@ function buildCatalog(root) {
       }
     }
     const description = String(meta.description).replace(/\s+/g, ' ').trim();
+    let descriptionEs = custom.descriptionEs;
+    if (descriptionEs !== undefined && (typeof descriptionEs !== 'string' || (descriptionEs !== '' && !plainText(descriptionEs)))) throw new Error(`Invalid Spanish description: ${id}`);
+    if (!descriptionEs && Object.hasOwn(translations, id) && translations[id].source === description) descriptionEs = translations[id].es;
     return {
-      id, name: String(meta.name), description, path: skillPath, version: String(meta.metadata.version),
+      id, name: String(meta.name), description,
+      ...(descriptionEs ? { descriptionEs } : {}),
+      path: skillPath, version: String(meta.metadata.version),
       scopes: custom.scopes || scopes[domain],
       topics: custom.topics || [topics[meta.name] || 'framework'],
       technologies: custom.technologies || [domain === 'shared' ? 'any' : domain],
