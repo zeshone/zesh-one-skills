@@ -5,7 +5,6 @@ All notable changes to this repository are documented in this file.
 ## Unreleased
 
 ### Added
-- Added `zesh-skills --install-cli` for the current user: it copies the running executable to a user-owned location (Windows `%LOCALAPPDATA%\Programs\zesh-skills`, macOS/Linux `~/.local/bin`) and persists only a user-level PATH entry or one marked shell startup block, with preview, confirmation, idempotence, post-preview drift detection and rollback. It needs no administrator rights, keeps the original file, installs no skills and never touches the machine PATH. Checked by Go service tests, public CLI flow tests with isolated homes and a fake registry-backed user PATH, `go vet` and the six CGO-disabled targets.
 - Added `docs/MAINTAINING.md`, the repository maintainer workflow (owner selection, gates, first-party frontmatter versus the vendor template, conditional routes, instruction contracts, pipeline registration, records, provenance and exact lint coverage), linked from README; recorded app-skill inspirations in CREDITS without inferred revisions or licenses. `npm run test:maintainer-instructions` also checks that every instruction script runs exactly once in both default pipelines.
 - Added shared web/hybrid accessibility guidance and frontend/apps routes with Node-only instruction checks; existing UI tooling stays optional and browser/assistive-technology verification remains explicit.
 - Added shared evidence-led bug diagnosis, conditional routes for all four profiles and Node-only instruction checks; proposal observations remain distinct from executed application verification.
@@ -17,13 +16,22 @@ All notable changes to this repository are documented in this file.
 - Added the shared `cli-design` interaction contract, conditional .NET routes and focused instruction checks (`npm run test:cli-instructions`). Default `test`/`verify` pipelines remain Node-only; architecture selection and security stay with their existing owners.
 
 ### Changed
-- Rewrote the public user documentation (`README.md`, `ADOPTING.md`, `cli/README.md`) in neutral Spanish and removed the Rioplatense voseo it carried; commands, flags, paths, links and proof limits are unchanged. The `v2.8.0` download section no longer claims an unpublished release: it links the public release and states the source-build fallback instead.
 - Corrected and scoped React-side skills: form ownership instead of forced `useActionState`/React Hook Form migrations, `useFormState` deprecation, Zod 4 deprecated-versus-removed APIs and input/output types, both valid Zustand 5 `useShallow` paths, deterministic Query key hashing, Query/Zustand adoption only when installed or selected, SSR client/store lifetimes, separate Next.js and Query cache ownership, concurrency-safe optimistic updates, Tailwind token/dynamic-class rules, installed shadcn primitive variants and no unauthorized React Compiler activation. Checked by `npm run test:react-stack-instructions` (Node-only).
 - Scoped Ionic/Angular guidance to the existing standalone or NgModule/RxJS architecture, freshness-aware page entry with leave cleanup, Router/NavController/tab escape hatches and version-gated template/DI idioms; Capacitor now separates platform, plugin availability and plugin-specific permissions. Checked by `npm run test:apps-instructions` (Node-only).
 - Integrated the shared everyday security guardrails while retaining distinct .NET 8/.NET 10 security rules and exceptions.
 - Added contextual, user-approved architecture selection to existing .NET guidance; removed automatic second-context assembly promotion and scoped HTTP/database recipes away from local CLIs.
 - Scoped React/Query/Next guidance by runtime and Ionic/Capacitor guidance by installed capabilities; extended shared security to SPA and mobile without importing server-only infrastructure.
 - Added pinned source attribution, six BEFORE scenarios and instruction regression checks (`npm run test:pilot`, included in `test` and `verify`). Model proposals are not execution or security guarantees.
+
+## v2.9.0 — 2026-10-27
+
+### Added
+- Added `zesh-skills --install-cli` for the current user: it copies the running executable to a user-owned location (Windows `%LOCALAPPDATA%\Programs\zesh-skills`, macOS/Linux `~/.local/bin`) and persists only a user-level PATH entry or one marked shell startup block, with preview, confirmation, idempotence, post-preview drift detection and rollback. It needs no administrator rights, keeps the original file, installs no skills and never touches the machine PATH. Checked by Go service tests, public CLI flow tests with isolated homes and a fake registry-backed user PATH, `go vet` and the six CGO-disabled targets.
+
+### Changed
+- Rewrote the public user documentation (`README.md`, `ADOPTING.md`, `cli/README.md`) in neutral Spanish and removed the Rioplatense voseo it carried; commands, flags, paths, links and proof limits are unchanged. The download section no longer claims an unpublished release: it links the release page and states the source-build fallback instead.
+
+The existing [v2.8.0 release](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0) remains the source for that release's history.
 
 ## v2.8.0 — 2026-10-26
 

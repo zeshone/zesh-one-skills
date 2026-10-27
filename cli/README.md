@@ -2,29 +2,29 @@
 
 `zesh-skills` es un instalador de skills independiente y local al proyecto para Claude Code, Codex, OpenCode y Pi. El ejecutable puede vivir en tu `PATH`; los skills nunca se instalan en la configuración de agentes de tu directorio personal.
 
-## Descarga de v2.8.0
+## Descarga de v2.9.0
 
-Descarga un ejecutable sin empaquetar y el archivo [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/SHA256SUMS) desde el release [v2.8.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0). Si esa página todavía no es pública, puedes reproducir los mismos seis archivos desde el commit de release con `npm run build:zesh-cli -- --release 2.8.0`; una compilación de desarrollo informa `dev`, así que revisa `--version` antes de confiar en un binario.
+Descarga un ejecutable sin empaquetar y el archivo [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0/SHA256SUMS) desde el release [v2.9.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.9.0). Si esa página todavía no es pública, puedes reproducir los mismos seis archivos desde el commit de release con `npm run build:zesh-cli -- --release 2.9.0`; una compilación de desarrollo informa `dev`, así que revisa `--version` antes de confiar en un binario.
 
 | Plataforma | Archivo |
 | --- | --- |
-| Windows x64 | [zesh-skills-windows-amd64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-windows-amd64.exe) |
-| Windows ARM64 | [zesh-skills-windows-arm64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-windows-arm64.exe) |
-| Linux x64 | [zesh-skills-linux-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-linux-amd64) |
-| Linux ARM64 | [zesh-skills-linux-arm64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-linux-arm64) |
-| macOS Intel | [zesh-skills-darwin-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-darwin-amd64) |
-| macOS Apple Silicon | [zesh-skills-darwin-arm64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-darwin-arm64) |
+| Windows x64 | [zesh-skills-windows-amd64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0/zesh-skills-windows-amd64.exe) |
+| Windows ARM64 | [zesh-skills-windows-arm64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0/zesh-skills-windows-arm64.exe) |
+| Linux x64 | [zesh-skills-linux-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0/zesh-skills-linux-amd64) |
+| Linux ARM64 | [zesh-skills-linux-arm64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0/zesh-skills-linux-arm64) |
+| macOS Intel | [zesh-skills-darwin-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0/zesh-skills-darwin-amd64) |
+| macOS Apple Silicon | [zesh-skills-darwin-arm64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0/zesh-skills-darwin-arm64) |
 
 Ejemplo para Linux (reemplaza el nombre del archivo por el de tu plataforma):
 
 ```bash
-base=https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0
+base=https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0
 curl -fLO "$base/zesh-skills-linux-amd64"
 curl -fLO "$base/SHA256SUMS"
 grep '  zesh-skills-linux-amd64$' SHA256SUMS | sha256sum --check -
 # Continúa solo si el checksum coincide.
 chmod +x zesh-skills-linux-amd64
-./zesh-skills-linux-amd64 --version  # valor esperado: 2.8.0
+./zesh-skills-linux-amd64 --version  # valor esperado: 2.9.0
 ```
 
 En macOS usa `shasum -a 256 -c` en lugar de `sha256sum --check -`, con el nombre de archivo de macOS seleccionado. Verifica solo la línea del archivo descargado; el manifiesto también lista las otras cinco plataformas.
@@ -32,7 +32,7 @@ En macOS usa `shasum -a 256 -c` en lugar de `sha256sum --check -`, con el nombre
 Ejemplo para Windows PowerShell:
 
 ```powershell
-$base = 'https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0'
+$base = 'https://github.com/zeshone/zesh-one-skills/releases/download/v2.9.0'
 $name = 'zesh-skills-windows-amd64.exe'
 Invoke-WebRequest "$base/$name" -OutFile $name
 Invoke-WebRequest "$base/SHA256SUMS" -OutFile SHA256SUMS
@@ -40,7 +40,7 @@ $line = Get-Content SHA256SUMS | Where-Object { $_.EndsWith("  $name") }
 if (@($line).Count -ne 1) { throw 'Missing or duplicate checksum' }
 $expected = ($line -split '  ')[0]
 if ((Get-FileHash $name -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Checksum mismatch' }
-& ".\$name" --version  # valor esperado: 2.8.0
+& ".\$name" --version  # valor esperado: 2.9.0
 ```
 
 Los checksums detectan bytes que no coinciden, no son una firma independiente de la identidad del publicador. Después de verificar, opcionalmente cambia el nombre del ejecutable a `zesh-skills` (`zesh-skills.exe` en Windows) y sigue la guía manual de `PATH` que aparece más abajo. No se necesita Go, Node, Git ni el runtime de .NET para ejecutarlo. Los skills permanecen en el proyecto. Los archivos de macOS y ARM solo tienen evidencia de compilación: la matriz de CI ejecuta las pruebas de Go en las tres plataformas, no los binarios publicados.
@@ -137,10 +137,10 @@ CGO_ENABLED=0 go build -trimpath -o dist/zesh-skills ./cli
 npm run build:zesh-cli
 npm run build:zesh-cli -- --all
 # Preparación de release para el mantenedor; versión explícita, sin publicación:
-npm run build:zesh-cli -- --release 2.8.0
+npm run build:zesh-cli -- --release 2.9.0
 ```
 
-El generador de conveniencia escribe `dist/zesh-skills/<os>-<arch>/zesh-skills[.exe]` y `SHA256SUMS`. `--all` compila de forma cruzada para Windows, Linux y macOS en amd64 y arm64 con CGO desactivado. La compilación cruzada no es una prueba de ejecución en esas plataformas. Las compilaciones predeterminada y `--all` conservan la versión de desarrollo `dev`. `--release <version>` acepta solo un `major.minor.patch` numérico simple (sin prefijo `v`, sin sufijos de preestreno ni de compilación); compila los seis destinos con `CGO_ENABLED=0`, `GOTOOLCHAIN=local` y `main.version` del enlazador fijado con ese único argumento. Para `2.8.0`, la salida es `dist/zesh-skills-release/v2.8.0/`: los seis nombres planos de arriba más `SHA256SUMS` (SHA-256 en minúsculas, dos espacios, el nombre real del archivo y un salto de línea). Solo esos siete archivos explícitos pertenecen a una carga; los archivos ajenos o antiguos no se incluyen ni se borran. Una compilación fallida no es un release publicable. Compila desde el commit final autorizado de `main` y verifica antes de publicar; este comando nunca crea etiquetas ni sobrescribe releases remotas. No existe un paso de publicación o instalación global automática.
+El generador de conveniencia escribe `dist/zesh-skills/<os>-<arch>/zesh-skills[.exe]` y `SHA256SUMS`. `--all` compila de forma cruzada para Windows, Linux y macOS en amd64 y arm64 con CGO desactivado. La compilación cruzada no es una prueba de ejecución en esas plataformas. Las compilaciones predeterminada y `--all` conservan la versión de desarrollo `dev`. `--release <version>` acepta solo un `major.minor.patch` numérico simple (sin prefijo `v`, sin sufijos de preestreno ni de compilación); compila los seis destinos con `CGO_ENABLED=0`, `GOTOOLCHAIN=local` y `main.version` del enlazador fijado con ese único argumento. Para `2.9.0`, la salida es `dist/zesh-skills-release/v2.9.0/`: los seis nombres planos de arriba más `SHA256SUMS` (SHA-256 en minúsculas, dos espacios, el nombre real del archivo y un salto de línea). Solo esos siete archivos explícitos pertenecen a una carga; los archivos ajenos o antiguos no se incluyen ni se borran. Una compilación fallida no es un release publicable. Compila desde el commit final autorizado de `main` y verifica antes de publicar; este comando nunca crea etiquetas ni sobrescribe releases remotas. No existe un paso de publicación o instalación global automática.
 
 Para tener `zesh-skills` disponible desde cualquier terminal, ejecuta `zesh-skills --install-cli` (ver arriba), o copia **el ejecutable de tu sistema operativo y arquitectura** a un directorio que ya esté en tu `PATH` y agrega ese directorio a la `PATH` del usuario. En Linux y macOS, `~/.local/bin` es una opción convencional (créalo, copia el binario, hazlo ejecutable y agrégalo a la `PATH` si hace falta). En Windows, elige una carpeta de herramientas del usuario y agrégala desde la configuración de variables de entorno del usuario; después abre una terminal nueva. No agregues un checkout del proyecto con permisos de escritura a una `PATH` de toda la máquina. Estas acciones manuales son tuyas; `--install-cli` realiza solo la versión de nivel de usuario descrita arriba.
 
