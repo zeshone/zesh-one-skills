@@ -96,17 +96,27 @@ var spanishText = map[string]string{
 	"Agents (claude,codex,opencode,pi)":                "Agentes (claude,codex,opencode,pi)",
 	"Additional root instruction file (.md; optional)": "Archivo adicional de instrucciones en la raíz (.md; opcional)",
 	"\nInstall %d selected skill(s) into %s\nSource: main @ %s\nArchitecture: %s\nAgents: %s\nSkills: %s\nContent: .zesh-skills/content/\n": "\nSkills a instalar: %d\nDestino: %s\nFuente: main @ %s\nArquitectura: %s\nAgentes: %s\nSkills: %s\nContenido: .zesh-skills/content/\n",
-	"Instruction files: ":                                             "Archivos de instrucciones: ",
-	"\n  %s (managed index and triggers)\n":                           "\n  %s (índice administrado y triggers)\n",
-	"Proceed? (y/N)":                                                  "¿Continuar? (s/N)",
-	"Replace local changes in %s? (y/N)":                              "¿Reemplazar los cambios locales en %s? (s/N)",
-	" (modified managed index)":                                       " (índice administrado modificado)",
-	"Installed %d selected skill(s). Existing selections retained.\n": "Instalación completada. Skills seleccionadas: %d. Se conservan las anteriores.\n",
-	"Select project skills":                                           "Selecciona las skills del proyecto",
-	"%d selected | %d suggested | %d available":                       "%d seleccionadas | %d sugeridas | %d disponibles",
-	"Suggestions are optional; every choice is editable.":             "Las sugerencias son opcionales; puedes cambiar cada elección.",
-	"Choose one profile | %d available":                               "Elige un perfil | %d disponibles",
-	"This describes the project; it does not scaffold it.":            "Describe el proyecto; no crea su estructura ni infraestructura.",
+	"Instruction files: ":                   "Archivos de instrucciones: ",
+	"\n  %s (managed index and triggers)\n": "\n  %s (índice administrado y triggers)\n",
+	"Proceed? (y/N)":                        "¿Continuar? (s/N)",
+	"\nInstall this executable for the current user\nSource: %s\nDestination: %s\n": "\nInstalar este ejecutable para el usuario actual\nOrigen: %s\nDestino: %s\n",
+	"Shell startup files: %s\n":                                                          "Archivos de inicio del shell: %s\n",
+	"The user PATH will be updated; new terminals only.":                                 "Se actualizará el PATH del usuario; solo aplica a terminales nuevas.",
+	"The user PATH already contains the destination.":                                    "El PATH del usuario ya contiene el destino.",
+	"An existing different executable will be replaced: %s\n":                            "Se reemplazará un ejecutable existente diferente: %s\n",
+	"Skills stay project-local; nothing is installed globally.":                          "Las skills siguen siendo locales del proyecto; no se instala nada globalmente.",
+	"Replace the existing executable at %s? (y/N)":                                       "¿Reemplazar el ejecutable existente en %s? (s/N)",
+	"Installed. Open a new terminal to use zesh-skills.":                                 "Instalado. Abre una terminal nueva para usar zesh-skills.",
+	"--install-cli requires --yes to confirm":                                            "--install-cli requiere --yes para confirmar",
+	"existing executable differs; remove it or run interactively to confirm replacement": "el ejecutable existente es distinto; elimínalo o ejecuta de forma interactiva para confirmar el reemplazo",
+	"Replace local changes in %s? (y/N)":                                                 "¿Reemplazar los cambios locales en %s? (s/N)",
+	" (modified managed index)":                                                          " (índice administrado modificado)",
+	"Installed %d selected skill(s). Existing selections retained.\n":                    "Instalación completada. Skills seleccionadas: %d. Se conservan las anteriores.\n",
+	"Select project skills":                                                              "Selecciona las skills del proyecto",
+	"%d selected | %d suggested | %d available":                                          "%d seleccionadas | %d sugeridas | %d disponibles",
+	"Suggestions are optional; every choice is editable.":                                "Las sugerencias son opcionales; puedes cambiar cada elección.",
+	"Choose one profile | %d available":                                                  "Elige un perfil | %d disponibles",
+	"This describes the project; it does not scaffold it.":                               "Describe el proyecto; no crea su estructura ni infraestructura.",
 	"* suggested": "* sugerida", "* suggested: %s": "* sugerida: %s",
 	"Only one architecture profile is selected.":           "Solo se selecciona un perfil de arquitectura.",
 	"Up/Down or j/k: move | Space: toggle":                 "Arriba/Abajo o j/k: mover | Espacio: marcar",
@@ -138,6 +148,7 @@ q/Ctrl-C cancela. Las sugerencias son opcionales; la automatización usa eleccio
   --yes                   Confirma la instalación, NO reemplaza cambios locales
   --non-interactive       No pregunta; exige skills, agentes, arquitectura y --yes
   --es                    Interfaz en español (sin este parámetro: inglés)
+  --install-cli           Copia este ejecutable a una ubicación del usuario y lo agrega al PATH
   --version               Muestra la versión sin red ni escrituras
   --help                  Muestra esta ayuda sin red ni escrituras
 
@@ -154,5 +165,13 @@ remotas en español; hay 35 traducciones integradas para descripciones originale
 conocidas. Sin traducción o si cambia el original, se muestra el inglés.
 Los valores personalizados y documentos descargados no se traducen.
 Se conservan las selecciones instaladas; los cambios locales requieren confirmación.
+
+--install-cli no requiere permisos de administrador: copia el ejecutable en una ubicación
+del usuario, conserva el archivo original, agrega una entrada de PATH del usuario y no
+instala skills. En Windows escribe %LOCALAPPDATA%\Programs\zesh-skills y el PATH del
+usuario; en macOS y Linux escribe ~/.local/bin y el archivo de inicio detectado (sh, bash,
+zsh o fish). --yes confirma la vista previa, pero nunca reemplaza un ejecutable existente
+distinto. Abre una terminal nueva al terminar.
+
 Códigos de salida: 0 éxito/cancelación, 1 fallo de ejecución, 2 uso/entrada no válidos.
 `
