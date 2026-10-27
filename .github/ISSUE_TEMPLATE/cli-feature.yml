@@ -1,0 +1,18 @@
+name: CLI feature request
+description: Propose or track a zesh-skills CLI feature.
+title: "[CLI]: "
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the requested CLI behavior and its purpose.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: List observable outcomes needed to consider this feature complete.
+    validations:
+      required: true
