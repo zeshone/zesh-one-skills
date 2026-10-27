@@ -102,6 +102,31 @@ zesh-skills --scope frontend,backend --agents claude,codex \
 
 `--root` overrides the current directory. `--yes` approves the displayed selection, not overwriting local edits. On a terminal it can still ask about locally modified files; in automation a conflict fails without changing installed data. `--list`, `--help` and `--version` never install anything; help/version do not access the network. Exit codes: `0` success or deliberate cancellation, `1` network/filesystem/conflict failure, `2` invalid arguments or incomplete input.
 
+## Install the CLI for your user
+
+`--install-cli` copies the running executable into a user-owned directory and makes the command available from any terminal, without administrator rights:
+
+```bash
+zesh-skills --install-cli          # preview, then confirm
+zesh-skills --install-cli --yes    # automation: confirm the preview shown above
+zesh-skills --es --install-cli     # Spanish preview and prompts
+```
+
+| Platform | Executable | Persistent configuration |
+| --- | --- | --- |
+| Windows | `%LOCALAPPDATA%\Programs\zesh-skills\zesh-skills.exe` | User `PATH` under `HKCU\Environment`, with the existing value, order and registry value type preserved |
+| Linux/macOS | `~/.local/bin/zesh-skills` | Detected `sh`, `bash`, `zsh` or `fish` startup file, appended as one marked block that keeps the rest of the file intact |
+
+Only the user level changes: no machine-wide `PATH`, no elevation, no removal or move of the original executable, and no globally installed skills. `--install-cli` never downloads anything, so it works offline and does not read a project catalog.
+
+The preview lists the source executable, the destination, the startup files and whether the user `PATH` changes. Nothing is written before confirmation. `--yes` confirms that preview but never replaces a **different** existing executable: that case requires an interactive replacement confirmation and otherwise exits `1` with the destination untouched. Re-running with the same executable is idempotent and writes no duplicate `PATH` entry.
+
+Rejected before any write: absent or non-regular source, relative or delimited target paths, symlinked destinations or parents, control characters, a `SHELL` other than `sh`, `bash`, `zsh` or `fish`, a `ZDOTDIR`/`XDG_CONFIG_HOME` outside the home directory, and a user `PATH` value whose type is not a string. Files changed between the preview and the write abort the installation. Ordinary write errors restore the previous binary, startup file and `PATH`; rollback refuses to overwrite anything that changed after installation.
+
+`PATH` changes apply to **new terminals only**; restart the shell or open a new terminal to use `zesh-skills`. `--help` and `--version` keep their precedence and still write nothing.
+
+Proof limits: unit and public CLI flow tests run against temporary home directories and a fake registry-backed user `PATH`, so no test reads or writes real user state or the machine `PATH`. The Windows registry adapter is compiled for both Windows targets but exercised through that fake store, and macOS/Linux installation remains compile-only evidence, consistent with the existing platform limits.
+
 ## Build a dependency-free executable
 
 Development requires Go 1.25+; `golang.org/x/term` and its platform support are downloaded as pinned Go modules on the first build. They are compiled into the executable: the installed binary requires neither Go, Node, Git nor a .NET runtime. Network access is required to install/update skills. The picker supports Windows consoles/Windows Terminal and ANSI terminals on Linux/macOS; redirected input/output uses the non-interactive flag contract instead of changing console modes.
@@ -119,7 +144,7 @@ npm run build:zesh-cli -- --release 2.8.0
 
 The convenience builder writes `dist/zesh-skills/<os>-<arch>/zesh-skills[.exe]` and `SHA256SUMS`. `--all` cross-compiles Windows, Linux and macOS for amd64 and arm64 with CGO disabled. Cross-compilation is not runtime testing on those platforms. Default and `--all` builds retain the development version `dev`. `--release <version>` accepts only a plain numeric `major.minor.patch` (no `v` prefix, prerelease or build suffix); it builds all six targets with `CGO_ENABLED=0`, `GOTOOLCHAIN=local` and linker `main.version` set to that one argument. For `2.8.0`, output is `dist/zesh-skills-release/v2.8.0/`: the six flat filenames above plus `SHA256SUMS` (lowercase SHA-256, two spaces, actual asset filename, newline). Only those explicit seven files belong in an upload; unrelated/stale files are neither included nor deleted. A failed build is not a publishable release. Build from the final authorized main commit and verify before publication; this command never creates tags or overwrites remote releases. There is no publishing or automatic global installation step.
 
-To make `zesh-skills` available from any terminal, copy **the executable for your OS/architecture** into a directory already on your PATH, or add its directory to your user PATH. On Linux/macOS, `~/.local/bin` is a conventional choice (create it, copy the binary, make it executable and add it to PATH if needed). On Windows, choose a user-owned tools folder and add it through the user Environment Variables settings; open a new terminal afterward. Do not add a writable project checkout itself to a machine-wide PATH. These are manual user actions, not actions performed by the build or installer.
+To make `zesh-skills` available from any terminal, run `zesh-skills --install-cli` (see above), or copy **the executable for your OS/architecture** into a directory already on your PATH and add that directory to your user PATH. On Linux/macOS, `~/.local/bin` is a conventional choice (create it, copy the binary, make it executable and add it to PATH if needed). On Windows, choose a user-owned tools folder and add it through the user Environment Variables settings; open a new terminal afterward. Do not add a writable project checkout itself to a machine-wide PATH. These manual actions are yours; `--install-cli` performs only the user-level version described above.
 
 ## Project files and update behavior
 

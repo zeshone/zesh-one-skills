@@ -36,6 +36,7 @@ Basic suggestions are preselected, optional and editable; automation flags do no
   --yes                   Confirm installation, NOT replacement of local edits
   --non-interactive       Never prompt; require skills, agents, architecture and --yes
   --es                    Spanish interface (default: English)
+  --install-cli           Copy this executable to a user location and add it to your PATH
   --version               Print version without network or writes
   --help                  Print this help without network or writes
 
@@ -46,6 +47,14 @@ Example:
 
 Files: .zesh-skills/content, agent-local skill entries, managed CLAUDE.md/AGENTS.md blocks.
 Existing selections are retained; only selected skills are updated. Local edits require confirmation.
+
+--install-cli needs no administrator rights: it copies the running executable to a
+user-owned location, keeps the original file, adds a user-level PATH entry and installs
+no skills. Windows writes %LOCALAPPDATA%\Programs\zesh-skills and the user PATH; macOS and
+Linux write ~/.local/bin plus the detected sh, bash, zsh or fish startup file. --yes
+confirms the preview but never replaces a different existing executable. Open a new
+terminal afterwards.
+
 Exit codes: 0 success/cancel, 1 download/filesystem/conflict failure, 2 invalid usage/input.
 `
 
@@ -59,7 +68,7 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	flags := flag.NewFlagSet("zesh-skills", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	var root, scope, agentText, architecture, skillText, instructions string
-	var list, yes, noPrompt, help, showVersion bool
+	var list, yes, noPrompt, help, showVersion, installCLI bool
 	var spanish bool
 	var lang language
 	flags.StringVar(&root, "root", "", "project root")
@@ -70,6 +79,7 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 	flags.StringVar(&instructions, "instructions", "", "additional instruction file")
 	flags.BoolVar(&list, "list", false, "list skills")
 	flags.BoolVar(&yes, "yes", false, "confirm installation")
+	flags.BoolVar(&installCLI, "install-cli", false, "install the CLI for the current user")
 	flags.BoolVar(&noPrompt, "non-interactive", false, "never prompt")
 	flags.BoolVar(&spanish, "es", false, "Spanish interface")
 	flags.BoolVar(&help, "help", false, "help")
@@ -97,6 +107,9 @@ func Run(args []string, input io.Reader, out, errOut io.Writer, source Source, t
 		return 0
 	}
 	interactive := terminal && !noPrompt
+	if installCLI {
+		return runInstall(input, out, errOut, interactive, yes, lang)
+	}
 	if !interactive && !list && (skillText == "" || agentText == "" || architecture == "" || !yes) {
 		return usage(fmt.Errorf("non-interactive mode requires --skills, --agents, --architecture and --yes"))
 	}
