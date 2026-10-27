@@ -254,3 +254,74 @@ func TestCLIInstallWindowsRollbackAndDrift(t *testing.T) {
 		})
 	}
 }
+
+// TestCLIInstallAllowsSymlinkedParentAboveRoot keeps the symlink policy on the
+// user-controlled tree: macOS temp homes live under /var, which is a link.
+func TestCLIInstallAllowsSymlinkedParentAboveRoot(t *testing.T) {
+	real := t.TempDir()
+	parent := filepath.Join(t.TempDir(), "linked")
+	if err := os.Symlink(real, parent); err != nil {
+		t.Skipf("symlink unavailable: %v", err)
+	}
+	home := filepath.Join(parent, "home")
+	if err := os.MkdirAll(home, 0700); err != nil {
+		t.Fatal(err)
+	}
+	source := filepath.Join(t.TempDir(), "original")
+	if err := os.WriteFile(source, []byte("original executable"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	service := CLIInstallService{OS: "linux", Home: home, Executable: source, Env: map[string]string{"SHELL": "/bin/sh"}}
+	plan, err := service.Plan()
+	if err != nil {
+		t.Fatalf("a symlinked ancestor above the home was rejected: %v", err)
+	}
+	if err := service.Apply(plan, CLIInstallConsent{Install: true}); err != nil {
+		t.Fatal(err)
+	}
+	assertInstallFile(t, filepath.Join(real, "home", ".local", "bin", "zesh-skills"), "original executable")
+	assertInstallFile(t, filepath.Join(real, "home", ".profile"), "# >>> zesh-skills PATH >>>")
+}
+
+// TestCLIInstallSymlinkPolicyStopsAtTrustedRoot pins the policy on hosts without
+// symlink privileges: only components the installer owns are checked.
+func TestCLIInstallSymlinkPolicyStopsAtTrustedRoot(t *testing.T) {
+	home := t.TempDir()
+	previous := installIsSymlink
+	t.Cleanup(func() { installIsSymlink = previous })
+	source := filepath.Join(t.TempDir(), "original")
+	if err := os.WriteFile(source, []byte("original executable"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	service := CLIInstallService{OS: "linux", Home: home, Executable: source, Env: map[string]string{"SHELL": "/bin/sh"}}
+	linked := func(paths ...string) {
+		set := map[string]bool{}
+		for _, path := range paths {
+			set[filepath.Clean(path)] = true
+		}
+		installIsSymlink = func(path string) (bool, error) { return set[filepath.Clean(path)], nil }
+	}
+	destination := filepath.Join(home, ".local", "bin", "zesh-skills")
+
+	// A link above the trusted root is the macOS /var case and must be allowed.
+	linked(filepath.Dir(home))
+	if _, err := service.Plan(); err != nil {
+		t.Fatalf("link above the trusted root rejected: %v", err)
+	}
+	// The trusted root itself may be a link, as with a symlinked home directory.
+	linked(home)
+	if _, err := service.Plan(); err != nil {
+		t.Fatalf("linked home rejected: %v", err)
+	}
+	// Anything the installer creates stays checked.
+	for _, path := range []string{destination, filepath.Dir(destination), filepath.Join(home, ".profile")} {
+		linked(path)
+		if _, err := service.Plan(); err == nil {
+			t.Fatalf("link at %s accepted", path)
+		}
+	}
+	if _, err := os.Stat(destination); !os.IsNotExist(err) {
+		t.Fatalf("rejected plan wrote the destination: %v", err)
+	}
+	assertInstallFile(t, source, "original executable")
+}

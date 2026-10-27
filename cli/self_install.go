@@ -43,6 +43,9 @@ type CLIInstallPlan struct {
 }
 
 type installFile struct {
+	// root is the trusted directory for the symlink policy; empty means the file
+	// is only read, so links above and at the file itself are allowed.
+	root   string
 	path   string
 	data   []byte
 	mode   os.FileMode
@@ -65,10 +68,10 @@ func (s CLIInstallService) Plan() (CLIInstallPlan, error) {
 	if s.OS != "windows" && s.OS != "linux" && s.OS != "darwin" {
 		return p, errors.New("unsupported operating system")
 	}
-	if err := installSafePath(s.Home, s.OS); err != nil {
+	if err := installSafePath(s.Home, s.Home, s.OS); err != nil {
 		return p, err
 	}
-	source, err := installSnapshot(s.Executable)
+	source, err := installSnapshot("", s.Executable)
 	if err != nil {
 		return p, err
 	}
@@ -78,11 +81,13 @@ func (s CLIInstallService) Plan() (CLIInstallPlan, error) {
 	p.source = source
 	var bin string
 	var configs []string
+	root := s.Home
 	if s.OS == "windows" {
 		local := s.Env["LOCALAPPDATA"]
-		if err := installSafePath(local, s.OS); err != nil {
+		if err := installSafePath(local, local, s.OS); err != nil {
 			return p, err
 		}
+		root = local
 		bin = filepath.Join(local, "Programs", "zesh-skills")
 		p.Destination = filepath.Join(bin, "zesh-skills.exe")
 		if s.WindowsPath == nil {
@@ -158,7 +163,7 @@ func (s CLIInstallService) Plan() (CLIInstallPlan, error) {
 		}
 		block := installShellBlock(bin, shell)
 		for _, path := range configs {
-			before, err := installSnapshot(path)
+			before, err := installSnapshot(root, path)
 			if err != nil {
 				return p, err
 			}
@@ -181,10 +186,10 @@ func (s CLIInstallService) Plan() (CLIInstallPlan, error) {
 			p.PATHChanged = p.PATHChanged || !bytes.Equal(before.data, []byte(content))
 		}
 	}
-	if err := installSafePath(bin, s.OS); err != nil {
+	if err := installSafePath(root, bin, s.OS); err != nil {
 		return p, err
 	}
-	target, err := installSnapshot(p.Destination)
+	target, err := installSnapshot(root, p.Destination)
 	if err != nil {
 		return p, err
 	}
@@ -226,7 +231,7 @@ func (s CLIInstallService) Apply(p CLIInstallPlan, consent CLIInstallConsent) (r
 		return err
 	}
 	lock := filepath.Join(s.Home, ".zesh-skills-install.lock")
-	if err := installNoLinks(lock); err != nil {
+	if err := installNoLinksBelow(s.Home, lock); err != nil {
 		return err
 	}
 	f, err := os.OpenFile(lock, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
@@ -246,13 +251,13 @@ func (s CLIInstallService) Apply(p CLIInstallPlan, consent CLIInstallConsent) (r
 		}
 		for i := len(applied) - 1; i >= 0; i-- {
 			change := applied[i]
-			current, err := installSnapshot(change.before.path)
+			current, err := installSnapshot(change.before.root, change.before.path)
 			if err == nil && (!current.exists || !bytes.Equal(current.data, change.after)) {
 				err = errors.New("rollback refused: file changed after installation")
 			}
 			if err == nil {
 				if change.before.exists {
-					err = installAtomicWrite(change.before.path, change.before.data, change.before.mode)
+					err = installAtomicWrite(change.before.root, change.before.path, change.before.data, change.before.mode)
 				} else {
 					err = os.Remove(change.before.path)
 				}
@@ -273,13 +278,13 @@ func (s CLIInstallService) Apply(p CLIInstallPlan, consent CLIInstallConsent) (r
 		if change.before.exists && bytes.Equal(change.before.data, change.after) && (s.OS == "windows" || change.before.mode.Perm() == change.mode.Perm()) {
 			continue
 		}
-		if err := installMakeDirs(filepath.Dir(change.before.path), &dirs); err != nil {
+		if err := installMakeDirs(change.before.root, filepath.Dir(change.before.path), &dirs); err != nil {
 			return err
 		}
 		if err := installUnchanged(change.before); err != nil {
 			return err
 		}
-		if err := installAtomicWrite(change.before.path, change.after, change.mode); err != nil {
+		if err := installAtomicWrite(change.before.root, change.before.path, change.after, change.mode); err != nil {
 			return err
 		}
 		applied = append(applied, change)
@@ -322,7 +327,9 @@ func (s CLIInstallService) checkPath(p CLIInstallPlan) error {
 	return nil
 }
 
-func installSafePath(path, platform string) error {
+// installSafePath validates one absolute path and applies the symlink policy for
+// the parts the installer owns: components strictly below root.
+func installSafePath(root, path, platform string) error {
 	if path == "" || !filepath.IsAbs(path) || strings.IndexFunc(path, unicode.IsControl) >= 0 {
 		return errors.New("unsafe or relative installation path")
 	}
@@ -336,11 +343,11 @@ func installSafePath(path, platform string) error {
 	if strings.ContainsAny(path, forbidden) && !(platform != "windows" && filepath.VolumeName(path) != "" && !strings.ContainsAny(strings.TrimPrefix(path, filepath.VolumeName(path)), forbidden)) {
 		return errors.New("installation path contains a PATH delimiter")
 	}
-	return installNoLinks(path)
+	return installNoLinksBelow(root, path)
 }
 
 func installConfigRoot(home, root, platform string) error {
-	if err := installSafePath(root, platform); err != nil {
+	if err := installSafePath(home, root, platform); err != nil {
 		return err
 	}
 	rel, err := filepath.Rel(home, root)
@@ -350,32 +357,54 @@ func installConfigRoot(home, root, platform string) error {
 	return nil
 }
 
-func installNoLinks(path string) error {
+// installIsSymlink reports whether a path is a symbolic link. Tests replace it to
+// exercise the policy on hosts without symlink privileges.
+var installIsSymlink = func(path string) (bool, error) {
+	info, err := os.Lstat(path)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return info.Mode()&os.ModeSymlink != 0, nil
+}
+
+// installNoLinksBelow rejects symbolic links in the components of path that sit
+// strictly below root. Ancestors above root belong to the operating system and
+// may legitimately be links, such as /var on macOS or a symlinked home; root
+// itself may be one too. This keeps the guarantee scoped to what the installer
+// creates, without rejecting valid system layouts.
+func installNoLinksBelow(root, path string) error {
 	if !filepath.IsAbs(path) {
 		return errors.New("expected an absolute file path")
 	}
-	for current := filepath.Clean(path); ; current = filepath.Dir(current) {
-		info, err := os.Lstat(current)
-		if err != nil && !os.IsNotExist(err) {
+	root, path = filepath.Clean(root), filepath.Clean(path)
+	rel, err := filepath.Rel(root, path)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("%s is outside %s", path, root)
+	}
+	for current := path; current != root; current = filepath.Dir(current) {
+		linked, err := installIsSymlink(current)
+		if err != nil {
 			return err
 		}
-		if err == nil && info.Mode()&os.ModeSymlink != 0 {
+		if linked {
 			return fmt.Errorf("symbolic link is not allowed: %s", current)
-		}
-		parent := filepath.Dir(current)
-		if parent == current {
-			break
 		}
 	}
 	return nil
 }
 
-func installSnapshot(path string) (installFile, error) {
-	state := installFile{path: path}
-	if err := installNoLinks(path); err != nil {
-		return state, err
+func installSnapshot(root, path string) (installFile, error) {
+	state := installFile{root: root, path: path}
+	if root != "" {
+		if err := installNoLinksBelow(root, path); err != nil {
+			return state, err
+		}
 	}
-	info, err := os.Lstat(path)
+	/* os.Stat follows links: only the read-only source may be one. */
+	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return state, nil
 	}
@@ -394,7 +423,7 @@ func installSnapshot(path string) (installFile, error) {
 }
 
 func installUnchanged(before installFile) error {
-	now, err := installSnapshot(before.path)
+	now, err := installSnapshot(before.root, before.path)
 	if err != nil {
 		return err
 	}
@@ -404,8 +433,8 @@ func installUnchanged(before installFile) error {
 	return nil
 }
 
-func installMakeDirs(path string, created *[]string) error {
-	if err := installNoLinks(path); err != nil {
+func installMakeDirs(root, path string, created *[]string) error {
+	if err := installNoLinksBelow(root, path); err != nil {
 		return err
 	}
 	info, err := os.Stat(path)
@@ -418,7 +447,7 @@ func installMakeDirs(path string, created *[]string) error {
 	if !os.IsNotExist(err) {
 		return err
 	}
-	if err := installMakeDirs(filepath.Dir(path), created); err != nil {
+	if err := installMakeDirs(root, filepath.Dir(path), created); err != nil {
 		return err
 	}
 	if err := os.Mkdir(path, 0700); err != nil {
@@ -428,8 +457,8 @@ func installMakeDirs(path string, created *[]string) error {
 	return nil
 }
 
-func installAtomicWrite(path string, data []byte, mode os.FileMode) (result error) {
-	if err := installNoLinks(path); err != nil {
+func installAtomicWrite(root, path string, data []byte, mode os.FileMode) (result error) {
+	if err := installNoLinksBelow(root, path); err != nil {
 		return err
 	}
 	file, err := os.CreateTemp(filepath.Dir(path), ".zesh-install-*")

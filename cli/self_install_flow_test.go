@@ -57,9 +57,6 @@ func installPreviewEN(service CLIInstallService, plan CLIInstallPlan) string {
 }
 
 func TestCLIInstallFlagPreviewsAndInstallsOffline(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("POSIX startup-file flow runs on POSIX")
-	}
 	service := installFixture(t, "linux", "/bin/sh")
 	stubHostInstall(t, service, nil)
 	plan, err := service.Plan()
@@ -80,9 +77,6 @@ func TestCLIInstallFlagPreviewsAndInstallsOffline(t *testing.T) {
 }
 
 func TestCLIInstallFlagDeclineChangesNothing(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("POSIX startup-file flow runs on POSIX")
-	}
 	service := installFixture(t, "linux", "/bin/sh")
 	stubHostInstall(t, service, nil)
 	plan, err := service.Plan()
@@ -90,7 +84,7 @@ func TestCLIInstallFlagDeclineChangesNothing(t *testing.T) {
 		t.Fatal(err)
 	}
 	code, out, stderr := installFlow(t, []string{"--install-cli"}, "n\n", true)
-	want := installPreviewEN(service, plan) + "Cancelled; no files changed.\n"
+	want := installPreviewEN(service, plan) + "Proceed? (y/N) [n]: Cancelled; no files changed.\n"
 	if code != 0 || out != want || stderr != "" {
 		t.Fatalf("exit=%d stdout=%q stderr=%q", code, out, stderr)
 	}
@@ -115,9 +109,6 @@ func TestCLIInstallFlagRequiresExplicitConfirmation(t *testing.T) {
 }
 
 func TestCLIInstallFlagRejectsSilentReplacement(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("POSIX startup-file flow runs on POSIX")
-	}
 	service := installFixture(t, "linux", "/bin/sh")
 	target := filepath.Join(service.Home, ".local", "bin", "zesh-skills")
 	if err := os.MkdirAll(filepath.Dir(target), 0700); err != nil {
@@ -143,9 +134,6 @@ func TestCLIInstallFlagRejectsSilentReplacement(t *testing.T) {
 }
 
 func TestCLIInstallFlagReplacesAfterInteractiveConsent(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("POSIX startup-file flow runs on POSIX")
-	}
 	service := installFixture(t, "linux", "/bin/sh")
 	target := filepath.Join(service.Home, ".local", "bin", "zesh-skills")
 	if err := os.MkdirAll(filepath.Dir(target), 0700); err != nil {
@@ -171,9 +159,6 @@ func TestCLIInstallFlagReplacesAfterInteractiveConsent(t *testing.T) {
 }
 
 func TestCLIInstallFlagSpanish(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("POSIX startup-file flow runs on POSIX")
-	}
 	service := installFixture(t, "linux", "/bin/sh")
 	stubHostInstall(t, service, nil)
 	plan, err := service.Plan()
