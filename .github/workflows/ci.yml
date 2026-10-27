@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 permissions:
   contents: read
@@ -21,3 +20,37 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+
+  go:
+    name: Go test & vet (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      # Bootstrap also runs on main before the CLI module is introduced.
+      - name: Detect Go module
+        id: module
+        shell: bash
+        run: |
+          if test -f go.mod; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-go@v5
+        id: setup
+        if: steps.module.outputs.present == 'true'
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Go tests
+        id: test
+        if: steps.module.outputs.present == 'true'
+        run: go test ./cli/...
+      - name: Go vet
+        id: vet
+        if: steps.module.outputs.present == 'true'
+        run: go vet ./cli/...
