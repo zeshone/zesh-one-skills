@@ -146,6 +146,35 @@ console.log('\n── REQ-05: Root distribution files AGENTS.backend.md and AGEN
   );
 }
 
+// CI bootstrap must work before the CLI module lands and on child PR bases.
+{
+  const yaml = require('js-yaml');
+  const ci = yaml.load(fs.readFileSync(path.join(ROOT, '.github/workflows/ci.yml'), 'utf8'));
+  const pr = yaml.load(fs.readFileSync(path.join(ROOT, '.github/workflows/pr-validation.yml'), 'utf8'));
+  assert('CI accepts all PR bases', !ci.on.pull_request?.branches && Object.hasOwn(ci.on, 'pull_request'));
+  assert('PR governance accepts all PR bases', !pr.on.pull_request?.branches && Object.hasOwn(pr.on, 'pull_request'));
+  assert('no privileged PR target event', !ci.on.pull_request_target && !pr.on.pull_request_target);
+  assert('read-only CI permission', ci.permissions.contents === 'read');
+  assert('existing Node job preserved', ci.jobs.test.name === 'Test & lint skills' && ci.jobs.test.steps.some(s => s.run === 'npm test'));
+  const go = ci.jobs.go;
+  assert('Go three-host matrix', JSON.stringify(go?.strategy?.matrix?.os) === JSON.stringify(['ubuntu-latest', 'windows-latest', 'macos-latest']));
+  const steps = go?.steps || [];
+  const guard = steps.findIndex(s => s.id === 'module');
+  assert('module detection after checkout', guard > 0 && steps[0].uses === 'actions/checkout@v4' && steps[guard].run.includes('test -f go.mod'));
+  for (const name of ['setup', 'test', 'vet']) {
+    const step = steps.find(s => s.id === name);
+    assert(`Go ${name} guarded on module presence`, step?.if === "steps.module.outputs.present == 'true'");
+  }
+  const setup = steps.find(s => s.id === 'setup');
+  assert('official Go setup uses module and no absent-sum cache', setup?.uses === 'actions/setup-go@v5' && setup.with['go-version-file'] === 'go.mod' && setup.with.cache === false);
+  assert('Go test and vet commands', steps.some(s => s.run === 'go test ./cli/...') && steps.some(s => s.run === 'go vet ./cli/...'));
+  const governance = pr.jobs.validate.steps[0].with.script;
+  assert('approved issue and single type governance retained', governance.includes('status:approved') && governance.includes('typeLabels.length !== 1') && governance.includes('core.setFailed'));
+}
+
+// Deterministic fixtures only: no Go executable or cross-platform builds.
+require('./test-cli-release.js');
+
 // ─── Summary ─────────────────────────────────────────────────────────────────
 
 console.log('\n' + '─'.repeat(50));
