@@ -75,7 +75,11 @@ zesh-one-skills/
 
 Run `zesh-skills` from a consumer project's root to choose skills by scope and topic, with descriptions and no mandatory bundles. It supports Claude Code, Codex, OpenCode and Pi, preserves existing instructions, and reads the latest catalog/content from `main` at one pinned commit per run.
 
-See [CLI usage, standalone builds and installation](cli/README.md). Build locally with `npm run build:zesh-cli`; no publication or global installation is performed. The production download flow becomes available after the new `skills-index.json` is merged into `main`.
+The catalog is already published on `main`. The CLI v2.8.0 release is prepared locally, **not yet public**. After publication, download your platform's raw binary and `SHA256SUMS` from [v2.8.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0); see [platform download links, checksum verification, Unix chmod and Windows PowerShell instructions](cli/README.md#download-v280-publication-pending). For example, Linux x64 uses [zesh-skills-linux-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-linux-amd64); verify against [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/SHA256SUMS) before running `--version` (expected `2.8.0`).
+
+The executable requires no Go, Node, Git or .NET runtime; skills stay project-local. The wizard supports English by default and Spanish with `--es`, including 35 bundled description translations without changing English skill IDs or installed formats. See [CLI usage, architecture choices and proof limits](cli/README.md). macOS/ARM builds have compile-only evidence so far, not a verified runtime pass.
+
+Build locally with `npm run build:zesh-cli` (`dev` version), or prepare all six versioned assets with `npm run build:zesh-cli -- --release 2.8.0` under `dist/zesh-skills-release/v2.8.0/`. Neither command publishes nor installs globally.
 
 Maintainers: run `npm run catalog:generate` after changing skills. The existing Node-only checks validate catalog freshness; executable Go checks run separately with `npm run test:zesh-cli`.
 

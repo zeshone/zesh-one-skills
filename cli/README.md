@@ -2,6 +2,51 @@
 
 `zesh-skills` is a standalone, project-local skill installer for Claude Code, Codex, OpenCode and Pi. The executable can live on your PATH; skills never install into your home-level agent configuration.
 
+## Download v2.8.0 (publication pending)
+
+The public catalog is already on `main`. The CLI release is prepared locally, **not yet published**; the following canonical links work only after maintainers publish [v2.8.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0). Do not confuse a development build with a released binary.
+
+Download one raw executable and [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/SHA256SUMS) from that release:
+
+| Platform | Asset |
+| --- | --- |
+| Windows x64 | [zesh-skills-windows-amd64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-windows-amd64.exe) |
+| Windows ARM64 | [zesh-skills-windows-arm64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-windows-arm64.exe) |
+| Linux x64 | [zesh-skills-linux-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-linux-amd64) |
+| Linux ARM64 | [zesh-skills-linux-arm64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-linux-arm64) |
+| macOS Intel | [zesh-skills-darwin-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-darwin-amd64) |
+| macOS Apple Silicon | [zesh-skills-darwin-arm64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-darwin-arm64) |
+
+Linux example (replace the filename for your platform):
+
+```bash
+base=https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0
+curl -fLO "$base/zesh-skills-linux-amd64"
+curl -fLO "$base/SHA256SUMS"
+grep '  zesh-skills-linux-amd64$' SHA256SUMS | sha256sum --check -
+# Continue only if the checksum matches.
+chmod +x zesh-skills-linux-amd64
+./zesh-skills-linux-amd64 --version  # expected: 2.8.0
+```
+
+On macOS use `shasum -a 256 -c` instead of `sha256sum --check -`, with the selected macOS filename. Check only the downloaded asset's line; the manifest also lists the other five platforms.
+
+Windows PowerShell example:
+
+```powershell
+$base = 'https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0'
+$name = 'zesh-skills-windows-amd64.exe'
+Invoke-WebRequest "$base/$name" -OutFile $name
+Invoke-WebRequest "$base/SHA256SUMS" -OutFile SHA256SUMS
+$line = Get-Content SHA256SUMS | Where-Object { $_.EndsWith("  $name") }
+if (@($line).Count -ne 1) { throw 'Missing or duplicate checksum' }
+$expected = ($line -split '  ')[0]
+if ((Get-FileHash $name -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Checksum mismatch' }
+& ".\$name" --version  # expected: 2.8.0
+```
+
+Checksums detect mismatched bytes, not an independent signature of publisher identity. After verification, optionally rename the executable to `zesh-skills` (`zesh-skills.exe` on Windows) and follow the manual PATH guidance below. No Go, Node, Git or .NET runtime is needed to run it. Skills remain project-local. macOS and ARM artifacts have compile-only evidence so far; the CI matrix is configured, not an observed online runtime pass.
+
 ## Quick path
 
 ```text
@@ -68,9 +113,11 @@ CGO_ENABLED=0 go build -trimpath -o dist/zesh-skills ./cli
 # Repository convenience scripts use Node only during development.
 npm run build:zesh-cli
 npm run build:zesh-cli -- --all
+# Maintainer release preparation; explicit version, no publication:
+npm run build:zesh-cli -- --release 2.8.0
 ```
 
-The convenience builder writes `dist/zesh-skills/<os>-<arch>/zesh-skills[.exe]` and `SHA256SUMS`. `--all` cross-compiles Windows, Linux and macOS for amd64 and arm64 with CGO disabled. Cross-compilation is not runtime testing on those platforms. There is no publishing or automatic global installation step.
+The convenience builder writes `dist/zesh-skills/<os>-<arch>/zesh-skills[.exe]` and `SHA256SUMS`. `--all` cross-compiles Windows, Linux and macOS for amd64 and arm64 with CGO disabled. Cross-compilation is not runtime testing on those platforms. Default and `--all` builds retain the development version `dev`. `--release <version>` accepts only a plain numeric `major.minor.patch` (no `v` prefix, prerelease or build suffix); it builds all six targets with `CGO_ENABLED=0`, `GOTOOLCHAIN=local` and linker `main.version` set to that one argument. For `2.8.0`, output is `dist/zesh-skills-release/v2.8.0/`: the six flat filenames above plus `SHA256SUMS` (lowercase SHA-256, two spaces, actual asset filename, newline). Only those explicit seven files belong in an upload; unrelated/stale files are neither included nor deleted. A failed build is not a publishable release. Build from the final authorized main commit and verify before publication; this command never creates tags or overwrites remote releases. There is no publishing or automatic global installation step.
 
 To make `zesh-skills` available from any terminal, copy **the executable for your OS/architecture** into a directory already on your PATH, or add its directory to your user PATH. On Linux/macOS, `~/.local/bin` is a conventional choice (create it, copy the binary, make it executable and add it to PATH if needed). On Windows, choose a user-owned tools folder and add it through the user Environment Variables settings; open a new terminal afterward. Do not add a writable project checkout itself to a machine-wide PATH. These are manual user actions, not actions performed by the build or installer.
 

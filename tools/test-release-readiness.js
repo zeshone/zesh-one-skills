@@ -172,6 +172,9 @@ console.log('\n── REQ-05: Root distribution files AGENTS.backend.md and AGEN
   assert('approved issue and single type governance retained', governance.includes('status:approved') && governance.includes('typeLabels.length !== 1') && governance.includes('core.setFailed'));
 }
 
+// Deterministic fixtures only: no Go executable or cross-platform builds.
+require('./test-cli-release.js');
+
 // ─── Summary ─────────────────────────────────────────────────────────────────
 
 console.log('\n' + '─'.repeat(50));

@@ -6,6 +6,7 @@
     "catalog:generate": "node tools/skill-catalog.js",
     "catalog:check": "node tools/skill-catalog.js --check",
     "test:catalog": "node tools/test-skill-catalog.js",
+    "test:release": "node tools/test-cli-release.js",
     "test:zesh-cli": "go test ./cli/...",
     "build:zesh-cli": "node tools/build-zesh-skills.js",
     "test:fixtures": "node tools/test-fixtures.js",

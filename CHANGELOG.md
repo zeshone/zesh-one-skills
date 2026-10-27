@@ -23,6 +23,17 @@ All notable changes to this repository are documented in this file.
 - Scoped React/Query/Next guidance by runtime and Ionic/Capacitor guidance by installed capabilities; extended shared security to SPA and mobile without importing server-only infrastructure.
 - Added pinned source attribution, six BEFORE scenarios and instruction regression checks (`npm run test:pilot`, included in `test` and `verify`). Model proposals are not execution or security guarantees.
 
+## v2.8.0 — 2026-10-26
+
+### Added
+- Standalone project-local `zesh-skills` CLI for Claude Code, Codex, OpenCode and Pi, with a checkbox wizard, explained architecture choices and explicit preview/confirmation.
+- English-default and opt-in Spanish interface (`--es`), including 35 bundled Spanish descriptions; canonical English IDs, metadata and installed formats stay unchanged.
+- Local safety boundaries: commit-pinned catalog/content, validated paths and hashes, conflict confirmation, project lock and ordinary-error rollback; no global skill installation or downloaded script execution.
+- Explicit `--release 2.8.0` preparation for six raw Windows/Linux/macOS amd64/arm64 assets with injected version, collision-free filenames and `SHA256SUMS`; download/checksum guidance documents publication pending, not an already-public CLI release.
+- Child-PR CI coverage and module-guarded Go test/vet jobs for Ubuntu, Windows and macOS; default npm checks remain Node-only. Local fixtures do not establish online CI or all-platform runtime success.
+
+The existing [v2.7.0 release](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.7.0) remains the source for that release's history.
+
 ## v2.6.0 — 2026-04-22
 
 ### Changed
