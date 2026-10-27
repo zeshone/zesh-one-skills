@@ -280,7 +280,10 @@ func TestCLIInstallAllowsSymlinkedParentAboveRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertInstallFile(t, filepath.Join(real, "home", ".local", "bin", "zesh-skills"), "original executable")
-	assertInstallFile(t, filepath.Join(real, "home", ".profile"), "# >>> zesh-skills PATH >>>")
+	profile, err := os.ReadFile(filepath.Join(real, "home", ".profile"))
+	if err != nil || !strings.Contains(string(profile), "# >>> zesh-skills PATH >>>") {
+		t.Fatalf("profile %q, error %v", profile, err)
+	}
 }
 
 // TestCLIInstallSymlinkPolicyStopsAtTrustedRoot pins the policy on hosts without
