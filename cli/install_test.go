@@ -96,6 +96,106 @@ func TestModifiedFileConflictAndLatestContent(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+func TestManagedFileDriftDuringConfirmation(t *testing.T) {
+	for _, missing := range []bool{false, true} {
+		t.Run(fmt.Sprintf("missing=%t", missing), func(t *testing.T) {
+			root := t.TempDir()
+			cat, files := specimen()
+			in := installerFor(files)
+			install := func(confirm func(string) bool) error {
+				return in.Install(root, cat, strings.Repeat("a", 40), []string{"frontend/design"}, []string{"pi"}, "mockup", confirm)
+			}
+			primary := ".zesh-skills/content/skills/frontend/design/SKILL.md"
+			resource := ".zesh-skills/content/skills/shared/security/baseline.md"
+			write := func(name, data string) {
+				t.Helper()
+				p := filepath.Join(root, filepath.FromSlash(name))
+				if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(p, []byte(data), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			before := map[string]string{}
+			if !missing {
+				if err := install(nil); err != nil {
+					t.Fatal(err)
+				}
+				for _, name := range []string{"AGENTS.md", manifestPath} {
+					before[name] = readInstalled(t, root, name)
+				}
+			}
+			write(resource, "local resource")
+			edit := "user edit during confirmation"
+			if missing {
+				edit = ""
+			}
+			calls := 0
+			err := install(func(name string) bool {
+				calls++
+				if name != resource {
+					t.Fatalf("unexpected confirmation: %s", name)
+				}
+				write(primary, edit)
+				return true
+			})
+			want := "file changed during installation: " + primary + "; retry"
+			if err == nil || err.Error() != want {
+				t.Fatalf("got %v, want %q", err, want)
+			}
+			if calls != 1 || readInstalled(t, root, primary) != edit || readInstalled(t, root, resource) != "local resource" {
+				t.Fatal("confirmation or preserved content mismatch")
+			}
+			for _, name := range []string{"AGENTS.md", manifestPath} {
+				if missing {
+					if _, err := os.Stat(filepath.Join(root, name)); !os.IsNotExist(err) {
+						t.Fatalf("unexpected write: %s: %v", name, err)
+					}
+				} else if readInstalled(t, root, name) != before[name] {
+					t.Fatalf("changed %s", name)
+				}
+			}
+		})
+	}
+}
+func TestManifestDriftDuringConfirmation(t *testing.T) {
+	root := t.TempDir()
+	cat, files := specimen()
+	install := func(confirm func(string) bool) error {
+		return installerFor(files).Install(root, cat, strings.Repeat("a", 40), []string{"frontend/design"}, []string{"pi"}, "mockup", confirm)
+	}
+	if err := install(nil); err != nil {
+		t.Fatal(err)
+	}
+	resource := ".zesh-skills/content/skills/shared/security/baseline.md"
+	if err := os.WriteFile(filepath.Join(root, filepath.FromSlash(resource)), []byte("local resource"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	before := map[string]string{manifestPath: "user manifest edit"}
+	for _, name := range []string{resource, "AGENTS.md", ".pi/skills/frontend-design/SKILL.md", ".zesh-skills/content/skills/frontend/design/SKILL.md"} {
+		before[name] = readInstalled(t, root, name)
+	}
+	calls := 0
+	err := install(func(name string) bool {
+		calls++
+		if name != resource {
+			t.Fatalf("unexpected confirmation: %s", name)
+		}
+		if err := os.WriteFile(filepath.Join(root, manifestPath), []byte(before[manifestPath]), 0600); err != nil {
+			t.Fatal(err)
+		}
+		return true
+	})
+	if err == nil || err.Error() != "file changed during installation: "+manifestPath+"; retry" || calls != 1 {
+		t.Fatalf("got %v, confirmation count %d", err, calls)
+	}
+	for name, want := range before {
+		if readInstalled(t, root, name) != want {
+			t.Fatalf("changed %s", name)
+		}
+	}
+}
 func TestRejectedInputsLeaveProjectUntouched(t *testing.T) {
 	for _, kind := range []string{"traversal", "bad-hash", "unknown-skill", "bad-schema", "unknown-agent", "malformed-block", "locked"} {
 		t.Run(kind, func(t *testing.T) {

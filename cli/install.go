@@ -236,13 +236,26 @@ func (in Installer) Install(root string, c Catalog, commit string, ids, agents [
 			return fmt.Errorf("instruction changed during installation: %s; retry", name)
 		}
 	}
+	names = append(names, manifestPath)
+	backups[manifestPath] = backup{old, 0600, old != nil}
+	for _, name := range names {
+		if err = rejectLinks(dir, name); err != nil {
+			return err
+		}
+		current, e := dir.ReadFile(name)
+		if e != nil && !errors.Is(e, os.ErrNotExist) {
+			return e
+		}
+		snapshot := backups[name]
+		if (e == nil) != snapshot.exists || string(current) != string(snapshot.data) {
+			return fmt.Errorf("file changed during installation: %s; retry", name)
+		}
+	}
 	encoded, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return err
 	}
 	writes[manifestPath] = append(encoded, '\n')
-	names = append(names, manifestPath)
-	backups[manifestPath] = backup{old, 0600, old != nil}
 	// The manifest is written last. Roll back ordinary write failures; power loss is not a transaction.
 	completed := []string{}
 	createdDirs := []string{}
