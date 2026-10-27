@@ -1,14 +1,12 @@
-# Install only the skills your project needs
+# Instala solo los skills que tu proyecto necesita
 
-`zesh-skills` is a standalone, project-local skill installer for Claude Code, Codex, OpenCode and Pi. The executable can live on your PATH; skills never install into your home-level agent configuration.
+`zesh-skills` es un instalador de skills independiente y local al proyecto para Claude Code, Codex, OpenCode y Pi. El ejecutable puede vivir en tu `PATH`; los skills nunca se instalan en la configuración de agentes de tu directorio personal.
 
-## Download v2.8.0 (publication pending)
+## Descarga de v2.8.0
 
-The public catalog is already on `main`. The CLI release is prepared locally, **not yet published**; the following canonical links work only after maintainers publish [v2.8.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0). Do not confuse a development build with a released binary.
+Descarga un ejecutable sin empaquetar y el archivo [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/SHA256SUMS) desde el release [v2.8.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0). Si esa página todavía no es pública, puedes reproducir los mismos seis archivos desde el commit de release con `npm run build:zesh-cli -- --release 2.8.0`; una compilación de desarrollo informa `dev`, así que revisa `--version` antes de confiar en un binario.
 
-Download one raw executable and [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/SHA256SUMS) from that release:
-
-| Platform | Asset |
+| Plataforma | Archivo |
 | --- | --- |
 | Windows x64 | [zesh-skills-windows-amd64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-windows-amd64.exe) |
 | Windows ARM64 | [zesh-skills-windows-arm64.exe](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-windows-arm64.exe) |
@@ -17,21 +15,21 @@ Download one raw executable and [SHA256SUMS](https://github.com/zeshone/zesh-one
 | macOS Intel | [zesh-skills-darwin-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-darwin-amd64) |
 | macOS Apple Silicon | [zesh-skills-darwin-arm64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-darwin-arm64) |
 
-Linux example (replace the filename for your platform):
+Ejemplo para Linux (reemplaza el nombre del archivo por el de tu plataforma):
 
 ```bash
 base=https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0
 curl -fLO "$base/zesh-skills-linux-amd64"
 curl -fLO "$base/SHA256SUMS"
 grep '  zesh-skills-linux-amd64$' SHA256SUMS | sha256sum --check -
-# Continue only if the checksum matches.
+# Continúa solo si el checksum coincide.
 chmod +x zesh-skills-linux-amd64
-./zesh-skills-linux-amd64 --version  # expected: 2.8.0
+./zesh-skills-linux-amd64 --version  # valor esperado: 2.8.0
 ```
 
-On macOS use `shasum -a 256 -c` instead of `sha256sum --check -`, with the selected macOS filename. Check only the downloaded asset's line; the manifest also lists the other five platforms.
+En macOS usa `shasum -a 256 -c` en lugar de `sha256sum --check -`, con el nombre de archivo de macOS seleccionado. Verifica solo la línea del archivo descargado; el manifiesto también lista las otras cinco plataformas.
 
-Windows PowerShell example:
+Ejemplo para Windows PowerShell:
 
 ```powershell
 $base = 'https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0'
@@ -42,148 +40,148 @@ $line = Get-Content SHA256SUMS | Where-Object { $_.EndsWith("  $name") }
 if (@($line).Count -ne 1) { throw 'Missing or duplicate checksum' }
 $expected = ($line -split '  ')[0]
 if ((Get-FileHash $name -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Checksum mismatch' }
-& ".\$name" --version  # expected: 2.8.0
+& ".\$name" --version  # valor esperado: 2.8.0
 ```
 
-Checksums detect mismatched bytes, not an independent signature of publisher identity. After verification, optionally rename the executable to `zesh-skills` (`zesh-skills.exe` on Windows) and follow the manual PATH guidance below. No Go, Node, Git or .NET runtime is needed to run it. Skills remain project-local. macOS and ARM artifacts have compile-only evidence so far; the CI matrix is configured, not an observed online runtime pass.
+Los checksums detectan bytes que no coinciden, no son una firma independiente de la identidad del publicador. Después de verificar, opcionalmente cambia el nombre del ejecutable a `zesh-skills` (`zesh-skills.exe` en Windows) y sigue la guía manual de `PATH` que aparece más abajo. No se necesita Go, Node, Git ni el runtime de .NET para ejecutarlo. Los skills permanecen en el proyecto. Los archivos de macOS y ARM solo tienen evidencia de compilación: la matriz de CI ejecuta las pruebas de Go en las tres plataformas, no los binarios publicados.
 
-## Quick path
+## Ruta rápida
 
 ```text
-cd your-project
+cd tu-proyecto
 zesh-skills
-# Spanish interface; English remains the default without this flag.
+# Interfaz en español; el inglés sigue siendo el idioma predeterminado sin esta opción.
 zesh-skills --es
 ```
 
-### Interface language
+### Idioma de la interfaz
 
-Use `--es` to localize prompts, scope/architecture choices and descriptions, picker controls, previews, confirmations and app diagnostics into Spanish. There is no extra startup question or saved language preference. Spanish confirmations accept `s`, `si`, `sí`, `y` or `yes`; English behavior remains unchanged. `--es=false` explicitly keeps English.
+Usa `--es` para traducir al español los mensajes, las opciones de alcance y arquitectura, las descripciones, los controles del selector, las vistas previas, las confirmaciones y los diagnósticos de la aplicación. No hay una pregunta adicional al iniciar ni una preferencia de idioma guardada. Las confirmaciones en español aceptan `s`, `si`, `sí`, `y` o `yes`; el comportamiento en inglés no cambia. `--es=false` mantiene explícitamente el inglés.
 
-Architecture names stay recognizable in Spanish: they remain in English or accompany their translation, for example `Arquitectura Limpia (Clean Architecture)`. Hybrid names such as `CQRS + event sourcing` stay in English to keep the menu compact. Explanations remain Spanish; familiar terms such as UI, view models, focus, feedback and triggers retain their English names.
+Los nombres de arquitectura siguen siendo reconocibles en español: permanecen en inglés o acompañan su traducción, por ejemplo `Arquitectura Limpia (Clean Architecture)`. Los nombres híbridos como `CQRS + event sourcing` se mantienen en inglés para que el menú quede compacto. Las explicaciones siguen en español; términos conocidos como UI, view models, focus, feedback y triggers conservan su nombre en inglés.
 
-In the skill catalog (`--list` and the interactive skill picker), **only descriptions** are localized: skill names/IDs and topic headings/tags keep their original English. With `--es`, a validated remote `descriptionEs` takes precedence. The binary also bundles 35 Spanish translations for the original catalog, used only when both ID and exact original English description match. Unknown skills or changed descriptions without a translation honestly fall back to English; they remain discoverable. Without `--es` (or with `--es=false`), descriptions stay exactly as supplied in English.
+En el catálogo de skills (`--list` y el selector interactivo), **solo las descripciones** se traducen: los nombres e identificadores de skills y los encabezados y etiquetas de tema conservan su inglés original. Con `--es`, tiene prioridad un `descriptionEs` remoto validado. El binario también incluye 35 traducciones al español para el catálogo original, usadas solo cuando coinciden el identificador y la descripción original exacta en inglés. Los skills desconocidos o las descripciones modificadas sin traducción vuelven al inglés de forma honesta y siguen siendo detectables. Sin `--es` (o con `--es=false`), las descripciones quedan exactamente como se publicaron en inglés.
 
-The language flag does not translate flags, JSON formats, custom user values, downloaded skill content or generated agent documents. Localized descriptions are presentation-only: the manifest and installed instruction tables retain canonical original metadata, without `descriptionEs`. Technical OS details may retain their original language and are identified as such. Predefined architecture profiles are stored by stable ID, regardless of the displayed language.
+La opción de idioma no traduce flags, formatos JSON, valores personalizados del usuario, contenido de skills descargado ni documentos de agente generados. Las descripciones traducidas son solo de presentación: el manifiesto y las tablas de instrucciones instaladas conservan los metadatos originales canónicos, sin `descriptionEs`. Los detalles técnicos del sistema operativo pueden conservar su idioma original y se identifican como tales. Los perfiles de arquitectura predefinidos se guardan por identificador estable, sea cual sea el idioma mostrado.
 
-The wizard confirms the current directory as the project root, detects framework manifests and existing instruction files, asks for the architecture, then opens a keyboard-driven checkbox picker. Every relevant skill remains available with its topic and a brief description; no skill IDs need to be typed.
+El asistente confirma el directorio actual como raíz del proyecto, detecta manifiestos de framework y archivos de instrucciones existentes, pregunta la arquitectura y luego abre un selector de casillas controlado por teclado. Cada skill relevante sigue disponible con su tema y una descripción breve; no hace falta escribir identificadores de skills.
 
-| Key | Action |
+| Tecla | Acción |
 | --- | --- |
-| Up/Down or `j`/`k` | Move through the scrolling skill list |
-| Space | Check/uncheck the focused skill |
-| Enter | Accept the current selection |
-| `a` / `n` / `r` | Select all / clear selection / restore suggestions |
-| `q` or Ctrl-C | Cancel without installing anything |
+| Arriba/Abajo o `j`/`k` | Recorrer la lista desplazable de skills |
+| Espacio | Marcar o desmarcar el skill enfocado |
+| Enter | Aceptar la selección actual |
+| `a` / `n` / `r` | Seleccionar todo / limpiar la selección / restaurar sugerencias |
+| `q` o Ctrl-C | Cancelar sin instalar nada |
 
-A small suggested set is visibly checked and marked `*`. Suggestions include framework-neutral debugging, accessibility for frontend/apps, and matching framework/design foundations when package declarations provide evidence. At most five are suggested. Versioned skills require the same declared package major; unknown ranges and conflicting monorepo versions do not select a versioned profile. Missing evidence never forces .NET 8/10 or a new UI library. All suggestions can be unchecked; security/data-access skills are not mandatory. For a landing-page mockup, keep only the design skills you want. Descriptions and suggestion reasons stay visible, and the screen/cursor/input mode are restored on confirmation, cancellation, input failure or catchable SIGTERM termination. Forced process kills cannot run terminal cleanup. Scope uses the same checkbox menu and can combine frontend, backend and app. Architecture uses an exclusive selection menu; agent setup retains its short question.
+Un conjunto pequeño de sugerencias aparece marcado y señalado con `*`. Las sugerencias incluyen diagnóstico independiente del framework, accesibilidad para frontend y apps, y fundamentos de framework y diseño cuando las declaraciones de paquetes aportan evidencia. Se sugieren como máximo cinco. Los skills versionados requieren la misma versión mayor declarada del paquete; los rangos desconocidos y las versiones conflictivas de un monorepo no seleccionan un perfil versionado. La falta de evidencia nunca fuerza .NET 8/10 ni una nueva librería de UI. Todas las sugerencias se pueden desmarcar; los skills de seguridad y acceso a datos no son obligatorios. Para un mockup de landing page, conserva solo los skills de diseño que quieras. Las descripciones y los motivos de sugerencia permanecen visibles, y la pantalla, el cursor y el modo de entrada se restauran al confirmar, cancelar, ante un fallo de entrada o ante una terminación SIGTERM capturable. Una terminación forzada del proceso no puede ejecutar la limpieza de la terminal. El alcance usa el mismo menú de casillas y puede combinar frontend, backend y app. La arquitectura usa un menú de selección exclusiva; la configuración del agente conserva su pregunta breve.
 
-### Architecture profiles
+### Perfiles de arquitectura
 
-The architecture menu includes 20 explained choices: minimal monolith, layered/N-tier, vertical slices, Clean, Hexagonal, Onion, modular monolith, microservices, event-driven, serverless functions, MVC, MVVM, component-based UI and feature-based UI. Common hybrids include modular monolith + vertical slices, Clean + vertical slices, Hexagonal + DDD, microservices + events, and CQRS + event sourcing. **Custom architecture** accepts your own text.
+El menú de arquitectura incluye 20 opciones explicadas: monolito mínimo, por capas/N-Tier, vertical slices, Clean, Hexagonal, Onion, monolito modular, microservicios, dirigida por eventos, funciones serverless, MVC, MVVM, UI basada en componentes y UI basada en funcionalidades. Los híbridos habituales incluyen monolito modular + vertical slices, Clean + vertical slices, Hexagonal + DDD, microservicios + eventos y CQRS + event sourcing. **Arquitectura personalizada** acepta tu propio texto.
 
-Each entry explains its scope and tradeoffs. Deployment styles and pattern combinations are identified as such, not presented as interchangeable domain designs. A built-in selection stores its stable profile ID; custom text is preserved. Selection does not scaffold code, add infrastructure or impose a skill bundle. Profiles are maintained centrally in [`profiles.go`](profiles.go).
+Cada opción explica su alcance y sus costos. Los estilos de despliegue y las combinaciones de patrones se identifican como tales, no se presentan como diseños de dominio intercambiables. Una selección integrada guarda el identificador estable de su perfil; el texto personalizado se conserva. Elegir una opción no genera estructura de código, no agrega infraestructura ni impone un paquete de skills. Los perfiles se mantienen de forma centralizada en [`profiles.go`](profiles.go).
 
-The final preview lists source commit, selected IDs, destination directories and instruction files. Answer `y` to install or `n` to leave the project unchanged. Confirming an empty picker selection also cancels. Architecture accepts the displayed options or your own text; it does not scaffold or alter your application's architecture. Clearing choices is not an uninstall: previously installed selections are retained.
+La vista previa final lista el commit de origen, los identificadores seleccionados, los directorios de destino y los archivos de instrucciones. Responde `y` para instalar o `n` para dejar el proyecto sin cambios. Confirmar una selección vacía en el selector también cancela. La arquitectura acepta las opciones mostradas o tu propio texto; no genera ni altera la arquitectura de tu aplicación. Limpiar las opciones no es una desinstalación: las selecciones instaladas antes se conservan.
 
 ```bash
 zesh-skills --scope frontend --list
 zesh-skills --help
 
-# Automation: explicit choices; no prompts, including on local conflicts.
+# Automatización: opciones explícitas; sin preguntas, incluso ante conflictos locales.
 zesh-skills --non-interactive --agents pi --architecture mockup \
   --skills frontend/tailwind-4 --yes
 
-# Mixed project; multiple agent targets and an additional instruction file.
+# Proyecto mixto; varios destinos de agente y un archivo de instrucciones adicional.
 zesh-skills --scope frontend,backend --agents claude,codex \
   --architecture "modular monolith" --skills frontend/react-19,backend/general \
   --instructions GEMINI.md --yes
 ```
 
-`--root` overrides the current directory. `--yes` approves the displayed selection, not overwriting local edits. On a terminal it can still ask about locally modified files; in automation a conflict fails without changing installed data. `--list`, `--help` and `--version` never install anything; help/version do not access the network. Exit codes: `0` success or deliberate cancellation, `1` network/filesystem/conflict failure, `2` invalid arguments or incomplete input.
+`--root` reemplaza el directorio actual. `--yes` aprueba la selección mostrada, no el reemplazo de ediciones locales. En una terminal todavía puede preguntar por archivos modificados localmente; en automatización, un conflicto falla sin cambiar los datos instalados. `--list`, `--help` y `--version` nunca instalan nada; ayuda y versión no acceden a la red. Códigos de salida: `0` éxito o cancelación deliberada, `1` fallo de red, de sistema de archivos o conflicto, `2` argumentos inválidos o entrada incompleta.
 
-## Install the CLI for your user
+## Instala la CLI para tu usuario
 
-`--install-cli` copies the running executable into a user-owned directory and makes the command available from any terminal, without administrator rights:
+`--install-cli` copia el ejecutable en ejecución a un directorio del usuario y deja el comando disponible desde cualquier terminal, sin permisos de administrador:
 
 ```bash
-zesh-skills --install-cli          # preview, then confirm
-zesh-skills --install-cli --yes    # automation: confirm the preview shown above
-zesh-skills --es --install-cli     # Spanish preview and prompts
+zesh-skills --install-cli          # vista previa y luego confirmación
+zesh-skills --install-cli --yes    # automatización: confirma la vista previa mostrada arriba
+zesh-skills --es --install-cli     # vista previa y mensajes en español
 ```
 
-| Platform | Executable | Persistent configuration |
+| Plataforma | Ejecutable | Configuración persistente |
 | --- | --- | --- |
-| Windows | `%LOCALAPPDATA%\Programs\zesh-skills\zesh-skills.exe` | User `PATH` under `HKCU\Environment`, with the existing value, order and registry value type preserved |
-| Linux/macOS | `~/.local/bin/zesh-skills` | Detected `sh`, `bash`, `zsh` or `fish` startup file, appended as one marked block that keeps the rest of the file intact |
+| Windows | `%LOCALAPPDATA%\Programs\zesh-skills\zesh-skills.exe` | `PATH` del usuario en `HKCU\Environment`, conservando el valor, el orden y el tipo de valor del registro existentes |
+| Linux/macOS | `~/.local/bin/zesh-skills` | Archivo de inicio detectado de `sh`, `bash`, `zsh` o `fish`, con un bloque marcado agregado que mantiene intacto el resto del archivo |
 
-Only the user level changes: no machine-wide `PATH`, no elevation, no removal or move of the original executable, and no globally installed skills. `--install-cli` never downloads anything, so it works offline and does not read a project catalog.
+Solo cambia el nivel del usuario: no hay `PATH` de toda la máquina, ni elevación, ni eliminación o movimiento del ejecutable original, ni skills instalados globalmente. `--install-cli` nunca descarga nada, así que funciona sin conexión y no lee el catálogo de un proyecto.
 
-The preview lists the source executable, the destination, the startup files and whether the user `PATH` changes. Nothing is written before confirmation. `--yes` confirms that preview but never replaces a **different** existing executable: that case requires an interactive replacement confirmation and otherwise exits `1` with the destination untouched. Re-running with the same executable is idempotent and writes no duplicate `PATH` entry.
+La vista previa lista el ejecutable de origen, el destino, los archivos de inicio y si cambia la `PATH` del usuario. No se escribe nada antes de la confirmación. `--yes` confirma esa vista previa, pero nunca reemplaza un ejecutable existente **distinto**: ese caso requiere una confirmación interactiva de reemplazo y, si no la hay, termina con código `1` y el destino intacto. Volver a ejecutar con el mismo ejecutable es idempotente y no escribe una entrada duplicada en la `PATH`.
 
-Rejected before any write: absent or non-regular source, relative or delimited target paths, symlinked destinations or parents, control characters, a `SHELL` other than `sh`, `bash`, `zsh` or `fish`, a `ZDOTDIR`/`XDG_CONFIG_HOME` outside the home directory, and a user `PATH` value whose type is not a string. Files changed between the preview and the write abort the installation. Ordinary write errors restore the previous binary, startup file and `PATH`; rollback refuses to overwrite anything that changed after installation.
+Se rechazan antes de cualquier escritura: un origen ausente o que no sea un archivo regular, rutas de destino relativas o con delimitadores, destinos o directorios superiores que sean enlaces simbólicos, caracteres de control, una `SHELL` distinta de `sh`, `bash`, `zsh` o `fish`, un `ZDOTDIR`/`XDG_CONFIG_HOME` fuera del directorio personal, y un valor de `PATH` del usuario cuyo tipo no sea una cadena. Los archivos que cambian entre la vista previa y la escritura abortan la instalación. Los errores de escritura ordinarios restauran el binario, el archivo de inicio y la `PATH` anteriores; la reversión se niega a sobrescribir algo que cambió después de la instalación.
 
-`PATH` changes apply to **new terminals only**; restart the shell or open a new terminal to use `zesh-skills`. `--help` and `--version` keep their precedence and still write nothing.
+Los cambios de `PATH` se aplican **solo en terminales nuevas**; reinicia el shell o abre una terminal nueva para usar `zesh-skills`. `--help` y `--version` mantienen su precedencia y siguen sin escribir nada.
 
-Proof limits: unit and public CLI flow tests run against temporary home directories and a fake registry-backed user `PATH`, so no test reads or writes real user state or the machine `PATH`. The Windows registry adapter is compiled for both Windows targets but exercised through that fake store, and macOS/Linux installation remains compile-only evidence, consistent with the existing platform limits.
+Límites de la evidencia: las pruebas unitarias y las pruebas de flujo de la CLI pública se ejecutan contra directorios personales temporales y una `PATH` de usuario falsa respaldada por un registro simulado, así que ninguna prueba lee ni escribe el estado real del usuario ni la `PATH` de la máquina. El adaptador del registro de Windows se compila para los dos destinos de Windows, pero se ejercita mediante ese almacén falso, y la instalación en macOS y Linux sigue siendo evidencia de compilación, en línea con los límites de plataforma existentes.
 
-## Build a dependency-free executable
+## Compila un ejecutable sin dependencias
 
-Development requires Go 1.25+; `golang.org/x/term` and its platform support are downloaded as pinned Go modules on the first build. They are compiled into the executable: the installed binary requires neither Go, Node, Git nor a .NET runtime. Network access is required to install/update skills. The picker supports Windows consoles/Windows Terminal and ANSI terminals on Linux/macOS; redirected input/output uses the non-interactive flag contract instead of changing console modes.
+El desarrollo requiere Go 1.25+; `golang.org/x/term` y su soporte de plataforma se descargan como módulos de Go fijados en la primera compilación. Se compilan dentro del ejecutable: el binario instalado no requiere Go, Node, Git ni el runtime de .NET. Se necesita acceso a la red para instalar o actualizar skills. El selector es compatible con las consolas de Windows y Windows Terminal y con terminales ANSI en Linux y macOS; cuando la entrada y la salida están redirigidas se usa el contrato de opciones no interactivas en lugar de cambiar los modos de la consola.
 
 ```bash
-# Go only; terminal support is compiled into the executable.
+# Solo Go; el soporte de terminal se compila dentro del ejecutable.
 CGO_ENABLED=0 go build -trimpath -o dist/zesh-skills ./cli
 
-# Repository convenience scripts use Node only during development.
+# Los scripts de conveniencia del repositorio usan Node solo durante el desarrollo.
 npm run build:zesh-cli
 npm run build:zesh-cli -- --all
-# Maintainer release preparation; explicit version, no publication:
+# Preparación de release para el mantenedor; versión explícita, sin publicación:
 npm run build:zesh-cli -- --release 2.8.0
 ```
 
-The convenience builder writes `dist/zesh-skills/<os>-<arch>/zesh-skills[.exe]` and `SHA256SUMS`. `--all` cross-compiles Windows, Linux and macOS for amd64 and arm64 with CGO disabled. Cross-compilation is not runtime testing on those platforms. Default and `--all` builds retain the development version `dev`. `--release <version>` accepts only a plain numeric `major.minor.patch` (no `v` prefix, prerelease or build suffix); it builds all six targets with `CGO_ENABLED=0`, `GOTOOLCHAIN=local` and linker `main.version` set to that one argument. For `2.8.0`, output is `dist/zesh-skills-release/v2.8.0/`: the six flat filenames above plus `SHA256SUMS` (lowercase SHA-256, two spaces, actual asset filename, newline). Only those explicit seven files belong in an upload; unrelated/stale files are neither included nor deleted. A failed build is not a publishable release. Build from the final authorized main commit and verify before publication; this command never creates tags or overwrites remote releases. There is no publishing or automatic global installation step.
+El generador de conveniencia escribe `dist/zesh-skills/<os>-<arch>/zesh-skills[.exe]` y `SHA256SUMS`. `--all` compila de forma cruzada para Windows, Linux y macOS en amd64 y arm64 con CGO desactivado. La compilación cruzada no es una prueba de ejecución en esas plataformas. Las compilaciones predeterminada y `--all` conservan la versión de desarrollo `dev`. `--release <version>` acepta solo un `major.minor.patch` numérico simple (sin prefijo `v`, sin sufijos de preestreno ni de compilación); compila los seis destinos con `CGO_ENABLED=0`, `GOTOOLCHAIN=local` y `main.version` del enlazador fijado con ese único argumento. Para `2.8.0`, la salida es `dist/zesh-skills-release/v2.8.0/`: los seis nombres planos de arriba más `SHA256SUMS` (SHA-256 en minúsculas, dos espacios, el nombre real del archivo y un salto de línea). Solo esos siete archivos explícitos pertenecen a una carga; los archivos ajenos o antiguos no se incluyen ni se borran. Una compilación fallida no es un release publicable. Compila desde el commit final autorizado de `main` y verifica antes de publicar; este comando nunca crea etiquetas ni sobrescribe releases remotas. No existe un paso de publicación o instalación global automática.
 
-To make `zesh-skills` available from any terminal, run `zesh-skills --install-cli` (see above), or copy **the executable for your OS/architecture** into a directory already on your PATH and add that directory to your user PATH. On Linux/macOS, `~/.local/bin` is a conventional choice (create it, copy the binary, make it executable and add it to PATH if needed). On Windows, choose a user-owned tools folder and add it through the user Environment Variables settings; open a new terminal afterward. Do not add a writable project checkout itself to a machine-wide PATH. These manual actions are yours; `--install-cli` performs only the user-level version described above.
+Para tener `zesh-skills` disponible desde cualquier terminal, ejecuta `zesh-skills --install-cli` (ver arriba), o copia **el ejecutable de tu sistema operativo y arquitectura** a un directorio que ya esté en tu `PATH` y agrega ese directorio a la `PATH` del usuario. En Linux y macOS, `~/.local/bin` es una opción convencional (créalo, copia el binario, hazlo ejecutable y agrégalo a la `PATH` si hace falta). En Windows, elige una carpeta de herramientas del usuario y agrégala desde la configuración de variables de entorno del usuario; después abre una terminal nueva. No agregues un checkout del proyecto con permisos de escritura a una `PATH` de toda la máquina. Estas acciones manuales son tuyas; `--install-cli` realiza solo la versión de nivel de usuario descrita arriba.
 
-## Project files and update behavior
+## Archivos del proyecto y comportamiento de actualización
 
-| Location | Purpose |
+| Ubicación | Propósito |
 | --- | --- |
-| `.zesh-skills/content/skills/<domain>/<name>/` | Selected upstream instructions and their bundled resources |
-| `.zesh-skills/manifest.json` | Installed selections, last source commit and content hashes |
-| `.claude/skills/<domain>-<name>/SKILL.md` | Claude Code discovery entry |
-| `.agents/skills/<domain>-<name>/SKILL.md` | Codex discovery entry |
-| `.opencode/skills/<domain>-<name>/SKILL.md` | OpenCode discovery entry |
-| `.pi/skills/<domain>-<name>/SKILL.md` | Pi discovery entry |
-| `CLAUDE.md`, `AGENTS.md` | Managed installed-skill index, descriptions and usage triggers |
+| `.zesh-skills/content/skills/<domain>/<name>/` | Instrucciones de origen seleccionadas y sus recursos incluidos |
+| `.zesh-skills/manifest.json` | Selecciones instaladas, último commit de origen y hashes de contenido |
+| `.claude/skills/<domain>-<name>/SKILL.md` | Entrada de descubrimiento para Claude Code |
+| `.agents/skills/<domain>-<name>/SKILL.md` | Entrada de descubrimiento para Codex |
+| `.opencode/skills/<domain>-<name>/SKILL.md` | Entrada de descubrimiento para OpenCode |
+| `.pi/skills/<domain>-<name>/SKILL.md` | Entrada de descubrimiento para Pi |
+| `CLAUDE.md`, `AGENTS.md` | Índice administrado de skills instalados, descripciones y disparadores de uso |
 
-Discovery entries link to canonical local instructions, preserving domain-qualified names such as `frontend-security` and `backend-security`. Selecting several agents creates their native entries; agents that also scan compatibility directories may see equivalent duplicate entries. Original upstream skill names/content remain in canonical storage.
+Las entradas de descubrimiento enlazan a las instrucciones locales canónicas y conservan nombres calificados por dominio como `frontend-security` y `backend-security`. Elegir varios agentes crea sus entradas nativas; los agentes que además exploran directorios de compatibilidad pueden ver entradas duplicadas equivalentes. Los nombres y el contenido originales de los skills de origen permanecen en el almacenamiento canónico.
 
-Existing case variants such as `claude.md` are reused, not duplicated. Unrelated Markdown outside `<!-- zesh-skills:start -->` / `<!-- zesh-skills:end -->` is preserved byte-for-byte, including its line endings. Malformed/duplicate markers stop installation. Root-level `GEMINI.md` and `copilot-instructions.md` are detected and can be selected as an additional instruction file; arbitrary Markdown files are not guessed or rewritten. Custom nested agent configuration is not modified.
+Las variantes de mayúsculas y minúsculas existentes, como `claude.md`, se reutilizan y no se duplican. El Markdown ajeno a `<!-- zesh-skills:start -->` / `<!-- zesh-skills:end -->` se conserva byte por byte, incluidos sus finales de línea. Los marcadores malformados o duplicados detienen la instalación. `GEMINI.md` y `copilot-instructions.md` en la raíz se detectan y se pueden elegir como archivo de instrucciones adicional; los archivos Markdown arbitrarios no se adivinan ni se reescriben. La configuración anidada personalizada de un agente no se modifica.
 
-Run the wizard again to add or update a selection. Previously installed skills and agent targets are retained; omitting them is not an uninstall operation. Unmodified files update automatically; local edits and unowned colliding files require explicit confirmation. Declining any conflict cancels the entire write phase. Removing skills/agents is intentionally not implemented in this first version.
+Ejecuta el asistente otra vez para agregar o actualizar una selección. Los skills y destinos de agente instalados antes se conservan; omitirlos no es una desinstalación. Los archivos sin modificar se actualizan automáticamente; las ediciones locales y los archivos en colisión sin propietario requieren confirmación explícita. Rechazar cualquier conflicto cancela toda la fase de escritura. Quitar skills o agentes no está implementado de forma intencional en esta primera versión.
 
-Downloads resolve `main` **once** through the public GitHub API. The catalog and every selected file come from that exact commit, with catalog-provided SHA-256 validation. Files are fetched before writing. References to unselected skills or repository-only material become commit-pinned GitHub links rather than implicit skill installations. Shared supporting references required by a selected skill remain local. Remote links require connectivity when opened; a completely offline dependency closure is not promised.
+Las descargas resuelven `main` **una sola vez** mediante la API pública de GitHub. El catálogo y cada archivo seleccionado provienen exactamente de ese commit, con validación SHA-256 proporcionada por el catálogo. Los archivos se obtienen antes de escribir. Las referencias a skills no seleccionados o a material exclusivo del repositorio se convierten en enlaces de GitHub fijados al commit, en lugar de instalaciones implícitas de skills. Las referencias de soporte compartidas que requiere un skill seleccionado permanecen locales. Los enlaces remotos requieren conexión al abrirlos; no se promete un cierre de dependencias totalmente sin conexión.
 
-Paths are validated for portability, symbolic-link destinations are refused, and rooted filesystem operations confine writes. A project lock prevents simultaneous installer runs. Ordinary write failures trigger rollback; power loss/process termination is not an atomic transaction. If interrupted, inspect `.zesh-skills.lock` and installed files before manually removing a stale lock and rerunning. Do not remove a lock owned by a live process. No project scripts or downloaded executables run during installation.
+Las rutas se validan para ser portables, se rechazan los destinos que son enlaces simbólicos y las operaciones con rutas absolutas confinan las escrituras. Un bloqueo de proyecto evita ejecuciones simultáneas del instalador. Los fallos de escritura ordinarios activan la reversión; una pérdida de energía o la terminación del proceso no es una transacción atómica. Si se interrumpe, revisa `.zesh-skills.lock` y los archivos instalados antes de quitar manualmente un bloqueo obsoleto y volver a ejecutar. No quites un bloqueo que pertenece a un proceso activo. Durante la instalación no se ejecutan scripts del proyecto ni ejecutables descargados.
 
-## Maintain the remote catalog
+## Mantén el catálogo remoto
 
-Installations read the published `skills-index.json` from the repository's `main`. Future skill changes must publish the regenerated catalog alongside their source changes. Local tests use isolated HTTP fixtures; building a binary alone does not publish skills or a release.
+Las instalaciones leen el `skills-index.json` publicado en `main` del repositorio. Los cambios futuros de skills deben publicar el catálogo regenerado junto con sus cambios de origen. Las pruebas locales usan fixtures HTTP aislados; compilar un binario por sí solo no publica skills ni un release.
 
 ```bash
-npm run catalog:generate -- --help  # Side-effect-free catalog command help
+npm run catalog:generate -- --help  # Ayuda del comando de catálogo sin efectos secundarios
 npm run catalog:generate
 npm run catalog:check
 npm run test:catalog
-npm test                 # Existing Node-only suite, including catalog freshness
-npm run test:zesh-cli     # Separate executable Go acceptance/unit checks
+npm test                 # Suite existente, solo con Node, incluida la vigencia del catálogo
+npm run test:zesh-cli     # Comprobaciones unitarias y de aceptación de Go, por separado
 ```
 
-`skills-index.json` uses `schemaVersion: 1` and stable `<domain>/<directory>` IDs. Entries contain name, description, scopes, topics, technologies, triggers, source path, version and file hashes. Optional `descriptionEs` is a bounded plain-text Spanish description (up to 1024 UTF-8 bytes, no control characters); missing or empty values remain valid legacy input. The generator reads all `SKILL.md` YAML frontmatter, including folded descriptions. Add a skill, regenerate the catalog and submit both together; no binary rebuild is needed. The pipeline rejects a stale catalog. A future incompatible catalog schema requires a compatible CLI update.
+`skills-index.json` usa `schemaVersion: 1` e identificadores estables `<domain>/<directory>`. Las entradas contienen nombre, descripción, alcances, temas, tecnologías, disparadores, ruta de origen, versión y hashes de archivos. El campo opcional `descriptionEs` es una descripción en español de texto plano y tamaño acotado (hasta 1024 bytes UTF-8, sin caracteres de control); los valores ausentes o vacíos siguen siendo entrada heredada válida. El generador lee todo el frontmatter YAML de `SKILL.md`, incluidas las descripciones plegadas. Agrega un skill, regenera el catálogo y envía ambos juntos; no hace falta recompilar el binario. La canalización rechaza un catálogo desactualizado. Un esquema de catálogo futuro e incompatible requiere una actualización compatible de la CLI.
 
-Optional frontmatter overrides allow precise classification without editing the generator:
+Las sobreescrituras opcionales del frontmatter permiten una clasificación precisa sin editar el generador:
 
 ```yaml
 metadata:
@@ -195,10 +193,10 @@ metadata:
     triggers: ["Landing-page layout and visual composition"]
 ```
 
-For a new skill, optional `metadata.catalog.descriptionEs` supplies the Spanish UI description without a binary rebuild. The generator otherwise uses `cli/skill_descriptions_es.json` only for an exact ID/source match; that file is optional in legacy fixtures and never drives discovery. Keep the canonical English `description` unchanged. Invalid authored translations are rejected before catalog generation.
+Para un skill nuevo, el campo opcional `metadata.catalog.descriptionEs` aporta la descripción en español de la interfaz sin recompilar el binario. En caso contrario, el generador usa `cli/skill_descriptions_es.json` solo para una coincidencia exacta de identificador y origen; ese archivo es opcional en los fixtures heredados y nunca determina el descubrimiento. Mantén sin cambios la `description` canónica en inglés. Las traducciones escritas inválidas se rechazan antes de generar el catálogo.
 
-Without overrides, existing domain metadata and conservative topic defaults are used. Scopes are `frontend`, `backend`, `app`; topics are descriptive and extensible. Shared skills may apply to several scopes. Detection suggests scopes from known package manifests and .NET project files without running tools; it does not hide skills based on an inferred framework version. Review version compatibility when selecting .NET 8 versus .NET 10 or framework-specific skills.
+Sin sobreescrituras se usan los metadatos de dominio existentes y los temas predeterminados conservadores. Los alcances son `frontend`, `backend` y `app`; los temas son descriptivos y extensibles. Los skills compartidos pueden aplicar a varios alcances. La detección sugiere alcances a partir de manifiestos de paquetes conocidos y archivos de proyecto de .NET sin ejecutar herramientas; no oculta skills según una versión de framework inferida. Revisa la compatibilidad de versiones al elegir .NET 8 frente a .NET 10 o skills específicos de un framework.
 
-## Integration references and proof limits
+## Referencias de integración y límites de la evidencia
 
-Discovery paths follow the documented [Claude Code](https://code.claude.com/docs/en/skills), [Codex](https://developers.openai.com/codex/skills), [OpenCode](https://opencode.ai/docs/skills/) and [Pi](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/skills.md) conventions. Generated layouts are checked locally; actual model loading/behavior and every host's project-trust UI require consumer-side verification and are not established by these tests.
+Las rutas de descubrimiento siguen las convenciones documentadas de [Claude Code](https://code.claude.com/docs/en/skills), [Codex](https://developers.openai.com/codex/skills), [OpenCode](https://opencode.ai/docs/skills/) y [Pi](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/skills.md). Las estructuras generadas se comprueban localmente; la carga y el comportamiento reales del modelo y la interfaz de confianza de proyecto de cada host requieren verificación del lado del consumidor y no quedan establecidos por estas pruebas.

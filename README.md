@@ -1,29 +1,29 @@
 # Zesh-One-Skills
 
-> AI agent skill suite for backend (.NET 8 REST), frontend (Next.js 15 + React 19), and mobile apps (Ionic + Capacitor), built for OpenCode + Engram + Agent Teams Lite workflows.
+> Suite de skills para agentes de IA en backend (.NET 8 REST), frontend (Next.js 15 + React 19) y aplicaciones móviles (Ionic + Capacitor), hecha para flujos de trabajo con OpenCode + Engram + Agent Teams Lite.
 
-## What this repository is
+## Qué es este repositorio
 
-`zesh-one-skills` centralizes domain-specific execution guidance for AI agents.
+`zesh-one-skills` centraliza guías de ejecución específicas de dominio para agentes de IA.
 
-The suite is intentionally **operational**:
-- concise defaults,
-- explicit constraints,
-- anti-patterns and progressive disclosure,
-- minimal context noise.
+La suite es intencionalmente **operativa**:
+- valores predeterminados concisos,
+- restricciones explícitas,
+- antipatrones y divulgación progresiva,
+- ruido de contexto mínimo.
 
-All skill and AGENTS domain files follow an **English-only** policy.
+Todos los archivos de skills y los archivos de dominio `AGENTS.*.md` siguen una política **English-only** (solo inglés).
 
-## Tooling stack
+## Herramientas del entorno
 
-| Tool | Role |
+| Herramienta | Función |
 |------|------|
-| [OpenCode](https://opencode.ai) | Agent runtime |
-| [Engram](https://github.com/gentleman-programming/engram) | Persistent memory across sessions |
-| Agent Teams Lite | Multi-agent orchestration/delegation |
-| Node.js | Local validation pipeline (`npm run verify`) |
+| [OpenCode](https://opencode.ai) | Runtime del agente |
+| [Engram](https://github.com/gentleman-programming/engram) | Memoria persistente entre sesiones |
+| Agent Teams Lite | Orquestación y delegación multiagente |
+| Node.js | Canal de validación local (`npm run verify`) |
 
-## Repository layout
+## Estructura del repositorio
 
 ```text
 zesh-one-skills/
@@ -71,51 +71,51 @@ zesh-one-skills/
 └── CREDITS.md
 ```
 
-## Project-local CLI installer
+## Instalador de la CLI en el proyecto
 
-Run `zesh-skills` from a consumer project's root to choose skills by scope and topic, with descriptions and no mandatory bundles. It supports Claude Code, Codex, OpenCode and Pi, preserves existing instructions, and reads the latest catalog/content from `main` at one pinned commit per run.
+Ejecuta `zesh-skills` desde la raíz de un proyecto consumidor para elegir skills por alcance y tema, con descripciones y sin paquetes obligatorios. Es compatible con Claude Code, Codex, OpenCode y Pi, conserva las instrucciones existentes y lee cada ejecución el catálogo y el contenido más recientes de `main` desde un único commit fijado.
 
-The catalog is already published on `main`. The CLI v2.8.0 release is prepared locally, **not yet public**. After publication, download your platform's raw binary and `SHA256SUMS` from [v2.8.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0); see [platform download links, checksum verification, Unix chmod and Windows PowerShell instructions](cli/README.md#download-v280-publication-pending). For example, Linux x64 uses [zesh-skills-linux-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-linux-amd64); verify against [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/SHA256SUMS) before running `--version` (expected `2.8.0`).
+El catálogo ya está publicado en `main`. Descarga el binario de tu plataforma y `SHA256SUMS` desde [v2.8.0](https://github.com/zeshone/zesh-one-skills/releases/tag/v2.8.0); consulta los [enlaces de descarga por plataforma, la verificación del checksum y las instrucciones de `chmod` en Unix y PowerShell en Windows](cli/README.md#descarga-de-v280). Por ejemplo, Linux x64 usa [zesh-skills-linux-amd64](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/zesh-skills-linux-amd64); verifica el archivo contra [SHA256SUMS](https://github.com/zeshone/zesh-one-skills/releases/download/v2.8.0/SHA256SUMS) antes de ejecutar `--version` (valor esperado: `2.8.0`). Si esa página de release todavía no es pública, puedes reproducir los mismos archivos con `npm run build:zesh-cli -- --release 2.8.0`.
 
-The executable requires no Go, Node, Git or .NET runtime; skills stay project-local. Run `zesh-skills --install-cli` to copy the executable into a user-owned location and add it to your user PATH without administrator rights; it keeps the original file and installs no skills. See [installing the CLI for your user](cli/README.md#install-the-cli-for-your-user). The wizard supports English by default and Spanish with `--es`, including 35 bundled description translations without changing English skill IDs or installed formats. See [CLI usage, architecture choices and proof limits](cli/README.md). macOS/ARM builds have compile-only evidence so far, not a verified runtime pass.
+El ejecutable no requiere Go, Node, Git ni el runtime de .NET; los skills permanecen en el proyecto. Ejecuta `zesh-skills --install-cli` para copiar el ejecutable a una ubicación del usuario y agregarlo a la `PATH` del usuario sin permisos de administrador; conserva el archivo original y no instala skills. Consulta [instalar la CLI para tu usuario](cli/README.md#instala-la-cli-para-tu-usuario). El asistente usa inglés de forma predeterminada y español con `--es`, con 35 descripciones traducidas incluidas y sin cambiar los identificadores en inglés ni los formatos instalados. Consulta [uso de la CLI, elección de arquitectura y límites de la evidencia](cli/README.md). Las compilaciones para macOS y ARM solo tienen evidencia de compilación, no una verificación de ejecución.
 
-Build locally with `npm run build:zesh-cli` (`dev` version), or prepare all six versioned assets with `npm run build:zesh-cli -- --release 2.8.0` under `dist/zesh-skills-release/v2.8.0/`. Neither command publishes nor installs globally.
+Compila localmente con `npm run build:zesh-cli` (versión `dev`), o prepara los seis archivos versionados con `npm run build:zesh-cli -- --release 2.8.0` en `dist/zesh-skills-release/v2.8.0/`. Ninguno de los dos comandos publica ni instala de forma global.
 
-Maintainers: run `npm run catalog:generate` after changing skills. The existing Node-only checks validate catalog freshness; executable Go checks run separately with `npm run test:zesh-cli`.
+Mantenedores: ejecuta `npm run catalog:generate` después de cambiar skills. Las comprobaciones actuales, solo con Node, validan la vigencia del catálogo; las comprobaciones ejecutables de Go se ejecutan por separado con `npm run test:zesh-cli`.
 
-## Adoption
+## Adopción
 
-Use the onboarding guide:
+Usa la guía de incorporación:
 
 -> **[ADOPTING.md](./ADOPTING.md)**
 
-For repository changes, use the [maintainer workflow](docs/MAINTAINING.md).
+Para cambios en el repositorio, usa el [flujo de trabajo del mantenedor](docs/MAINTAINING.md).
 
-## Validation
+## Validación
 
 ```bash
 npm install
 npm run verify
 ```
 
-`verify` runs fixture tests, semantic checks, skill lint, and release-readiness checks. It remains Node-only and does not execute a consumer application.
+`verify` ejecuta las pruebas de fixtures, las comprobaciones semánticas, el lint de skills y las comprobaciones de preparación de release. Todo sigue siendo solo con Node y no ejecuta una aplicación consumidora.
 
-For CLI interface work, load [cli-design](skills/shared/cli-design/SKILL.md) alongside the applicable domain. `npm run test:cli-instructions` runs its focused instruction/routing checks, also included in `test` and `verify`; passing them does not establish model compliance or executable CLI behavior.
+Para trabajo en la interfaz de una CLI, carga [cli-design](skills/shared/cli-design/SKILL.md) junto con el dominio que corresponda. `npm run test:cli-instructions` ejecuta sus comprobaciones de instrucciones y rutas, incluidas también en `test` y `verify`; aprobarlas no demuestra obediencia del modelo ni comportamiento ejecutable de la CLI.
 
-With a .NET 10 SDK/reference packs already installed, `npm run test:cli` runs the separate [executable CLI acceptance specimen](skills/shared/cli-design/assets/line-tally/README.md). It uses project-local disposable state and no external package feeds; it is not part of default verification and does not install an SDK or packages.
+Con un SDK de .NET 10 y sus paquetes de referencia ya instalados, `npm run test:cli` ejecuta el [espécimen de aceptación de CLI ejecutable](skills/shared/cli-design/assets/line-tally/README.md). Usa estado desechable del proyecto y ninguna fuente de paquetes externa; no forma parte de la verificación predeterminada y no instala un SDK ni paquetes.
 
-For React SPA test selection and observable UI/form/API behavior, load [frontend testing](skills/frontend/testing/SKILL.md). `npm run test:frontend-instructions` checks its instruction contract and conditional route; these Node-only checks do not render React or prove browser behavior. Reuse consumer tooling; missing prerequisites require explicit approval, not automatic installation. The optional [React DOM trial](tools/fixtures/frontend-dom/README.md) runs with `npm run test:frontend-dom` after its separately authorized isolated prerequisite setup; it is not part of default verification or actual-browser proof.
+Para elegir pruebas de una React SPA y comportamiento observable de UI, formularios y API, carga [testing de frontend](skills/frontend/testing/SKILL.md). `npm run test:frontend-instructions` comprueba su contrato de instrucciones y su ruta condicional; estas comprobaciones, solo con Node, no renderizan React ni demuestran comportamiento de navegador. Reutiliza las herramientas del consumidor; si faltan requisitos previos se requiere autorización explícita, nunca una instalación automática. La [prueba opcional de React DOM](tools/fixtures/frontend-dom/README.md) se ejecuta con `npm run test:frontend-dom` después de autorizar por separado su preparación aislada; no forma parte de la verificación predeterminada ni es evidencia de navegador real.
 
-The existing [.NET 8 unit-testing](skills/backend/testing-unit/SKILL.md) and [.NET 10 testing](skills/dotnet-10/testing/SKILL.md) profiles cover applicable rule boundaries, rejection effects and deterministic time/cancellation without unifying their libraries or adding infrastructure. `npm run test:dotnet-instructions` checks these instruction contracts; it does not execute xUnit. The optional [isolated xUnit trial](tools/fixtures/dotnet-testing/README.md) runs with `npm run test:dotnet-unit` after explicitly authorized local NuGet setup; ordinary execution never downloads packages.
+Los perfiles existentes de [pruebas unitarias de .NET 8](skills/backend/testing-unit/SKILL.md) y [pruebas de .NET 10](skills/dotnet-10/testing/SKILL.md) cubren límites aplicables, efectos al rechazar y tiempo y cancelación deterministas, sin unificar sus librerías ni agregar infraestructura. `npm run test:dotnet-instructions` comprueba estos contratos de instrucciones; no ejecuta xUnit. La [prueba aislada opcional con xUnit](tools/fixtures/dotnet-testing/README.md) se ejecuta con `npm run test:dotnet-unit` después de autorizar explícitamente la preparación local de NuGet; la ejecución ordinaria nunca descarga paquetes.
 
-For defect investigation across profiles, load [diagnosing-bugs](skills/shared/diagnosing-bugs/SKILL.md): reproduce, separate hypotheses from observations, and verify the smallest correction. `npm run test:debugging-instructions` checks its instructions/routes, not a consumer bug or agent compliance; see the [bounded proposal evidence](odd/evidence/debugging-accessibility-adoption.md).
+Para investigar defectos en todos los perfiles, carga [diagnosing-bugs](skills/shared/diagnosing-bugs/SKILL.md): reproduce, separa hipótesis de observaciones y verifica la corrección mínima. `npm run test:debugging-instructions` comprueba sus instrucciones y rutas, no un defecto del consumidor ni el cumplimiento del agente; consulta la [evidencia de la propuesta acotada](odd/evidence/debugging-accessibility-adoption.md).
 
-For changed web/hybrid interactions, load [accessibility](skills/shared/accessibility/SKILL.md) through the frontend/apps guide. `npm run test:accessibility-instructions` checks semantic, keyboard/focus and feedback instructions and routing; it does not run a browser, assistive technology or compliance audit. Preserve existing UI libraries and use real consumer journeys for those checks; no tool installation is automatic.
+Para cambios de interacción web o híbrida, carga [accessibility](skills/shared/accessibility/SKILL.md) a través de la guía de frontend o apps. `npm run test:accessibility-instructions` comprueba las instrucciones semánticas, de teclado y foco, y de retroalimentación, además de las rutas; no ejecuta un navegador, una tecnología de asistencia ni una auditoría de cumplimiento. Conserva las librerías de UI existentes y usa recorridos reales del consumidor para esas comprobaciones; ninguna instalación de herramientas es automática.
 
 ## Changelog
 
 -> **[CHANGELOG.md](./CHANGELOG.md)**
 
-## Credits
+## Créditos
 
 -> **[CREDITS.md](./CREDITS.md)**
